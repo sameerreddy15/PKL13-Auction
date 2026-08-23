@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: pkl13-auction
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+
