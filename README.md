@@ -1,5 +1,7 @@
 # PKL 13 Auction Simulator — Multiplayer Online Ready 🏆
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/sameerreddy15/PKL13-Auction)
+
 Full real-time multiplayer PKL 13 auction simulator with WebSocket synchronization across phones, tablets, and PCs.
 
 ---
