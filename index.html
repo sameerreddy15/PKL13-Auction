@@ -152,6 +152,14 @@ body{padding:20px}.app{max-width:1380px;margin:auto}.hidden{display:none!importa
 .floating-ask-time button{border-radius:999px;padding:12px 20px;font-size:13px;font-weight:900;letter-spacing:.02em;box-shadow:0 10px 28px rgba(0,0,0,.65),0 0 20px rgba(234,179,8,.45);border:2px solid #ffd15b;background:linear-gradient(135deg,#eab308,#ca8a04);color:#0b1118;cursor:pointer;transition:transform .2s ease}
 .floating-ask-time button:hover{transform:scale(1.05)}
 
+/* Floating Pause / Resume Button for Host */
+.floating-host-pause{position:fixed;bottom:24px;left:24px;z-index:99999;animation:fadeSlideDown .3s ease}
+.floating-host-pause button{border-radius:999px;padding:12px 22px;font-size:14px;font-weight:900;letter-spacing:.03em;border:2px solid #ffd15b;cursor:pointer;display:flex;align-items:center;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.7);transition:all .25s ease}
+.floating-host-pause button.pause-state{background:linear-gradient(135deg,#f59e0b,#d97706);color:#0b1118;border-color:#fcd34d;box-shadow:0 10px 28px rgba(0,0,0,.65),0 0 20px rgba(245,158,11,.45)}
+.floating-host-pause button.resume-state{background:linear-gradient(135deg,#22c55e,#15803d);color:#fff;border-color:#86efac;box-shadow:0 10px 28px rgba(0,0,0,.65),0 0 22px rgba(34,197,94,.6);animation:resumePulse 1.6s infinite}
+.floating-host-pause button:hover{transform:scale(1.05)}
+@keyframes resumePulse{0%{transform:scale(1);box-shadow:0 0 12px rgba(34,197,94,.4)}50%{transform:scale(1.04);box-shadow:0 0 24px rgba(34,197,94,.8)}100%{transform:scale(1);box-shadow:0 0 12px rgba(34,197,94,.4)}}
+
 /* Dynamic Franchise Stadium Theme Aura Glow */
 :root {
   --team-glow-1: #3b82f6;
@@ -327,7 +335,7 @@ body{padding:20px}.app{max-width:1380px;margin:auto}.hidden{display:none!importa
           <div class="section-divider"></div><h3>Auction Log</h3><div class="log" id="auctionLog"></div>
         </div>
       </div>
-      <aside class="card side-card"><h2 style="margin-top:0">Auction Controls</h2><div class="pill" id="voiceStatus" style="margin:8px 0">🔊 Voice announcements ON</div><div class="control-row"><button class="btn secondary" id="pauseBtn">⏸ Pause</button><button class="btn gold" id="hostTimeBtn" style="display:none">⏳ Host +1 Min</button><button class="btn gold" id="askTimeBtn">⏳ Ask Time (+1 min)</button><button class="btn secondary" id="resumeBtn">▶ Resume</button></div><div id="pauseStatus"></div><div id="timeRequestBox"></div><div class="section-divider"></div><div><h3>Current Group</h3><div id="sideGroup" class="muted"></div></div><div class="section-divider"></div><div><h3>Leader</h3><div id="leader" class="muted">No bids</div></div><div class="section-divider"></div><div><h3>Next action</h3><div class="bid-row"><button class="btn green" id="soldBtn">Sold</button><button class="btn red" id="unsoldBtn">Unsold</button><button class="btn gold" id="skipBtn">Force Settle</button><button class="btn secondary" id="nextPlayerBtn">Next Player</button></div></div></aside>
+      <aside class="card side-card"><h2 style="margin-top:0">Auction Controls</h2><div class="pill" id="voiceStatus" style="margin:8px 0;cursor:pointer" onclick="toggleAudio()">🔊 Voice announcements ON</div><div id="pauseStatus"></div><div id="timeRequestBox"></div><div class="section-divider"></div><div><h3>Current Group</h3><div id="sideGroup" class="muted"></div></div><div class="section-divider"></div><div><h3>Leader</h3><div id="leader" class="muted">No bids</div></div><div class="section-divider"></div><div><h3>Next action</h3><div class="bid-row"><button class="btn green" id="soldBtn">Sold</button><button class="btn red" id="unsoldBtn">Unsold</button><button class="btn gold" id="skipBtn">Force Settle</button><button class="btn secondary" id="nextPlayerBtn">Next Player</button></div></div></aside>
     </div>
   </section>
 </div>
@@ -379,17 +387,18 @@ body{padding:20px}.app{max-width:1380px;margin:auto}.hidden{display:none!importa
     <div class="fbm-title" id="fbmModalTitle">FBM Opportunity</div>
     <div class="fbm-meta" id="fbmModalMeta">Match the highest bid to retain this player for your franchise.</div>
     <div id="fbmTimerDisplay" style="font-size:18px;font-weight:900;color:#ffd15b;margin-bottom:12px">⏳ 30s remaining</div>
-    <div class="fbm-btn-row" id="fbmActionRow">
-      <button class="fbm-btn accept" id="fbmAcceptBtn" type="button">✅ Use FBM Card</button>
-      <button class="fbm-btn decline" id="fbmDeclineBtn" type="button">❌ Decline FBM</button>
+    <div class="fbm-actions" id="fbmActionRow">
+      <button class="btn green big" id="fbmAcceptBtn" onclick="handleFbmDecision(true)">✅ Match Bid (Retain Player)</button>
+      <button class="btn secondary big" id="fbmDeclineBtn" onclick="handleFbmDecision(false)">❌ Pass / Release</button>
     </div>
   </div>
 </div>
 
-<!-- Floating Ask Time Button for Non-Host Players -->
+<!-- Floating Action Buttons -->
 <div id="floatingAskTimeContainer" class="floating-ask-time hidden">
   <button type="button" id="floatingAskTimeBtn" onclick="requestTime()">⏳ Ask Time (+1 min)</button>
 </div>
+<div id="floatingHostPauseContainer" class="floating-host-pause hidden"></div>
 
 <script src="auction_data.js"></script>
 <script src="teams.js"></script>
@@ -3892,22 +3901,13 @@ function renderAuction(){
   $('auctionLog').innerHTML=(state.logs||[]).slice(0,120).map(x=>`<div>${x}</div>`).join('');
  
   const meHuman=state.slots.find(s=>s.slotId===currentSlotId)?.mode==='human';
-  $('pauseBtn').style.display=host?'inline-flex':'none';
-  if($('hostTimeBtn')) $('hostTimeBtn').style.display=host?'inline-flex':'none';
-  $('resumeBtn').style.display=host?'inline-flex':'none';
-  $('pauseBtn').disabled=!active||state.auctionPaused||auctionPhase!=='bidding';
-  if($('hostTimeBtn')) $('hostTimeBtn').disabled=!active||state.auctionPaused||auctionPhase!=='bidding';
-  $('resumeBtn').disabled=!state.auctionPaused;
-  $('askTimeBtn').style.display=(meHuman&&!host)?'inline-flex':'none';
-  $('askTimeBtn').disabled=!active||auctionPhase!=='bidding'||state.auctionPaused||!!state.pauseRequest;
-  $('soldBtn').style.display=host?'inline-flex':'none';
-  $('unsoldBtn').style.display=host?'inline-flex':'none';
-  $('skipBtn').style.display=host?'inline-flex':'none';
-  $('nextPlayerBtn').style.display=host?'inline-flex':'none';
+  if($('soldBtn')) $('soldBtn').style.display=host?'inline-flex':'none';
+  if($('unsoldBtn')) $('unsoldBtn').style.display=host?'inline-flex':'none';
+  if($('skipBtn')) $('skipBtn').style.display=host?'inline-flex':'none';
+  if($('nextPlayerBtn')) $('nextPlayerBtn').style.display=host?'inline-flex':'none';
 
   const pauseRem = state.pauseExpiresAt ? Math.max(0, Math.ceil((state.pauseExpiresAt - Date.now()) / 1000)) : 0;
   state.pauseRemaining = pauseRem;
-  $('pauseBtn').textContent=state.auctionPaused?'⏸ Paused':'⏸ Pause';
   if(state.auctionPaused){
     if(state.pauseExpiresAt && pauseRem > 0){
       $('pauseStatus').innerHTML=`<div class="pause-banner">⏳ Discussion Time • ${pauseRem}s remaining<br><small>${state.pauseReason||'Discussion time in progress'}</small></div>`;
@@ -3923,10 +3923,20 @@ function renderAuction(){
   renderHostTimeAlert();
   const floatingBtn = $('floatingAskTimeContainer');
   if(floatingBtn){
-    if(meHuman && !host && active && auctionPhase === 'bidding' && !state.auctionPaused){
+    if(meHuman && !host && active && auctionPhase === 'bidding' && !state.auctionPaused && !state.pauseRequest){
       floatingBtn.classList.remove('hidden');
     } else {
       floatingBtn.classList.add('hidden');
+    }
+  }
+  const floatingHostPause = $('floatingHostPauseContainer');
+  if(floatingHostPause){
+    if(host && typeof currentScreen === 'function' && currentScreen() === 'auctionScreen' && active){
+      floatingHostPause.classList.remove('hidden');
+      const isPaused = !!state.auctionPaused;
+      floatingHostPause.innerHTML = `<button type="button" class="${isPaused ? 'resume-state' : 'pause-state'}" onclick="toggleHostPause()">${isPaused ? '▶ RESUME AUCTION' : '⏸ PAUSE AUCTION'}</button>`;
+    } else {
+      floatingHostPause.classList.add('hidden');
     }
   }
   renderTimer();
@@ -4191,8 +4201,22 @@ function buildFinalAuctionPool(){const st=(typeof state!=='undefined'&&state)?st
 
 $('closeModal').onclick=closeInfoModal; $('infoModal').addEventListener('click',e=>{if(e.target.id==='infoModal')closeInfoModal()});
 $('viewSquadBtn').onclick=()=>{$('infoModal').classList.remove('hidden');renderSquadModal()};
-$('viewPoolBtn').onclick=()=>{$('infoModal').classList.remove('hidden');renderPoolModal()};$('viewResultsBtn').onclick=()=>{$('infoModal').classList.remove('hidden');renderResultsModal()};
-$('bidBtn').onclick=()=>placeBid(step());document.querySelectorAll('[data-jump]').forEach(b=>b.onclick=()=>placeBid(Number(b.dataset.jump)));$('skipBtn').onclick=skipPlayer;$('pauseBtn').onclick=()=>{if(isHost()&&active){setAuctionPaused(true,'Host paused the auction',0);}};if($('hostTimeBtn')){$('hostTimeBtn').onclick=()=>{if(isHost()&&active){setAuctionPaused(true,'1 minute discussion time started by host',60);}}};$('resumeBtn').onclick=()=>{if(isHost()&&state.auctionPaused){setAuctionPaused(false,'Auction resumed by host');}};$('askTimeBtn').onclick=requestTime;$('soldBtn').onclick=sold;$('unsoldBtn').onclick=unsold;$('nextPlayerBtn').onclick=nextPlayer;$('auctionBack').onclick=()=>{if(confirm('Return to room?')){if('speechSynthesis' in window) speechSynthesis.cancel(); stopAuctionActivity(); state.uiScreen='lobbyScreen';state.auctionRuntime=null;save();show('lobbyScreen');renderLobby()}};
+window.toggleHostPause = function(){
+  if(!isHostUser() || !state) return;
+  if(state.auctionPaused){
+    setAuctionPaused(false, 'Auction resumed by host');
+  } else if (active) {
+    setAuctionPaused(true, 'Host paused the auction', 0);
+  }
+};
+$('bidBtn').onclick=()=>placeBid(step());
+document.querySelectorAll('[data-jump]').forEach(b=>b.onclick=()=>placeBid(Number(b.dataset.jump)));
+$('skipBtn').onclick=skipPlayer;
+if($('floatingAskTimeBtn')) $('floatingAskTimeBtn').onclick=requestTime;
+$('soldBtn').onclick=sold;
+$('unsoldBtn').onclick=unsold;
+$('nextPlayerBtn').onclick=nextPlayer;
+$('auctionBack').onclick=()=>{if(confirm('Return to room?')){if('speechSynthesis' in window) speechSynthesis.cancel(); stopAuctionActivity(); state.uiScreen='lobbyScreen';state.auctionRuntime=null;save();show('lobbyScreen');renderLobby()}};
 const createRoomBtn=$('createRoom');
 if(createRoomBtn){
   createRoomBtn.type='button';
@@ -5064,9 +5088,15 @@ function buildFinalAuctionPool(){
       if (typeof currentScreen === 'function' && currentScreen() !== 'auctionScreen') return;
       const tag = (e.target && e.target.tagName) || '';
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (e.target && e.target.isContentEditable)) return;
-      if (typeof state === 'undefined' || !state || state.auctionPaused || !active) return;
+      if (typeof state === 'undefined' || !state) return;
       
       const key = e.key.toLowerCase();
+      if (key === 'p' && isHostUser()) {
+        e.preventDefault();
+        window.toggleHostPause();
+        return;
+      }
+      if (state.auctionPaused || !active) return;
       if (key === ' ' || e.code === 'Space') {
         e.preventDefault();
         if (!bidsLocked && ['bidding','going1','going2'].includes(auctionPhase)) {
@@ -5092,8 +5122,6 @@ function buildFinalAuctionPool(){
           const inc = ['A','B'].includes(active.category) ? 500000 : 200000;
           placeBid(inc);
         }
-      } else if (key === 'p' && isHostUser()) {
-        setAuctionPaused(!state.auctionPaused, state.auctionPaused ? 'Auction resumed by host' : 'Host paused the auction');
       } else if (key === 's' && isHostUser() && ['bidding','going1','going2'].includes(auctionPhase) && active.highestBidder) {
         sold();
       } else if (key === 'u' && isHostUser() && ['bidding','going1','going2'].includes(auctionPhase) && !active.highestBidder) {
