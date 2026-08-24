@@ -646,9 +646,8 @@ body.tv-projector-mode .timer{font-size:48px !important;padding:8px 24px !import
   </div>
 </div>
 
-<!-- Floating Action Buttons -->
 <div id="floatingAskTimeContainer" class="floating-ask-time hidden">
-  <button type="button" id="floatingAskTimeBtn" onclick="requestTime()">⏳ Ask Time (+1 min)</button>
+  <button type="button" id="floatingAskTimeBtn" onclick="requestTime()">⏳ Ask Time</button>
 </div>
 <div id="floatingHostPauseContainer" class="floating-host-pause hidden"></div>
 
@@ -2928,7 +2927,7 @@ function renderHostTimeAlert() {
   container.innerHTML = `
     <div class="request-box" style="display:flex;align-items:center;justify-content:space-between;gap:12px;background:linear-gradient(135deg,#18253d,#0f172a);border:2px solid #ffd15b;border-radius:14px;padding:12px 18px;margin-bottom:12px;box-shadow:0 8px 30px rgba(0,0,0,0.6);animation:fadeSlideDown .3s ease">
       <div style="font-size:14px;font-weight:800;color:#f8fafc">
-        ⏳ <b style="color:#ffd15b">TIME REQUEST:</b> <span>${escapeHtml(req.name)}</span> ${teamLabel ? '<span class="muted">(' + escapeHtml(teamLabel) + ')</span>' : ''} requested 1 min discussion!
+        ⏳ <b style="color:#ffd15b">TIME REQUEST:</b> <span>${escapeHtml(req.name)}</span> ${teamLabel ? '<span class="muted">(' + escapeHtml(teamLabel) + ')</span>' : ''} requested time for discussion!
       </div>
       <div style="display:flex;gap:8px;flex-shrink:0">
         <button class="btn green" type="button" style="padding:8px 16px;font-size:13px;font-weight:800;border-radius:10px" onclick="approveTimeRequest()">✅ Accept (Pause)</button>
@@ -2950,10 +2949,10 @@ window.handleHostDecisionTimeRequest = function(accept){
   if (accept) {
     const tMap = (window.TEAM_BY_ID || (typeof TEAMS !== 'undefined' ? Object.fromEntries(TEAMS.map(x=>[x.id,x])) : {}));
     const teamLabel = req.teamName || (req.teamId ? (tMap[req.teamId]?.name || req.teamId) : '');
-    const reason = `${req.name}${teamLabel ? ' (' + teamLabel + ')' : ''} requested 1 min discussion (Approved by Host)`;
-    setAuctionPaused(true, reason, 60);
-    broadcastAction('auction:pause_toggle', { paused: true, reason: state.pauseReason, seconds: 60, pauseExpiresAt: state.pauseExpiresAt }, state);
-    showOutbidAlert(`⏸️ Host accepted time request! Auction paused for 1 min discussion.`);
+    const reason = `${req.name}${teamLabel ? ' (' + teamLabel + ')' : ''} requested discussion time (Accepted by Host)`;
+    setAuctionPaused(true, reason, 0);
+    broadcastAction('auction:pause_toggle', { paused: true, reason: state.pauseReason, seconds: 0, pauseExpiresAt: null }, state);
+    showOutbidAlert(`⏸️ Host accepted time request! Auction paused. Host can resume when ready.`);
   } else {
     save();
     renderAuction();
@@ -2972,7 +2971,7 @@ function requestTime(){
   const who = me?.name || 'Human player';
 
   if (isHostUser()) {
-    setAuctionPaused(true, `Host paused auction for discussion`, 60);
+    setAuctionPaused(true, `Host paused auction for discussion`, 0);
     showOutbidAlert(`⏸️ Auction paused by Host! Click Resume when ready.`);
     return;
   }
@@ -5645,7 +5644,7 @@ function renderAuction(){
     $('pauseStatus').innerHTML='';
   }
   if($('timeRequestBox')){
-    if(host&&state.pauseRequest){$('timeRequestBox').innerHTML=`<div class="request-box"><b>⏳ Time request</b><div class="small muted">${state.pauseRequest.name} requested 1 minute to discuss.</div><div class="control-row"><button class="btn gold" onclick="approveTimeRequest()">Approve 1 min</button><button class="btn secondary" onclick="declineTimeRequest()">Decline</button></div></div>`} else if(!host&&state.pauseRequest){$('timeRequestBox').innerHTML='<div class="request-box">⏳ Time request sent to host.</div>'} else $('timeRequestBox').innerHTML='';
+    if(host&&state.pauseRequest){$('timeRequestBox').innerHTML=`<div class="request-box"><b>⏳ Time request</b><div class="small muted">${state.pauseRequest.name} requested time to discuss.</div><div class="control-row"><button class="btn gold" onclick="approveTimeRequest()">Accept (Pause)</button><button class="btn secondary" onclick="declineTimeRequest()">Decline (Continue)</button></div></div>`} else if(!host&&state.pauseRequest){$('timeRequestBox').innerHTML='<div class="request-box">⏳ Time request sent to host. Waiting for approval…</div>'} else $('timeRequestBox').innerHTML='';
   }
   renderHostTimeAlert();
   const floatingBtn = $('floatingAskTimeContainer');
