@@ -4136,19 +4136,31 @@ function buildFbmUnavailableSaleText(player, origTeamId, winnerTeamId, price) {
 
 function skipPlayer(){
   if(!isHostUser() || !active || state.auctionPaused || !['announcement','bidding','going1','going2'].includes(auctionPhase)) return;
+  
+  // If a bid has already been placed by any team (human or bot), Force Settle instantly awards the player to the highest bidder
+  if (active.highestBidder) {
+    sold();
+    return;
+  }
+
   const base=Number(active.basePrice||0);
   const current=Number(active.currentBid||0);
   const stepSize=current<10000000?25000:50000;
   const minPrice=Math.max(base,current+stepSize);
   const aiSlots=state.slots.filter(s=>s.mode==='bot'&&s.teamId);
+  const targetSlots = aiSlots.length > 0 ? aiSlots : state.slots.filter(s=>s.teamId);
   const eligible=state.teams.filter(t=>{
-    const slot=aiSlots.find(s=>s.teamId===t.teamId); if(!slot)return false;
+    const slot=targetSlots.find(s=>s.teamId===t.teamId); if(!slot)return false;
     if((t.auctionSquad||[]).length>=25)return false;
     if(Number(t.purse||0)<minPrice)return false;
     if(active.nationality==='Overseas' && overseasCount(t)>=4)return false;
     return true;
   });
-  if(!eligible.length){alert(`Skip cannot be completed: no AI team can afford a price above the current bid of ${money(current)}.`);return;}
+  if(!eligible.length){
+    // If no team can afford or take the player, mark unsold cleanly
+    unsold();
+    return;
+  }
   const bidCounts=new Map();
   (active.bidHistory||[]).forEach(id=>bidCounts.set(id,(bidCounts.get(id)||0)+1));
   eligible.sort((a,b)=>{
