@@ -295,7 +295,7 @@ body{padding:20px}.app{max-width:1380px;margin:auto}.hidden{display:none!importa
   .hotkey-hint { display: none !important; }
 }
 /* Bidding War Banner */
-.bidding-war-banner{background:linear-gradient(90deg,#ef4444,#f59e0b,#ef4444);background-size:200% auto;color:#fff;font-weight:900;font-size:15px;padding:8px 16px;border-radius:12px;text-align:center;margin-bottom:12px;box-shadow:0 0 25px rgba(239,68,68,.7);animation:croreGlow 1.2s linear infinite,fadeSlideDown .3s ease}
+.bidding-war-banner{position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:999999;background:linear-gradient(90deg,#dc2626,#ea580c,#dc2626);background-size:200% auto;color:#fff;font-weight:900;font-size:15px;padding:10px 22px;border-radius:999px;text-align:center;box-shadow:0 10px 35px rgba(239,68,68,.75),0 0 20px rgba(249,115,22,.6);border:1.5px solid #fef08a;animation:croreGlow 1.2s linear infinite,fadeSlideDown .3s ease;white-space:nowrap;pointer-events:none;max-width:92vw}
 
 /* Watchlist Alert Toast */
 .watchlist-toast{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#eab308,#ca8a04);color:#000;padding:10px 20px;border-radius:999px;font-weight:900;font-size:14px;box-shadow:0 10px 30px rgba(234,179,8,.6);z-index:99999;display:flex;align-items:center;gap:8px;animation:fadeSlideDown .3s ease}
@@ -1432,6 +1432,19 @@ function initSocket() {
           state.timeLeft = timeLeft;
           state.auctionPhase = 'bidding';
           state.bidsLocked = false;
+        }
+        if (active) {
+          active.recentBids = active.recentBids || [];
+          active.recentBids.push({ teamId: bidderTeamId, time: Date.now() });
+          if (active.recentBids.length >= 2) {
+            const last2 = active.recentBids.slice(-2);
+            if (last2[0].teamId !== last2[1].teamId && (last2[1].time - last2[0].time) <= 3500) {
+              const tMap = (window.TEAM_BY_ID || (typeof TEAMS !== 'undefined' ? Object.fromEntries(TEAMS.map(x=>[x.id,x])) : {}));
+              const t1 = tMap[last2[0].teamId]?.name || last2[0].teamId;
+              const t2 = tMap[last2[1].teamId]?.name || last2[1].teamId;
+              showBiddingWarFlare(t1, t2);
+            }
+          }
         }
         if (updatedBid >= 10000000 && active && !active.croreCelebrated) {
           active.croreCelebrated = true;
@@ -2735,7 +2748,8 @@ function startAuction(){
     if(t.retentions && t.retentions.length > 0 && !t.auctionSquad.some(x => x.retained)){
       t.retentions.forEach(name => {
         const amt = (t.retentionAmounts && t.retentionAmounts[canon(name)]) || 1300000;
-        t.auctionSquad.push({ name, price: amt, retained: true, category: 'Retention', position: 'Player', nationality: 'Domestic' });
+        const isOs = isOverseasPlayer(name);
+        t.auctionSquad.push({ name, price: amt, retained: true, category: 'Retention', position: 'Player', nationality: isOs ? 'Overseas' : 'Domestic' });
       });
     }
     if(typeof t.fbmRemaining==='undefined' || t.fbmRemaining === null){
@@ -3823,8 +3837,62 @@ function positionNeed(team,pos){
   const targets={Raider:6,Defender:7,'All-Rounder':4};
   return Math.max(0,(targets[pos]||4)-count);
 }
+const ALL_KNOWN_OVERSEAS_NAMES = [
+  'Md. Reza Shadloui', 'Mohammadreza Shadloui Chiyaneh', 'Mohammadreza Shadloui', 'md. reza shadloui',
+  'Fazel Atrachali', 'Amir Hossein Bastami', 'Amir H. Bastami', 'amir hossein bastami',
+  'Alireza Mirzaeian', 'Ahmadreza Asgari', 'Ghanshyam Roka Magar',
+  'Reza Mirbagheri', 'Ali Samadi Choubtarash', 'Hamid Mirzaei Nader', 'Hamid Mirzaei',
+  'Amin Ghorbani', 'Milad Mohajer', 'Mohammad Esmaeil Nabibakhsh', 'Mohammad E. Nabibakhsh',
+  'Moein Safaghi', 'Alireza Khalili', 'Amir Hossein Ejlali', 'Amirhossein Ejlali', 'Amir Ejlali',
+  'Amirmohammad Zafardanesh', 'Mohammad Ghorbani', 'Mohammadreza Kaboudrahangi',
+  'Dong Geon Lee', 'Jang Kun Lee', 'Omid Khojasteh Mohammadshah', 'Omid K. Mohammadshah', 'Omid Mohammadshah',
+  'Milad Jabbari', 'Chai-Ming Chang', 'Chia-Ming Chang', 'Zheng-Wei Chen', 'Jyun Jie Li',
+  'Ganesh Parki', 'John Karuga Muremwa', 'Samuel Wanjala Wafula', 'Monirul Chowdhury',
+  'Jong Hoon Choi', 'Helvic Simuyu Wanjala', 'Ramu Tamatta', 'Rodgers Omondi Atieno',
+  'Devinthirakumaar V. K.', 'Rattanakon Yotsungnoen', 'Han Eol Kim', 'Viknesshwaran Gunaseelan',
+  'Ryo Furihata', 'Komang Wahyu Brahmasta', 'James Namaba Kamweti', 'Md. Mijanur Rahman',
+  'Ju Hwan Kim', 'Allan Oduor Omondi', 'Junseok An', 'Nestor Mariano Pascual',
+  'Shahan Sha Mohammed', 'Shoya Suzuki', 'Tobius Kinyua Muriithi', 'Akikazu Izumi',
+  'Chayaphon Kamunee', 'Suresh Leong Kim Seng', 'Odhore Franklyne Otaya', 'Dipayon Golder',
+  'Milan Kumar Kaushal', 'Al Amin', 'Md Razib Ahamed', 'Hiroto Chiba', 'Ali Tolaqani',
+  'Javad M. Dolatabadi'
+];
+const OVERSEAS_CANON_MAP = new Set(ALL_KNOWN_OVERSEAS_NAMES.map(n => typeof canon === 'function' ? canon(n) : String(n).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()));
+
+function isOverseasPlayer(name){
+  if(!name) return false;
+  const k = typeof canon === 'function' ? canon(name) : String(name).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  if(OVERSEAS_CANON_MAP.has(k)) return true;
+  const pool = (typeof players !== 'undefined' ? players : (state?.players || []));
+  const p = pool.find(x => (typeof canon === 'function' ? canon(x.name) : String(x.name).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()) === k);
+  if(p && p.nationality === 'Overseas') return true;
+  return false;
+}
+
 function overseasCount(team){
-  return (team.auctionSquad||[]).filter(x=>x.nationality==='Overseas').length;
+  if(!team) return 0;
+  const counted = new Set();
+  let count = 0;
+  if(team.auctionSquad && team.auctionSquad.length > 0){
+    for(const p of team.auctionSquad){
+      const k = typeof canon === 'function' ? canon(p.name) : String(p.name).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+      if(!counted.has(k) && (p.nationality === 'Overseas' || isOverseasPlayer(p.name))){
+        counted.add(k);
+        count++;
+      }
+    }
+    return count;
+  }
+  if(team.retentions && team.retentions.length > 0){
+    for(const name of team.retentions){
+      const k = typeof canon === 'function' ? canon(name) : String(name).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+      if(!counted.has(k) && isOverseasPlayer(name)){
+        counted.add(k);
+        count++;
+      }
+    }
+  }
+  return count;
 }
 function totalSquadCount(team){return (team.auctionSquad||[]).length;}
 function aiPassProbability(team,player){
@@ -5155,7 +5223,36 @@ function autoRetainBots(){
 }
 function renderRetentions(){if(typeof window.renderRetentions==='function'&&window.renderRetentions!==renderRetentions)return window.renderRetentions();renderRetentionTeamButtons();const assigned=state.slots.map(s=>s.teamId).filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i);$('retentionState').textContent=state.retentionsFinalized?'Finalized':'Selection in progress';$('retentionGrid').innerHTML=assigned.map(teamId=>{const teamObj=state.teams.find(t=>t.teamId===teamId);const cands=retentionCandidates(teamId);const selected=new Set((teamObj?.retentions||[]).map(canon));const isBot=state.slots.find(s=>s.teamId===teamId)?.mode==='bot';const currentCost=retentionSpentFor(teamObj),remaining=Math.max(0,Number(teamObj?.purse??TEAM_PURSE));return `<div class="team-retain" id="retain-team-${teamId}"><div class="team-retain-top"><img src="${TEAM_BY_ID[teamId].logo}"><div><h3>${TEAM_BY_ID[teamId].name}</h3><div class="muted small">${cands.length} squad players • ${isBot?'🤖 AI • 0–8 additional retentions':'👤 Human • unlimited additional retentions'}</div><div class="retain-purse">Purse after retentions: <b>${money(remaining)}</b> • Retention spend: <b>${money(currentCost)}</b></div></div><div class="retain-team-cost">${money(currentCost)}</div></div>${!isBot&&!state.retentionsFinalized?`<div class="retain-controls"><button class="btn secondary" onclick="selectAllAffordable('${teamId}')">Select all affordable</button><button class="btn secondary" onclick="clearRetentions('${teamId}')">Clear additional retentions</button></div>`:''}<div class="retain-table-wrap"><table class="retain-table"><thead><tr><th>Player</th><th>Category</th><th>Base / Auction Price</th><th>Retention Amount</th><th>Status</th></tr></thead><tbody>${cands.map(([name,pos])=>{const perm=permanentRetainedEntry(teamId,name);const type=perm?.[2]||null;const r=type?RETENTION_RULES[type]:null;const ref=refPrice(name);const checked=selected.has(canon(name));const amount=retentionPriceFor(teamId,name,pos);const locked=!!perm||isBot||state.retentionsFinalized;const priceCell=perm?`<b>${money(r.min)}${r.max!==r.min?'–'+money(r.max):' fixed'}</b><div class="muted small">${r.label}</div>`:`<b>${money(retentionBasePrice(teamId,name,pos))}</b>${ref!==null?`<div class="muted small">S12 auction: ${money(ref)}</div>`:''}`;const typeCell=perm?`<span class="retention-cat">${type}</span><div class="muted small">${r.label}</div>`:`<span class="retention-cat">Category ${cat}</span>`;return `<tr class="${checked?'retain-selected':''}"><td><button class="retain-player-btn" type="button" ${locked?'disabled':''} data-team="${teamId}" data-player="${encodeURIComponent(name)}" onclick="handleRetentionPlayerClick(this)">${name}</button><div class="retain-hint">${perm?'Existing retained player':checked?'Selected for retention':'Click player name to retain'}</div></td><td>${typeCell}</td><td>${priceCell}</td><td class="retain-price-control">${checked?`<div class="retain-amount-editor"><span>₹</span><input class="retain-amount-input" type="number" min="${r?r.min:retentionBasePrice(teamId,name,pos)}" max="${r?r.max:TEAM_PURSE}" step="${r?r.step:100000}" value="${amount}" data-team="${teamId}" data-player="${encodeURIComponent(name)}" ${locked?'disabled':''} onchange="updateRetentionAmount(this.dataset.team,decodeURIComponent(this.dataset.player),this.value)"></div><div class="retain-click-note">${type==='NYP'?'Fixed ₹10.5L':type==='RYP'?'₹13L–₹50L':type==='ERP'?'₹30L–₹90L':'Set amount above base'}</div>`:'<span class="muted small">Click player name to enter amount</span>'}</td><td>${perm?'<span class="success"><b>RETAINED</b></span>':checked?'<span class="success"><b>SELECTED</b></span>':'<span class="muted small">Available</span>'}</td></tr>`;}).join('')}</tbody></table></div><div class="retain-summary"><span>Selected: <b>${(teamObj.retentions||[]).length}</b></span><span>Retention spend: <b>${money(currentCost)}</b></span><span>Purse left: <b>${money(remaining)}</b></span></div></div>`;}).join('')||'<div class="empty">No teams assigned to this room.</div>';}
 window.handleRetentionPlayerClick=function(btn){if(!btn||btn.disabled)return;const teamId=btn.dataset.team,name=decodeURIComponent(btn.dataset.player||'');if(permanentRetainedEntry(teamId,name))return;toggleRetentionByName(teamId,name);setTimeout(()=>{const row=btn.closest('tr');const target=row?.querySelector('.retain-amount-input');if(target){target.focus();target.select();}},20);};
-window.toggleRetentionByName=function(teamId,name){const t=state.teams.find(x=>x.teamId===teamId);if(!t)return;if(permanentRetainedEntry(teamId,name))return;const slot=state.slots.find(s=>s.teamId===teamId);if(!slot||slot.mode==='bot'||state.retentionsFinalized)return;t.retentions=t.retentions||[];t.retentionAmounts=t.retentionAmounts||{};const item=retentionCandidates(teamId).find(x=>canon(x[0])===canon(name));const pos=item?item[1]:null;const amount=retentionDefaultAmount(teamId,name,pos);const key=canon(name);if(t.retentions.some(x=>canon(x)===key))t.retentions=t.retentions.filter(x=>canon(x)!==key);else{const other=retentionSpentFor({...t,retentions:t.retentions.filter(x=>canon(x)!==key)});if(other+amount>TEAM_PURSE){alert(`Cannot retain ${name}: purse limit reached.`);return;}t.retentions.push(name);t.retentionAmounts[key]=amount;}syncRetentionPurse(t);save();renderRetentions();};
+window.toggleRetentionByName=function(teamId,name){
+  const t=state.teams.find(x=>x.teamId===teamId);
+  if(!t)return;
+  if(permanentRetainedEntry(teamId,name))return;
+  const slot=state.slots.find(s=>s.teamId===teamId);
+  if(!slot||slot.mode==='bot'||state.retentionsFinalized)return;
+  t.retentions=t.retentions||[];
+  t.retentionAmounts=t.retentionAmounts||{};
+  const item=retentionCandidates(teamId).find(x=>canon(x[0])===canon(name));
+  const pos=item?item[1]:null;
+  const amount=retentionDefaultAmount(teamId,name,pos);
+  const key=canon(name);
+  if(t.retentions.some(x=>canon(x)===key)){
+    t.retentions=t.retentions.filter(x=>canon(x)!==key);
+  } else {
+    const isOs = isOverseasPlayer(name);
+    const osInTeam = overseasCount(t);
+    if(isOs && osInTeam >= 4){
+      alert(`Cannot retain ${name}: Maximum 4 overseas players allowed (Currently ${osInTeam}/4).`);
+      return;
+    }
+    const other=retentionSpentFor({...t,retentions:t.retentions.filter(x=>canon(x)!==key)});
+    if(other+amount>TEAM_PURSE){alert(`Cannot retain ${name}: purse limit reached.`);return;}
+    t.retentions.push(name);
+    t.retentionAmounts[key]=amount;
+  }
+  syncRetentionPurse(t);
+  save();
+  renderRetentions();
+};
 window.updateRetentionAmount=function(teamId,name,value){const t=state.teams.find(x=>x.teamId===teamId);if(!t||permanentRetainedEntry(teamId,name)&&state.slots.find(s=>s.teamId===teamId)?.mode==='bot')return;const item=retentionCandidates(teamId).find(x=>canon(x[0])===canon(name));const pos=item?item[1]:null;const r=retentionTypeRule(teamId,name,pos);const min=r?r.min:retentionBasePrice(teamId,name,pos),max=r?r.max:TEAM_PURSE,step=r?r.step:100000;let n=Number(value);if(!Number.isFinite(n)||n<min||n>max){alert(r?`${name} retention must be within ${money(min)}–${money(max)}.`:`${name} retention cannot be below ${money(min)}.`);renderRetentions();return;}if(r?.max===r?.min)n=min;else n=Math.round(n/step)*step;const key=canon(name);const other=retentionSpentFor({...t,retentions:(t.retentions||[]).filter(x=>canon(x)!==key)});if(other+n>TEAM_PURSE){alert('Retention amount exceeds purse.');renderRetentions();return;}t.retentionAmounts=t.retentionAmounts||{};t.retentionAmounts[key]=n;if(!(t.retentions||[]).some(x=>canon(x)===key))t.retentions.push(name);syncRetentionPurse(t);save();renderRetentions();};
 window.clearRetentions=function(teamId){const t=state.teams.find(x=>x.teamId===teamId);if(!t)return;t.retentions=(t.retentions||[]).filter(n=>!!permanentRetainedEntry(teamId,n));const keep={};for(const n of t.retentions)keep[canon(n)]=retentionPriceFor(teamId,n,(retentionCandidates(teamId).find(x=>canon(x[0])===canon(n))||[])[1]);t.retentionAmounts=keep;syncRetentionPurse(t);save();renderRetentions();};
 window.selectAllAffordable=function(teamId){const t=state.teams.find(x=>x.teamId===teamId);const slot=state.slots.find(s=>s.teamId===teamId);if(!t||!slot||slot.mode==='bot'||state.retentionsFinalized)return;ensurePermanentRetentions();for(const [name,pos] of retentionCandidates(teamId)){if(permanentRetainedEntry(teamId,name))continue;const amount=retentionDefaultAmount(teamId,name,pos);if(retentionSpentFor(t)+amount>TEAM_PURSE)continue;t.retentions.push(name);t.retentionAmounts[canon(name)]=amount;}syncRetentionPurse(t);save();renderRetentions();};
@@ -5692,7 +5789,8 @@ function buildFinalAuctionPool(){
     const rows=cands.map(([name,pos])=>{
       const key=norm(name), meta=auctionMeta(name), cat=displayCategory(teamId,name,pos), base=displayBase(teamId,name,pos), type=typeFor(teamId,name), rule=type?TYPE_RULES[type]:null, amount=window.retentionPriceFor(teamId,name,pos), sel=selected.has(key), locked=isBot||state.retentionsFinalized;
       const min=rule?rule.min:base, max=rule?rule.max:TEAM_PURSE, step=rule?rule.step:100000;
-      const status=(meta&&meta.nationality)||((typeof RETENTION_NATIONALITY!=='undefined'&&RETENTION_NATIONALITY[name])||'Domestic');
+      const isOs=isOverseasPlayer(name);
+      const status=isOs ? '<span style="color:#38bdf8;font-weight:800">🌍 Overseas</span>' : 'Domestic';
       return `<tr class="${sel?'retain-selected':''}">
         <td><button class="retain-player-btn" type="button" ${locked?'disabled':''} data-team="${teamId}" data-player="${encodeURIComponent(name)}" onclick="handleRetentionPlayerClick(this)">${name}</button></td>
         <td>${roleLabel(pos)}</td>
@@ -5702,9 +5800,10 @@ function buildFinalAuctionPool(){
         <td>${status}</td>
       </tr>`;
     }).join('');
-    $('retentionGrid').innerHTML=`<div class="team-retain"><div class="team-retain-top"><img src="${TEAM_BY_ID[teamId].logo}"><div><h3>${TEAM_BY_ID[teamId].name}</h3><div class="muted small">${cands.length} S12 Squad Players • ${isBot?'🤖 AI Team':'👤 Human Team'}${slot?.isReady?' • <span style="color:#4ade80;font-weight:800">✅ Ready</span>':''}</div><div class="retain-purse">Purse remaining: <b>${money(remaining)}</b> • Spend: <b>${money(cost)}</b></div></div><div class="retain-team-cost">${money(cost)}</div></div>
+    const osCount = overseasCount(t);
+    $('retentionGrid').innerHTML=`<div class="team-retain"><div class="team-retain-top"><img src="${TEAM_BY_ID[teamId].logo}"><div><h3>${TEAM_BY_ID[teamId].name}</h3><div class="muted small">${cands.length} S12 Squad Players • ${isBot?'🤖 AI Team':'👤 Human Team'}${slot?.isReady?' • <span style="color:#4ade80;font-weight:800">✅ Ready</span>':''} • 🌍 Overseas: <b>${osCount}/4</b></div><div class="retain-purse">Purse remaining: <b>${money(remaining)}</b> • Spend: <b>${money(cost)}</b></div></div><div class="retain-team-cost">${money(cost)}</div></div>
       <div class="retain-table-wrap"><table class="retain-table"><thead><tr><th>Player</th><th>Role</th><th>Category</th><th>Base Price</th><th>Retention Amount</th><th>Nationality</th></tr></thead><tbody>${rows}</tbody></table></div>
-      <div class="retain-summary"><span>Squad players: <b>${cands.length}</b></span><span>Selected: <b>${(t.retentions||[]).length}</b></span><span>Purse left: <b>${money(remaining)}</b></span></div></div>`;
+      <div class="retain-summary"><span>Squad players: <b>${cands.length}</b></span><span>Selected: <b>${(t.retentions||[]).length}</b></span><span>🌍 Overseas: <b>${osCount}/4</b> (Max 4)</span><span>Purse left: <b>${money(remaining)}</b></span></div></div>`;
   };
 })();
 </script>
@@ -5747,7 +5846,6 @@ function buildFinalAuctionPool(){
     t.retentionSpent=cost; t.purse=Math.max(0,TEAM_PURSE-cost); t.spent=cost; t.retentionPurse=t.purse; return cost;
   };
 
-  // AI may retain only players whose XLSX retention price is <= ₹50 lakh.
   window.autoRetainBots=function(){
     for(const slot of state.slots.filter(s=>s.mode==='bot'&&s.teamId)){
       const team=state.teams.find(x=>x.teamId===slot.teamId);
@@ -5772,6 +5870,9 @@ function buildFinalAuctionPool(){
         if(added>=target || added>=8) break;
         if(x.price>5000000) continue;
         if(spend+x.price>TEAM_PURSE) continue;
+        const isOs = isOverseasPlayer(x.name);
+        const osInTeam = team.retentions.filter(n => isOverseasPlayer(n)).length;
+        if(isOs && osInTeam >= 4) continue;
         team.retentions.push(x.name);
         team.retentionAmounts[xnorm(x.name)]=x.price;
         spend+=x.price; added++;
