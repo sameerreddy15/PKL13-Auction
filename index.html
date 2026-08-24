@@ -387,7 +387,6 @@ body.tv-projector-mode .timer{font-size:48px !important;padding:8px 24px !import
       <div class="chips">
         <button class="btn secondary" id="auctionAudioToggle" type="button" onclick="toggleAudio()">🔊 Voice: ON</button>
         <button class="btn secondary" id="auctionChatBtn">💬 Chat</button>
-        <button class="btn secondary" id="viewStarting7Btn">7️⃣ Starting 7</button>
         <button class="btn secondary" id="toggleTvModeBtn" title="Toggle TV Broadcast / Projector Mode (Hotkey: T)">📺 TV Mode</button>
         <button class="btn secondary" id="viewSquadBtn">Squads</button>
         <button class="btn secondary" id="viewPoolBtn">Auction Pool</button>
@@ -4205,6 +4204,12 @@ let currentS7TeamId = '';
 let activePickingSlotId = null;
 
 function openStarting7Modal(targetTeamId){
+  const g = groupNow();
+  const pool = (state?.players || []).filter(p => p.status === 'upcoming');
+  if(g && pool.length > 0 && active){
+    showOutbidAlert('⏳ Starting 7 can be created only after the complete auction is finished!');
+    return;
+  }
   const myTeam = activeTeamForMe();
   const teamId = targetTeamId || myTeam || (state.teams && state.teams[0]?.teamId);
   currentS7TeamId = teamId;
@@ -4213,7 +4218,7 @@ function openStarting7Modal(targetTeamId){
   const team = state.teams?.find(t => t.teamId === teamId);
   if(!team) { alert('No franchise squad found.'); return; }
   const squad = team.auctionSquad || [];
-  if(squad.length === 0){ alert('This team has no players in their squad yet. Retain or purchase players first.'); return; }
+  if(squad.length === 0){ alert('This team has no players in their squad yet. Complete auction first.'); return; }
 
   renderStarting7ModalBody();
   $('starting7Modal').classList.remove('hidden');
@@ -4561,9 +4566,16 @@ function renderAuction(){
   if(!g){
     const incomplete=state.teams.filter(t=>(t.auctionSquad||[]).length<18);
     const overseasShort=state.teams.filter(t=>overseasCount(t)<2);
-    $('groupLabel').innerHTML='<span class="pill">AUCTION COMPLETE</span>';
+    $('groupLabel').innerHTML='<span class="pill" style="background:#22c55e;color:#000;font-weight:900">AUCTION COMPLETE</span>';
     $('sideGroup').textContent=incomplete.length?`Complete • ${incomplete.length} team(s) below 18 players`:overseasShort.length?`Complete • ${overseasShort.length} team(s) need more overseas players (minimum 2)`:'Complete • All teams have 18–25 players and 2–4 overseas';
     $('nextPlayerBtn').disabled=true;$('soldBtn').disabled=true;$('unsoldBtn').disabled=true;$('skipBtn').disabled=true;
+    $('playerName').innerHTML='🏆 AUCTION CONCLUDED';
+    $('playerMeta').innerHTML='<button class="btn gold" onclick="openStarting7Modal()" style="font-weight:900;padding:8px 16px;font-size:13px">7️⃣ Build & Share Starting 7 Mat</button> <button class="btn primary" onclick="$(\'infoModal\').classList.remove(\'hidden\');renderResultsModal(\'awards\')" style="font-weight:900;padding:8px 16px;font-size:13px">🎖️ Awards & Power Rankings</button>';
+    $('currentBid').textContent='FINALE';
+    $('basePrice').textContent='All categories completed';
+    $('leader').textContent='Auction Complete';
+    $('bidBtn').disabled=true;
+    $('bidBtn').textContent='Auction Done';
     return;
   }
   
@@ -4706,7 +4718,7 @@ function renderAuction(){
     const teamObj=tMap[t.teamId] || { name: t.teamId, logo: '' };
     const pPct = Math.max(0, Math.min(100, Math.round((t.purse / TEAM_PURSE) * 100)));
     const pCol = pPct > 50 ? '#22c55e' : (pPct > 20 ? '#eab308' : '#ef4444');
-    return `<div class="team-mini ${t.teamId===my?'mine':''}" onclick="openStarting7Modal('${t.teamId}')" style="cursor:pointer" title="Click to view Starting 7"><div class="team-mini-head"><img src="${teamObj.logo}"><div class="mini-name">${teamObj.name}</div></div><div class="mini-row"><span>Purse</span><b>${money(t.purse)}</b></div><div class="purse-meter-wrap"><div class="purse-meter-fill" style="width:${pPct}%;background:${pCol}"></div></div><div class="mini-row"><span>Squad</span><b>${n}</b></div><div class="mini-row"><span>Overseas</span><b>${os}/4</b></div><div class="mini-row"><span>Status</span><b>${status}</b></div></div>`
+    return `<div class="team-mini ${t.teamId===my?'mine':''}"><div class="team-mini-head"><img src="${teamObj.logo}"><div class="mini-name">${teamObj.name}</div></div><div class="mini-row"><span>Purse</span><b>${money(t.purse)}</b></div><div class="purse-meter-wrap"><div class="purse-meter-fill" style="width:${pPct}%;background:${pCol}"></div></div><div class="mini-row"><span>Squad</span><b>${n}</b></div><div class="mini-row"><span>Overseas</span><b>${os}/4</b></div><div class="mini-row"><span>Status</span><b>${status}</b></div></div>`
   }).join('');
   $('auctionLog').innerHTML=(state.logs||[]).slice(0,120).map(x=>`<div>${x}</div>`).join('');
  
@@ -4774,7 +4786,7 @@ function renderSquadModal(){
     const retained=(t.auctionSquad||[]).filter(x=>x.retained);
     const bought=(t.auctionSquad||[]).filter(x=>!x.retained);
     const rows=[...retained.map(r=>`<tr><td><b onclick="openPlayerScout('${r.name.replace(/'/g,"\\'")}')" style="cursor:pointer;text-decoration:underline">${r.name}</b></td><td>${r.position||'—'}</td><td>Retention</td><td>${money(r.retentionPrice||0)}</td><td>${r.retentionCategory?'Cat '+r.retentionCategory:(r.category?'Cat '+r.category:'—')}</td></tr>`),...bought.map(r=>`<tr><td><b onclick="openPlayerScout('${r.name.replace(/'/g,"\\'")}')" style="cursor:pointer;text-decoration:underline">${r.name}</b></td><td>${r.position||'—'}</td><td>Auction</td><td>${money(r.price||0)}</td><td>${r.category?'Cat '+r.category:'—'}</td></tr>`)];
-    return `<div class="team-retain" style="margin-bottom:16px"><div class="team-retain-top"><img src="${team.logo}"><div><h3>${team.name}</h3><div class="muted small">${mode} • Purse ${money(t.purse)} • Spent ${money(t.spent)}</div><div class="retain-meta"><span class="pill">Retained ${retained.length}</span><span class="pill">${slot?.mode==='bot'?'AI limit 0–8':'Human unlimited'}</span><span class="pill">Auction buys ${bought.length}</span><span class="pill">Total ${rows.length}</span> <button class="btn gold" onclick="openStarting7Modal('${t.teamId}')" style="padding:3px 10px;font-size:11px;font-weight:900">7️⃣ Starting 7</button></div></div></div>${rows.length?`<div class="retain-table-wrap"><table class="retain-table"><thead><tr><th>Player</th><th>Role</th><th>Category</th><th>Price</th><th>Category</th></tr></thead><tbody>${rows.join('')}</tbody></table></div>`:'<div class="empty" style="margin-top:10px">No players retained/bought yet.</div>'}</div>`;
+    return `<div class="team-retain" style="margin-bottom:16px"><div class="team-retain-top"><img src="${team.logo}"><div><h3>${team.name}</h3><div class="muted small">${mode} • Purse ${money(t.purse)} • Spent ${money(t.spent)}</div><div class="retain-meta"><span class="pill">Retained ${retained.length}</span><span class="pill">${slot?.mode==='bot'?'AI limit 0–8':'Human unlimited'}</span><span class="pill">Auction buys ${bought.length}</span><span class="pill">Total ${rows.length}</span></div></div></div>${rows.length?`<div class="retain-table-wrap"><table class="retain-table"><thead><tr><th>Player</th><th>Role</th><th>Category</th><th>Price</th><th>Category</th></tr></thead><tbody>${rows.join('')}</tbody></table></div>`:'<div class="empty" style="margin-top:10px">No players retained/bought yet.</div>'}</div>`;
   }).join('');
   $('modalBody').innerHTML=html||'<div class="empty">No team squads available.</div>';
 }
@@ -4934,7 +4946,8 @@ function renderResultsModal(filter='all', query=''){
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px">
       <div class="results-summary" style="margin:0"><span class="pill">Sold ${sold.length}</span><span class="pill">Unsold ${unsold.length}</span><span class="pill">Total completed ${sold.length+unsold.length}</span></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn gold" onclick="exportSquadsCSV()" style="padding:6px 12px;font-size:12px">📥 Download CSV</button>
+        <button class="btn gold" onclick="closeInfoModal();openStarting7Modal()" style="padding:6px 12px;font-size:12px;font-weight:900">7️⃣ Starting 7 & Squad Cards</button>
+        <button class="btn secondary" onclick="exportSquadsCSV()" style="padding:6px 12px;font-size:12px">📥 Download CSV</button>
         <button class="btn primary" onclick="copyWhatsAppReport()" style="padding:6px 12px;font-size:12px">📋 Copy WhatsApp Summary</button>
       </div>
     </div>
@@ -5051,7 +5064,6 @@ $('closeModal').onclick=closeInfoModal; $('infoModal').addEventListener('click',
 $('viewSquadBtn').onclick=()=>{$('infoModal').classList.remove('hidden');renderSquadModal()};
 $('viewPoolBtn').onclick=()=>{$('infoModal').classList.remove('hidden');renderPoolModal()};
 $('viewResultsBtn').onclick=()=>{$('infoModal').classList.remove('hidden');renderResultsModal()};
-if($('viewStarting7Btn')) $('viewStarting7Btn').onclick=()=>openStarting7Modal();
 if($('closeStarting7Modal')) $('closeStarting7Modal').onclick=closeStarting7Modal;
 if($('closeStatsModal')) $('closeStatsModal').onclick=closePlayerScout;
 if($('toggleTvModeBtn')) $('toggleTvModeBtn').onclick=toggleTvMode;
