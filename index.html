@@ -269,14 +269,28 @@ body{padding:20px}.app{max-width:1380px;margin:auto}.hidden{display:none!importa
 .watchlist-star.starred{color:#ffd15b;text-shadow:0 0 8px #ffd15b}
 
 /* Interactive Starting 7 Kabaddi Mat */
-.starting7-mat{position:relative;width:100%;max-width:540px;margin:0 auto;height:320px;background:linear-gradient(180deg,#1e3a8a 0%,#1e40af 100%);border:3px solid #ffd15b;border-radius:18px;overflow:hidden;padding:12px;display:grid;grid-template-rows:repeat(3,1fr);grid-template-columns:repeat(3,1fr);gap:8px;align-items:center;justify-items:center;box-shadow:inset 0 0 20px rgba(0,0,0,.6)}
-.starting7-mat::before{content:'';position:absolute;top:50%;left:0;right:0;height:2px;background:rgba(255,209,91,.5);pointer-events:none}
-.mat-slot{width:100%;height:100%;max-height:82px;background:rgba(10,15,28,.8);border:1.5px dashed #60a5fa;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px;cursor:pointer;transition:all .2s ease;text-align:center}
-.mat-slot:hover{border-color:#ffd15b;background:rgba(30,58,138,.9);transform:scale(1.03)}
-.mat-slot.occupied{border-style:solid;border-color:#22c55e;background:rgba(15,23,42,.95)}
-.mat-slot-role{font-size:10px;font-weight:900;color:#93c5fd;text-transform:uppercase}
-.mat-slot-name{font-size:12px;font-weight:900;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:90px}
-.mat-slot-badge{font-size:9px;font-weight:900;padding:1px 4px;border-radius:3px;margin-top:2px}
+.starting7-container{display:flex;flex-direction:column;gap:12px;max-width:580px;margin:0 auto}
+.starting7-mat{position:relative;width:100%;min-height:280px;background:linear-gradient(180deg,#172554 0%,#0f172a 100%);border:2.5px solid #ffd15b;border-radius:18px;overflow:hidden;padding:12px;display:flex;flex-direction:column;gap:10px;box-shadow:inset 0 0 24px rgba(0,0,0,.7),0 8px 30px rgba(0,0,0,.5)}
+.mat-row-header{font-size:11px;font-weight:900;letter-spacing:.05em;color:#ffd15b;text-transform:uppercase;margin-bottom:2px;display:flex;align-items:center;justify-content:space-between}
+.mat-raiders-row{display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:8px}
+.mat-defenders-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.mat-slot{min-height:86px;background:rgba(15,23,42,.85);border:1.5px dashed #38bdf8;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px;cursor:pointer;transition:all .2s ease;text-align:center;position:relative}
+.mat-slot:hover{border-color:#ffd15b;background:rgba(30,58,138,.9);transform:translateY(-2px)}
+.mat-slot.occupied{border-style:solid;border-color:#22c55e;background:rgba(16,28,52,.95);box-shadow:0 3px 10px rgba(34,197,94,.2)}
+.mat-slot-role{font-size:10px;font-weight:900;color:#93c5fd;text-transform:uppercase;letter-spacing:.3px}
+.mat-slot-name{font-size:12px;font-weight:900;color:#fff;margin-top:2px;max-width:110px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mat-slot-badge{font-size:9px;font-weight:900;padding:1px 5px;border-radius:4px;margin-top:3px;display:inline-block}
+.mat-slot-clear{position:absolute;top:2px;right:4px;font-size:12px;color:#94a3b8;padding:2px;cursor:pointer;transition:color .15s}
+.mat-slot-clear:hover{color:#ef4444}
+.s7-leader-bar{display:grid;grid-template-columns:1fr 1fr;gap:12px;background:rgba(15,23,42,.8);padding:10px 14px;border-radius:12px;border:1px solid #334155}
+.s7-leader-item{display:flex;flex-direction:column;gap:4px}
+.s7-leader-item label{font-size:11px;font-weight:900;color:#ffd15b;text-transform:uppercase}
+.s7-leader-item select{background:#0b1120;border:1px solid #475569;color:#fff;border-radius:6px;padding:6px 10px;font-size:12px}
+.s7-picker-overlay{background:rgba(15,23,42,.96);border:2px solid #38bdf8;border-radius:14px;padding:12px;margin-top:10px}
+.s7-picker-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px;max-height:200px;overflow-y:auto;padding-right:4px;margin-top:8px}
+.s7-picker-btn{background:#1e293b;border:1px solid #475569;color:#fff;border-radius:8px;padding:6px 8px;font-size:11px;font-weight:700;text-align:left;cursor:pointer;transition:all .15s}
+.s7-picker-btn:hover{background:#2563eb;border-color:#60a5fa}
+.s7-picker-btn.active{background:#15803d;border-color:#22c55e}
 
 /* Superlative Awards Grid */
 .awards-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:14px}
@@ -4179,117 +4193,326 @@ function closePlayerScout(){
 }
 
 const S7_ROLES = [
-  { id: 'lc', label: 'Left Corner', posGroup: ['Defender', 'All-Rounder'] },
-  { id: 'li', label: 'Left In', posGroup: ['Raider', 'All-Rounder'] },
-  { id: 'lcov', label: 'Left Cover', posGroup: ['Defender', 'All-Rounder'] },
-  { id: 'center', label: 'Center (Main)', posGroup: ['Raider'] },
-  { id: 'rcov', label: 'Right Cover', posGroup: ['Defender', 'All-Rounder'] },
-  { id: 'ri', label: 'Right In', posGroup: ['Raider', 'All-Rounder'] },
-  { id: 'rc', label: 'Right Corner', posGroup: ['Defender', 'All-Rounder'] }
+  { id: 'li', label: 'Left In', group: 'raid', posGroup: ['Raider', 'All-Rounder'] },
+  { id: 'center', label: 'Center (Main)', group: 'raid', posGroup: ['Raider'] },
+  { id: 'ri', label: 'Right In', group: 'raid', posGroup: ['Raider', 'All-Rounder'] },
+  { id: 'lc', label: 'Left Corner', group: 'def', posGroup: ['Defender', 'All-Rounder'] },
+  { id: 'lcov', label: 'Left Cover', group: 'def', posGroup: ['Defender', 'All-Rounder'] },
+  { id: 'rcov', label: 'Right Cover', group: 'def', posGroup: ['Defender', 'All-Rounder'] },
+  { id: 'rc', label: 'Right Corner', group: 'def', posGroup: ['Defender', 'All-Rounder'] }
 ];
-let starting7Selection = {};
-let starting7Captain = '';
-let starting7ViceCaptain = '';
+let currentS7TeamId = '';
+let activePickingSlotId = null;
 
 function openStarting7Modal(targetTeamId){
-  const teamId = targetTeamId || activeTeamForMe() || (state.teams && state.teams[0]?.teamId);
+  const myTeam = activeTeamForMe();
+  const teamId = targetTeamId || myTeam || (state.teams && state.teams[0]?.teamId);
+  currentS7TeamId = teamId;
+  activePickingSlotId = null;
+
   const team = state.teams?.find(t => t.teamId === teamId);
   if(!team) { alert('No franchise squad found.'); return; }
   const squad = team.auctionSquad || [];
   if(squad.length === 0){ alert('This team has no players in their squad yet. Retain or purchase players first.'); return; }
 
-  try{
-    const saved = localStorage.getItem(`pkl_s7_${teamId}`);
-    if(saved) starting7Selection = JSON.parse(saved);
-    else starting7Selection = autoPickStarting7(squad);
-  }catch(e){ starting7Selection = autoPickStarting7(squad); }
-
-  renderStarting7ModalBody(team, squad);
+  renderStarting7ModalBody();
   $('starting7Modal').classList.remove('hidden');
 }
 
-function autoPickStarting7(squad){
-  const res = {};
-  const used = new Set();
-  S7_ROLES.forEach(r => {
-    const candidate = squad.find(p => !used.has(p.name) && (r.posGroup.some(g => (p.position||'').toLowerCase().includes(g.toLowerCase())) || r.posGroup.includes(p.position)));
-    if(candidate){
-      res[r.id] = candidate.name;
-      used.add(candidate.name);
-    }
-  });
-  return res;
+function getS7Data(teamId){
+  try{
+    const raw = localStorage.getItem(`pkl_s7_${teamId}`);
+    return raw ? JSON.parse(raw) : { slots: {}, captain: '', viceCaptain: '' };
+  }catch(e){
+    return { slots: {}, captain: '', viceCaptain: '' };
+  }
 }
 
-function renderStarting7ModalBody(team, squad){
+function saveS7Data(teamId, data){
+  try{
+    localStorage.setItem(`pkl_s7_${teamId}`, JSON.stringify(data));
+  }catch(e){}
+}
+
+function renderStarting7ModalBody(){
+  const team = state.teams?.find(t => t.teamId === currentS7TeamId);
+  if(!team) return;
   const tm = TEAM_BY_ID[team.teamId] || { name: team.teamId };
-  let slotsHtml = S7_ROLES.map(r => {
-    const selectedPlayer = starting7Selection[r.id] || '';
+  const squad = team.auctionSquad || [];
+  const s7Data = getS7Data(team.teamId);
+  const slots = s7Data.slots || {};
+  const captain = s7Data.captain || '';
+  const viceCaptain = s7Data.viceCaptain || '';
+
+  // Separate Raiders and Defenders rows for court layout
+  const raiders = S7_ROLES.filter(r => r.group === 'raid');
+  const defenders = S7_ROLES.filter(r => r.group === 'def');
+
+  const renderSlot = (r) => {
+    const selectedPlayer = slots[r.id] || '';
+    const isCap = (selectedPlayer && selectedPlayer === captain);
+    const isVc = (selectedPlayer && selectedPlayer === viceCaptain);
+    const isPicking = (activePickingSlotId === r.id);
     return `
-      <div class="mat-slot ${selectedPlayer ? 'occupied' : ''}" onclick="selectMatSlot('${r.id}', '${team.teamId}')">
+      <div class="mat-slot ${selectedPlayer ? 'occupied' : ''} ${isPicking ? 'active-picking' : ''}" onclick="toggleSlotPicker('${r.id}')" style="${isPicking ? 'border-color:#ffd15b;box-shadow:0 0 14px #ffd15b;' : ''}">
+        ${selectedPlayer ? `<span class="mat-slot-clear" onclick="event.stopPropagation();clearMatSlot('${r.id}')" title="Clear slot">✕</span>` : ''}
         <span class="mat-slot-role">${r.label}</span>
-        <span class="mat-slot-name">${selectedPlayer ? escapeHtml(selectedPlayer) : '<span style="color:#64748b">+ Select</span>'}</span>
-        ${selectedPlayer === starting7Captain ? '<span class="mat-slot-badge" style="background:#eab308;color:#000">👑 C</span>' : (selectedPlayer === starting7ViceCaptain ? '<span class="mat-slot-badge" style="background:#38bdf8;color:#000">⭐ VC</span>' : '')}
+        <span class="mat-slot-name">${selectedPlayer ? escapeHtml(selectedPlayer) : '<span style="color:#64748b;font-size:11px">+ Pick Player</span>'}</span>
+        ${isCap ? '<span class="mat-slot-badge" style="background:#eab308;color:#000">👑 CAPTAIN</span>' : ''}
+        ${isVc ? '<span class="mat-slot-badge" style="background:#38bdf8;color:#000">⭐ VICE-CAPTAIN</span>' : ''}
       </div>
     `;
-  }).join('');
+  };
+
+  let pickerHtml = '';
+  if(activePickingSlotId){
+    const targetRole = S7_ROLES.find(r => r.id === activePickingSlotId);
+    const usedPlayers = new Set(Object.entries(slots).filter(([k,v]) => k !== activePickingSlotId && v).map(([,v]) => v));
+    pickerHtml = `
+      <div class="s7-picker-overlay">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <b style="color:#ffd15b;font-size:12px">👉 Select player from squad for ${targetRole?.label}:</b>
+          <button class="btn secondary" onclick="activePickingSlotId=null;renderStarting7ModalBody()" style="padding:2px 8px;font-size:11px">✕ Close</button>
+        </div>
+        <div class="s7-picker-grid">
+          ${squad.map(p => {
+            const isAssigned = Object.values(slots).includes(p.name);
+            const isThisSlot = (slots[activePickingSlotId] === p.name);
+            return `
+              <button class="s7-picker-btn ${isThisSlot ? 'active' : ''}" onclick="assignMatSlotPlayer('${activePickingSlotId}', '${p.name.replace(/'/g,"\\'")}')">
+                <div><b>${escapeHtml(p.name)}</b></div>
+                <div style="font-size:10px;color:#94a3b8">${p.position || 'Player'}${p.category ? ' • Cat ' + p.category : ''}${isAssigned && !isThisSlot ? ' (In other slot)' : ''}</div>
+              </button>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  // Captain & Vice Captain options from the full squad
+  const leaderOptions = squad.map(p => `<option value="${escapeHtml(p.name)}">${escapeHtml(p.name)} (${p.position || 'Player'})</option>`).join('');
 
   $('starting7Body').innerHTML = `
-    <div style="text-align:center;margin-bottom:12px">
-      <h3 style="margin:0;color:#ffd15b">${escapeHtml(tm.name)} Starting 7</h3>
-      <span class="muted small">${squad.length} Total Players in Squad</span>
-    </div>
-    <div class="starting7-mat">
-      ${slotsHtml}
-    </div>
-    <div style="display:flex;gap:10px;justify-content:center;margin-top:16px;flex-wrap:wrap">
-      <button class="btn primary" onclick="copyStarting7Poster('${team.teamId}')">📋 Copy Starting 7 Card (WhatsApp/Insta)</button>
-      <button class="btn secondary" onclick="autoPickAndSaveS7('${team.teamId}')">⚡ Auto-Pick Best 7</button>
+    <div class="starting7-container">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+        <div>
+          <h3 style="margin:0;color:#ffd15b">${escapeHtml(tm.name)} Squad & Formation</h3>
+          <span class="muted small">${squad.length} Total Players in Roster • Manual Pick</span>
+        </div>
+        <div style="display:flex;gap:6px">
+          ${(state.teams || []).length > 1 ? `
+            <select onchange="currentS7TeamId=this.value;renderStarting7ModalBody()" style="background:#0b1120;border:1px solid #475569;color:#fff;border-radius:6px;padding:4px 8px;font-size:11px">
+              ${(state.teams || []).map(t => `<option value="${t.teamId}" ${t.teamId === currentS7TeamId ? 'selected' : ''}>${TEAM_BY_ID[t.teamId]?.name || t.teamId}</option>`).join('')}
+            </select>
+          ` : ''}
+        </div>
+      </div>
+
+      <div class="starting7-mat">
+        <div>
+          <div class="mat-row-header"><span>⚔️ Attack / In-Raiders</span><span style="font-size:9px;color:#94a3b8">Tap slot to choose</span></div>
+          <div class="mat-raiders-row">
+            ${raiders.map(renderSlot).join('')}
+          </div>
+        </div>
+        <div style="border-top:1px dashed rgba(255,209,91,.4);padding-top:8px">
+          <div class="mat-row-header"><span>🛡️ Defense / Corners & Covers</span><span style="font-size:9px;color:#94a3b8">Tap slot to choose</span></div>
+          <div class="mat-defenders-row">
+            ${defenders.map(renderSlot).join('')}
+          </div>
+        </div>
+      </div>
+
+      ${pickerHtml}
+
+      <div class="s7-leader-bar">
+        <div class="s7-leader-item">
+          <label>👑 Team Captain (C)</label>
+          <select onchange="setStarting7Leader('captain', this.value)">
+            <option value="">-- Choose Captain --</option>
+            ${squad.map(p => `<option value="${escapeHtml(p.name)}" ${p.name === captain ? 'selected' : ''}>${escapeHtml(p.name)} (${p.position || 'Player'})</option>`).join('')}
+          </select>
+        </div>
+        <div class="s7-leader-item">
+          <label>⭐ Vice-Captain (VC)</label>
+          <select onchange="setStarting7Leader('viceCaptain', this.value)">
+            <option value="">-- Choose Vice-Captain --</option>
+            ${squad.map(p => `<option value="${escapeHtml(p.name)}" ${p.name === viceCaptain ? 'selected' : ''}>${escapeHtml(p.name)} (${p.position || 'Player'})</option>`).join('')}
+          </select>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;justify-content:center;margin-top:6px;flex-wrap:wrap">
+        <button class="btn primary" onclick="copyStarting7Poster('${team.teamId}')" style="font-weight:900">📋 Copy Starting 7 Card (WhatsApp / Insta)</button>
+        <button class="btn gold" onclick="copyCompleteSquadPoster('${team.teamId}')" style="font-weight:900">📸 Copy Complete Squad Card (WhatsApp / Insta)</button>
+      </div>
     </div>
   `;
 }
 
-function selectMatSlot(roleId, teamId){
-  const team = state.teams?.find(t => t.teamId === teamId);
-  const squad = team?.auctionSquad || [];
-  const chosen = prompt(`Select player for ${roleId.toUpperCase()} from squad:\n` + squad.map((p, i) => `${i+1}. ${p.name} (${p.position})`).join('\n'));
-  if(chosen !== null){
-    const idx = parseInt(chosen, 10) - 1;
-    if(squad[idx]){
-      starting7Selection[roleId] = squad[idx].name;
-      localStorage.setItem(`pkl_s7_${teamId}`, JSON.stringify(starting7Selection));
-      renderStarting7ModalBody(team, squad);
-    }
+function toggleSlotPicker(roleId){
+  if(activePickingSlotId === roleId){
+    activePickingSlotId = null;
+  } else {
+    activePickingSlotId = roleId;
+  }
+  renderStarting7ModalBody();
+}
+
+function assignMatSlotPlayer(roleId, playerName){
+  const s7Data = getS7Data(currentS7TeamId);
+  s7Data.slots = s7Data.slots || {};
+  // If player was in another slot, clear that slot
+  for(const [k, v] of Object.entries(s7Data.slots)){
+    if(v === playerName) delete s7Data.slots[k];
+  }
+  s7Data.slots[roleId] = playerName;
+  saveS7Data(currentS7TeamId, s7Data);
+  activePickingSlotId = null;
+  renderStarting7ModalBody();
+}
+
+function clearMatSlot(roleId){
+  const s7Data = getS7Data(currentS7TeamId);
+  if(s7Data.slots && s7Data.slots[roleId]){
+    delete s7Data.slots[roleId];
+    saveS7Data(currentS7TeamId, s7Data);
+    renderStarting7ModalBody();
   }
 }
 
-function autoPickAndSaveS7(teamId){
-  const team = state.teams?.find(t => t.teamId === teamId);
-  const squad = team?.auctionSquad || [];
-  starting7Selection = autoPickStarting7(squad);
-  localStorage.setItem(`pkl_s7_${teamId}`, JSON.stringify(starting7Selection));
-  renderStarting7ModalBody(team, squad);
+function setStarting7Leader(type, playerName){
+  const s7Data = getS7Data(currentS7TeamId);
+  s7Data[type] = playerName;
+  saveS7Data(currentS7TeamId, s7Data);
+  renderStarting7ModalBody();
 }
 
 function copyStarting7Poster(teamId){
-  const team = state.teams?.find(t => t.teamId === teamId);
-  const tm = TEAM_BY_ID[teamId] || { name: teamId };
+  const targetId = teamId || currentS7TeamId;
+  const team = state.teams?.find(t => t.teamId === targetId);
+  const tm = TEAM_BY_ID[targetId] || { name: targetId };
+  const squad = team?.auctionSquad || [];
+  const s7Data = getS7Data(targetId);
+  const slots = s7Data.slots || {};
+  const captain = s7Data.captain || '';
+  const viceCaptain = s7Data.viceCaptain || '';
+
+  const pickedNames = new Set(Object.values(slots).filter(Boolean));
+  const bench = squad.filter(p => !pickedNames.has(p.name)).map(p => p.name);
+
   const lines = [
-    `🔥 *${tm.name.toUpperCase()} OFFICIAL STARTING 7* 🔥`,
-    `PKL Season 13 Squad Formation`,
+    `🔥 *${tm.name.toUpperCase()} — OFFICIAL STARTING 7* 🔥`,
+    `🏆 PKL Season 13 Matchday Formation`,
     `----------------------------------------`
   ];
-  S7_ROLES.forEach(r => {
-    const p = starting7Selection[r.id] || 'TBD';
-    const badge = (p === starting7Captain) ? ' (C) 👑' : (p === starting7ViceCaptain ? ' (VC) ⭐' : '');
-    lines.push(`• *${r.label}:* ${p}${badge}`);
+
+  if(captain || viceCaptain){
+    lines.push(`👑 *LEADERSHIP*`);
+    if(captain) lines.push(`• Captain: ${captain} 👑`);
+    if(viceCaptain) lines.push(`• Vice-Captain: ${viceCaptain} ⭐`);
+    lines.push(`----------------------------------------`);
+  }
+
+  lines.push(`⚔️ *ATTACK / RAIDERS*`);
+  S7_ROLES.filter(r => r.group === 'raid').forEach(r => {
+    const p = slots[r.id] || 'TBD';
+    const tag = (p === captain) ? ' (C) 👑' : (p === viceCaptain ? ' (VC) ⭐' : '');
+    lines.push(`• ${r.label}: ${p}${tag}`);
   });
+
+  lines.push(``);
+  lines.push(`🛡️ *DEFENSE / COVERS & CORNERS*`);
+  S7_ROLES.filter(r => r.group === 'def').forEach(r => {
+    const p = slots[r.id] || 'TBD';
+    const tag = (p === captain) ? ' (C) 👑' : (p === viceCaptain ? ' (VC) ⭐' : '');
+    lines.push(`• ${r.label}: ${p}${tag}`);
+  });
+
+  if(bench.length > 0){
+    lines.push(`----------------------------------------`);
+    lines.push(`👥 *BENCH & SUBSTITUTES (${bench.length})*`);
+    lines.push(bench.slice(0, 8).join(', ') + (bench.length > 8 ? ` + ${bench.length - 8} more` : ''));
+  }
+
   lines.push(`----------------------------------------`);
-  lines.push(`💰 Remaining Purse: ${money(team?.purse || 0)} | 👥 Total Squad: ${(team?.auctionSquad || []).length}/25`);
+  lines.push(`💰 Remaining Purse: ${money(team?.purse || 0)} | 👥 Total Squad: ${squad.length}/25`);
   lines.push(`🎮 PKL 13 Auction Engine`);
+
   const text = lines.join('\n');
   navigator.clipboard.writeText(text).then(() => {
-    showOutbidAlert(`📋 Starting 7 copied to clipboard!`);
+    showOutbidAlert(`📋 Official Starting 7 Card copied to clipboard!`);
+  }).catch(() => alert(text));
+}
+
+function copyCompleteSquadPoster(teamId){
+  const targetId = teamId || currentS7TeamId;
+  const team = state.teams?.find(t => t.teamId === targetId);
+  const tm = TEAM_BY_ID[targetId] || { name: targetId };
+  const squad = team?.auctionSquad || [];
+  const s7Data = getS7Data(targetId);
+  const captain = s7Data.captain || '';
+  const viceCaptain = s7Data.viceCaptain || '';
+
+  const raiders = squad.filter(p => (p.position || '').toLowerCase().includes('raid'));
+  const defenders = squad.filter(p => (p.position || '').toLowerCase().includes('defend'));
+  const allRounders = squad.filter(p => (p.position || '').toLowerCase().includes('all') || (p.position || '').toLowerCase().includes('round'));
+  const overseas = squad.filter(p => p.nationality === 'Overseas');
+  const retained = squad.filter(p => p.retained);
+  const auctionBuys = squad.filter(p => !p.retained);
+
+  const formatPlayerRow = (p, idx) => {
+    const priceText = p.retained ? `(Retained - ${p.retentionCategory || 'ERP'})` : money(p.price || p.soldPrice || 0);
+    const capTag = (p.name === captain) ? ' 👑 (C)' : (p.name === viceCaptain ? ' ⭐ (VC)' : '');
+    return `${idx + 1}. ${p.name}${capTag} [Cat ${p.category || '—'}] • ${priceText}`;
+  };
+
+  const lines = [
+    `🏆 *${tm.name.toUpperCase()} — COMPLETE SQUAD ROSTER* 🏆`,
+    `PKL Season 13 Official Roster & Purse Summary`,
+    `----------------------------------------`
+  ];
+
+  if(captain || viceCaptain){
+    lines.push(`👑 *LEADERSHIP*`);
+    if(captain) lines.push(`• Captain (C): ${captain}`);
+    if(viceCaptain) lines.push(`• Vice-Captain (VC): ${viceCaptain}`);
+    lines.push(`----------------------------------------`);
+  }
+
+  lines.push(`⚡ *RAIDERS (${raiders.length})*`);
+  if(raiders.length === 0) lines.push(`• None`);
+  else raiders.forEach((p, i) => lines.push(formatPlayerRow(p, i)));
+
+  lines.push(``);
+  lines.push(`🛡️ *DEFENDERS (${defenders.length})*`);
+  if(defenders.length === 0) lines.push(`• None`);
+  else defenders.forEach((p, i) => lines.push(formatPlayerRow(p, i)));
+
+  lines.push(``);
+  lines.push(`🌟 *ALL-ROUNDERS (${allRounders.length})*`);
+  if(allRounders.length === 0) lines.push(`• None`);
+  else allRounders.forEach((p, i) => lines.push(formatPlayerRow(p, i)));
+
+  if(overseas.length > 0){
+    lines.push(``);
+    lines.push(`🌍 *OVERSEAS PLAYERS (${overseas.length}/4)*`);
+    overseas.forEach(p => lines.push(`• ${p.name} (${p.position || 'Overseas'}) - ${p.retained ? 'Retained' : money(p.price || p.soldPrice || 0)}`));
+  }
+
+  lines.push(`----------------------------------------`);
+  lines.push(`📊 *ROSTER & FINANCIAL SUMMARY*`);
+  lines.push(`• Total Squad Size: ${squad.length} / 25 (${squad.length >= 18 ? 'Valid Limit' : (18 - squad.length) + ' more needed'})`);
+  lines.push(`• Retained Players: ${retained.length}`);
+  lines.push(`• Auction Purchases: ${auctionBuys.length}`);
+  lines.push(`• Total Purse Spent: ${money(team?.spent || 0)}`);
+  lines.push(`• Remaining Budget: ${money(team?.purse || 0)}`);
+  lines.push(`🎮 PKL 13 Auction Simulator`);
+
+  const text = lines.join('\n');
+  navigator.clipboard.writeText(text).then(() => {
+    showOutbidAlert(`📸 Complete Squad Card copied to clipboard!`);
   }).catch(() => alert(text));
 }
 
