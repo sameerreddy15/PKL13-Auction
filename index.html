@@ -303,8 +303,8 @@ body{padding:20px}.app{max-width:1380px;margin:auto}.hidden{display:none!importa
 @media (max-width: 768px) {
   .hotkey-hint { display: none !important; }
 }
-/* Bidding War Banner */
-.bidding-war-banner{position:fixed;top:76px;left:50%;transform:translateX(-50%);z-index:99998;background:linear-gradient(90deg,#dc2626,#ea580c,#dc2626);background-size:200% auto;color:#fff;font-weight:900;font-size:15px;padding:10px 22px;border-radius:999px;text-align:center;box-shadow:0 10px 35px rgba(239,68,68,.75),0 0 20px rgba(249,115,22,.6);border:1.5px solid #fef08a;animation:croreGlow 1.2s linear infinite,fadeSlideDown .3s ease;white-space:nowrap;pointer-events:none;max-width:90vw}
+/* Bidding War Banner (Placed between player card and team purse bar) */
+.bidding-war-banner{margin:12px 0;background:linear-gradient(90deg,#dc2626,#ea580c,#dc2626);background-size:200% auto;color:#fff;font-weight:900;font-size:15px;padding:12px 20px;border-radius:14px;text-align:center;box-shadow:0 8px 25px rgba(239,68,68,.55),0 0 18px rgba(249,115,22,.4);border:1.5px solid #fef08a;animation:croreGlow 1.2s linear infinite,fadeSlideDown .3s ease;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* Watchlist Alert Toast */
 .watchlist-toast{position:fixed;top:132px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#eab308,#ca8a04);color:#000;padding:10px 20px;border-radius:999px;font-weight:900;font-size:14px;box-shadow:0 10px 30px rgba(234,179,8,.6);z-index:99997;display:flex;align-items:center;gap:8px;animation:fadeSlideDown .3s ease;max-width:90vw}
@@ -462,7 +462,6 @@ body.tv-projector-mode .timer{font-size:48px !important;padding:8px 24px !import
       </div>
     </div>
     <div class="team-ticker-wrap"><button class="ticker-scroll-btn" onclick="scrollTicker(-240)" type="button" aria-label="Scroll teams left">◀</button><div id="teamTicker" class="team-ticker"></div><button class="ticker-scroll-btn" onclick="scrollTicker(240)" type="button" aria-label="Scroll teams right">▶</button></div>
-    <div id="biddingWarBanner" class="bidding-war-banner hidden"></div>
     <div id="watchlistToast" class="watchlist-toast hidden"></div>
     <div id="hostTimeAlertContainer"></div>
     <div id="undoSaleBannerContainer"></div>
@@ -505,6 +504,8 @@ body.tv-projector-mode .timer{font-size:48px !important;padding:8px 24px !import
           </div>
           <div class="notice" id="bidNotice" style="margin-top:8px;color:var(--muted);font-size:13px"></div>
           
+          <div id="biddingWarBanner" class="bidding-war-banner hidden"></div>
+
           <div class="section-divider" style="margin:16px 0 12px"></div>
           <div style="display:flex;justify-content:space-between;align-items:center">
             <h3 style="margin:0;font-size:15px;color:#ffd15b">Franchise Budget & Squad Trackers</h3>
@@ -2917,19 +2918,76 @@ function setAuctionPaused(flag, reason = '', seconds = 0) {
 function renderHostTimeAlert() {
   const container = $('hostTimeAlertContainer');
   if (!container) return;
-  container.innerHTML = '';
+  if (!isHostUser() || !state || !state.pauseRequest) {
+    container.innerHTML = '';
+    return;
+  }
+  const req = state.pauseRequest;
+  const tMap = (window.TEAM_BY_ID || (typeof TEAMS !== 'undefined' ? Object.fromEntries(TEAMS.map(x=>[x.id,x])) : {}));
+  const teamLabel = req.teamName || (req.teamId ? (tMap[req.teamId]?.name || req.teamId) : '');
+  container.innerHTML = `
+    <div class="request-box" style="display:flex;align-items:center;justify-content:space-between;gap:12px;background:linear-gradient(135deg,#18253d,#0f172a);border:2px solid #ffd15b;border-radius:14px;padding:12px 18px;margin-bottom:12px;box-shadow:0 8px 30px rgba(0,0,0,0.6);animation:fadeSlideDown .3s ease">
+      <div style="font-size:14px;font-weight:800;color:#f8fafc">
+        ⏳ <b style="color:#ffd15b">TIME REQUEST:</b> <span>${escapeHtml(req.name)}</span> ${teamLabel ? '<span class="muted">(' + escapeHtml(teamLabel) + ')</span>' : ''} requested 1 min discussion!
+      </div>
+      <div style="display:flex;gap:8px;flex-shrink:0">
+        <button class="btn green" type="button" style="padding:8px 16px;font-size:13px;font-weight:800;border-radius:10px" onclick="approveTimeRequest()">✅ Accept (Pause)</button>
+        <button class="btn red" type="button" style="padding:8px 16px;font-size:13px;font-weight:800;border-radius:10px" onclick="declineTimeRequest()">❌ Decline (Continue)</button>
+      </div>
+    </div>`;
 }
 
+window.approveTimeRequest = function(){
+  handleHostDecisionTimeRequest(true);
+};
+window.declineTimeRequest = function(){
+  handleHostDecisionTimeRequest(false);
+};
+window.handleHostDecisionTimeRequest = function(accept){
+  if (!isHostUser() || !state || !state.pauseRequest) return;
+  const req = state.pauseRequest;
+  state.pauseRequest = null;
+  if (accept) {
+    const tMap = (window.TEAM_BY_ID || (typeof TEAMS !== 'undefined' ? Object.fromEntries(TEAMS.map(x=>[x.id,x])) : {}));
+    const teamLabel = req.teamName || (req.teamId ? (tMap[req.teamId]?.name || req.teamId) : '');
+    const reason = `${req.name}${teamLabel ? ' (' + teamLabel + ')' : ''} requested 1 min discussion (Approved by Host)`;
+    setAuctionPaused(true, reason, 60);
+    broadcastAction('auction:pause_toggle', { paused: true, reason: state.pauseReason, seconds: 60, pauseExpiresAt: state.pauseExpiresAt }, state);
+    showOutbidAlert(`⏸️ Host accepted time request! Auction paused for 1 min discussion.`);
+  } else {
+    save();
+    renderAuction();
+    broadcastAction('auction:time_request_declined', { targetSlotId: req.requesterSlotId, requesterName: req.name, message: 'Host declined the time request. Auction continues.' }, state);
+    showOutbidAlert(`❌ Time request declined. Auction continues.`);
+  }
+};
+
 function requestTime(){
-  if(!active || !['bidding','going1','going2'].includes(auctionPhase) || state.auctionPaused) return;
-  const currentSlotId = getMySlotId();
+  if(!active || !['announcement','bidding','going1','going2'].includes(auctionPhase) || state?.auctionPaused) return;
+  const currentSlotId = (typeof mySlotId !== 'undefined' && mySlotId) ? mySlotId : (window.mySlotId || localStorage.getItem(MY_SLOT_STORE) || null);
   const me = state.slots?.find(s => s.slotId === currentSlotId);
   const myTeam = activeTeamForMe();
-  const teamName = myTeam ? (TEAM_BY_ID[myTeam]?.name || myTeam) : '';
+  const tMap = (window.TEAM_BY_ID || (typeof TEAMS !== 'undefined' ? Object.fromEntries(TEAMS.map(x=>[x.id,x])) : {}));
+  const teamName = myTeam ? (tMap[myTeam]?.name || myTeam) : '';
   const who = me?.name || 'Human player';
-  const reason = `${who}${teamName ? ' (' + teamName + ')' : ''} requested time for team discussion`;
-  setAuctionPaused(true, reason, 0);
-  showOutbidAlert(`⏸️ Auction paused for discussion by ${who}! Host can resume when discussion is done.`);
+
+  if (isHostUser()) {
+    setAuctionPaused(true, `Host paused auction for discussion`, 60);
+    showOutbidAlert(`⏸️ Auction paused by Host! Click Resume when ready.`);
+    return;
+  }
+
+  state.pauseRequest = {
+    requesterSlotId: currentSlotId,
+    name: who,
+    teamId: myTeam,
+    teamName: teamName,
+    timestamp: Date.now()
+  };
+  save();
+  renderAuction();
+  broadcastAction('auction:time_request', { pauseRequest: state.pauseRequest }, state);
+  showOutbidAlert(`⏳ Time request sent to Host! Waiting for Host approval…`);
 }
 function activeTeamForMe(){const currentSlotId = (typeof mySlotId !== 'undefined' && mySlotId) ? mySlotId : (window.mySlotId || localStorage.getItem(MY_SLOT_STORE) || null); return state?.slots?.find(s=>s.slotId===currentSlotId)?.teamId||null}
 function groupNow(){return ORDER[state.groupIndex]||null}
