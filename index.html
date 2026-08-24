@@ -84,31 +84,39 @@ body{padding:20px}.app{max-width:1380px;margin:auto}.hidden{display:none!importa
 .success{color:#5ae49a;font-size:13px;margin-top:8px}
 .section-divider{height:1px;background:rgba(255,255,255,.08);margin:16px 0}
 @media(max-width:1100px){.retention-grid{grid-template-columns:repeat(2,1fr)}.auction-grid{grid-template-columns:1fr}}
-@media(max-width:760px){
-  body{padding:8px;font-size:14px}
+@media(max-width:768px){
+  body{padding:6px;font-size:13px}
   .app{max-width:100%;margin:0 auto}
-  .topbar{flex-direction:column;align-items:flex-start;gap:8px;padding:12px}
-  .brand h1{font-size:22px}
-  .grid2,.option-row,.slots{grid-template-columns:1fr;gap:12px}
+  .topbar{flex-direction:column;align-items:stretch;gap:6px;padding:8px 10px;border-radius:12px;margin-bottom:8px}
+  .topbar .chips{display:flex;flex-wrap:wrap;gap:4px;justify-content:center}
+  .pill{font-size:10px !important;padding:2px 6px !important;border-radius:6px !important;font-weight:800 !important}
+  .topbar .btn{font-size:11px !important;padding:4px 8px !important;min-height:28px !important;border-radius:8px !important;min-width:0 !important}
+  .team-ticker-wrap{padding:2px 4px;margin-bottom:8px}
+  .ticker-item{padding:3px 6px;font-size:11px;gap:5px}
+  .ticker-item img{width:18px;height:18px}
+  .stage .pill{font-size:10.5px !important;padding:3px 7px !important}
+  .brand h1{font-size:20px}
+  .grid2,.option-row,.slots{grid-template-columns:1fr;gap:10px}
   .retention-grid{grid-template-columns:1fr}
-  .auction-grid{grid-template-columns:1fr;gap:14px}
-  .auction-player{flex-direction:column;align-items:flex-start;padding:16px;gap:12px}
-  .auction-player h2{font-size:24px}
+  .auction-grid{grid-template-columns:1fr;gap:12px;padding-bottom:85px}
+  .auction-stage-card{padding:14px;border-radius:16px}
+  .auction-player{flex-direction:column;align-items:flex-start;padding:14px;gap:10px;border-radius:14px}
+  .auction-player h2{font-size:22px;margin-bottom:4px}
   .pricebox{text-align:left}
-  .price{font-size:32px}
+  .price{font-size:28px}
   .bid-row{flex-direction:column;gap:8px}
   .bid-row .btn{width:100%;min-height:46px}
   #dynamicJumps{display:grid!important;grid-template-columns:repeat(2,1fr);gap:6px;width:100%}
   #dynamicJumps .btn{padding:8px 4px;font-size:12px;min-width:0;width:100%}
-  .stats-grid{grid-template-columns:repeat(3,1fr);gap:6px}
-  .team-grid{grid-template-columns:1fr;gap:8px;max-height:none}
+  .stats-grid{grid-template-columns:repeat(3,1fr);gap:5px}
+  .team-grid{grid-template-columns:1fr;gap:6px;max-height:none}
   .count-box{grid-template-columns:repeat(3,1fr)}
-  .card{padding:14px;border-radius:14px}
-  .roster-hud{padding:8px 10px;font-size:11px;gap:6px}
+  .card{padding:12px;border-radius:14px}
+  .roster-hud{padding:6px 8px;font-size:10.5px;gap:4px}
   .control-row{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
-  .control-row .btn{padding:9px;font-size:12px}
-  .retention-floating-bar{top:8px;right:8px;padding:4px 10px}
-  .ready-btn{padding:6px 14px;font-size:12px}
+  .control-row .btn{padding:8px;font-size:11.5px}
+  .retention-floating-bar{top:6px;right:6px;padding:3px 8px}
+  .ready-btn{padding:5px 12px;font-size:11.5px}
 }
 .retain-table-wrap{overflow:auto;border:1px solid var(--line);border-radius:14px;margin-top:15px}.retain-table{width:100%;border-collapse:collapse;min-width:760px}.retain-table th,.retain-table td{padding:11px 12px;border-bottom:1px solid rgba(255,255,255,.07);text-align:left;vertical-align:middle}.retain-table th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#aebbd0;background:#0c1422}.retain-table td{font-size:14px}.retain-table tr:last-child td{border-bottom:0}.retain-team-cost{margin-left:auto;font-weight:900;color:var(--gold);font-size:18px;white-space:nowrap}.retain-table input{width:20px;height:20px;accent-color:#2bd37e}
 .retain-amount-input::-webkit-outer-spin-button,.retain-amount-input::-webkit-inner-spin-button{ -webkit-appearance:none;margin:0}.retain-amount-input{-moz-appearance:textfield;width:150px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#0d1525;color:var(--text);font-weight:800}.retain-amount-input{width:150px!important;padding:9px 10px;border:1px solid #415273;border-radius:9px;background:#0b1423;color:#ffd15b;font-weight:900;font-size:15px}.retain-amount-input:focus{outline:none;border-color:#6c8cff;box-shadow:0 0 0 3px rgba(108,140,255,.12)}.retain-amount-input::-webkit-outer-spin-button,.retain-amount-input::-webkit-inner-spin-button{appearance:none;-webkit-appearance:none;margin:0}.retain-amount-input{appearance:textfield;-moz-appearance:textfield}.retain-amount-editor{display:flex;align-items:center;gap:7px}.retain-amount-editor span{color:#ffd15b;font-weight:800}.retain-click-note{font-size:11px;color:#8492aa;margin-top:4px}.retention-cat{padding:7px 9px;border:1px solid #334155;border-radius:8px;background:#0c1422;color:#e5e7eb;min-width:150px}
@@ -337,12 +345,16 @@ body{padding:20px}.app{max-width:1380px;margin:auto}.hidden{display:none!importa
 .s7-picker-btn.active{background:#15803d;border-color:#22c55e}
 
 /* Superlative Awards Grid */
-.awards-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:14px}
-.award-card{background:linear-gradient(135deg,#131d31,#0d1524);border:1px solid #ffd15b;border-radius:14px;padding:14px;text-align:center;box-shadow:0 4px 15px rgba(0,0,0,.4)}
-.award-icon{font-size:26px;margin-bottom:6px}
-.award-title{font-size:13px;font-weight:900;color:#ffd15b;letter-spacing:.03em;text-transform:uppercase}
-.award-winner{font-size:15px;font-weight:900;color:#fff;margin:4px 0}
-.award-stat{font-size:12px;color:#94a3b8}
+.awards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px}
+@media(max-width:1024px){.awards-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:640px){.awards-grid{grid-template-columns:1fr}}
+.award-card{background:linear-gradient(135deg,rgba(19,29,49,.95),rgba(12,18,32,.98));border:1px solid rgba(255,209,91,.35);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:14px;text-align:left;box-shadow:0 6px 20px rgba(0,0,0,.35);transition:transform .15s ease,border-color .15s ease}
+.award-card:hover{transform:translateY(-2px);border-color:#ffd15b}
+.award-icon{font-size:28px;width:48px;height:48px;border-radius:12px;background:rgba(255,209,91,.12);border:1px solid rgba(255,209,91,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.award-details{display:flex;flex-direction:column;gap:2px;min-width:0;overflow:hidden;flex:1}
+.award-title{font-size:11px;font-weight:900;color:#ffd15b;letter-spacing:.05em;text-transform:uppercase}
+.award-winner{font-size:14px;font-weight:800;color:#f8fafc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.award-stat{font-size:11.5px;color:#94a3b8;font-weight:600}
 
 /* TV Broadcast Projector Mode */
 body.tv-projector-mode .side-card,body.tv-projector-mode .bid-control-row,body.tv-projector-mode .reaction-bar,body.tv-projector-mode .floating-ask-time,body.tv-projector-mode .floating-host-pause{display:none !important}
@@ -1197,11 +1209,14 @@ function initSocket() {
       });
 
       socket.on('auction:timer_sync', ({ timeLeft: remoteTime, auctionPhase: remotePhase, bidsLocked: remoteLocked, speakText }) => {
+        const prevPhase = auctionPhase;
         if (typeof remoteTime !== 'undefined') timeLeft = remoteTime;
         if (remotePhase) auctionPhase = remotePhase;
         if (typeof remoteLocked !== 'undefined') bidsLocked = remoteLocked;
         renderTimer();
-        renderAuction();
+        if (prevPhase !== auctionPhase) {
+          renderAuction();
+        }
         if (!isHostUser() && speakText && !state?.auctionPaused && ['going1','going2','settling'].includes(auctionPhase)) {
           if (speakText.startsWith('Sold to')) {
             playGavelTap();
@@ -2648,94 +2663,57 @@ function startPauseCountdown(){
   }, 1000);
 }
 
-function setAuctionPaused(flag,reason='Host paused the auction',seconds=0){
-  if(!state || !active) return;
-  const pauseSeconds = (flag && Number(seconds) > 0) ? Number(seconds) : 0;
-  state.auctionPaused = flag;
-  state.pauseReason = reason;
-  state.pauseRemaining = pauseSeconds;
-  state.pauseExpiresAt = (flag && pauseSeconds > 0) ? (Date.now() + (pauseSeconds * 1000)) : null;
+function setAuctionPaused(flag, reason = '', seconds = 0) {
+  if(!state) return;
   clearPauseTimers();
+  state.auctionPaused = !!flag;
   if(flag){
+    state.pauseReason = reason || 'Auction paused for team discussion';
+    state.pauseRemaining = 0;
+    state.pauseExpiresAt = null;
+    clearTimeout(autoSellHandle);
+    clearTimeout(aiHandle);
     clearInterval(timerHandle);
     clearInterval(clientTimerHandle);
-    clearTimeout(aiHandle);
     if('speechSynthesis' in window) speechSynthesis.cancel();
-    announce(reason);
-    if(pauseSeconds > 0){
-      startPauseCountdown();
-    }
+    if(reason) announce(reason);
   } else {
     state.pauseRemaining = 0;
     state.pauseReason = '';
     state.pauseExpiresAt = null;
-    if(auctionPhase === 'bidding'){
+    if(active && ['bidding','going1','going2'].includes(auctionPhase)){
+      auctionPhase = 'bidding';
+      bidsLocked = false;
+      state.auctionPhase = 'bidding';
+      state.bidsLocked = false;
       timeLeft = state.bidTimer || 15;
+      state.timeLeft = timeLeft;
       if(isHostUser()){ startTimer(); scheduleAIBid(); }
       else { startClientTimer(); }
     }
   }
   save();
   renderAuction();
-  broadcastAction('auction:pause_toggle', { paused: flag, reason, seconds: pauseSeconds, pauseExpiresAt: state.pauseExpiresAt }, state);
+  renderTimer();
+  broadcastAction('auction:pause_toggle', { paused: flag, reason: state.pauseReason, seconds: 0, pauseExpiresAt: null }, state);
 }
 
 function renderHostTimeAlert() {
   const container = $('hostTimeAlertContainer');
   if (!container) return;
-  if (!isHostUser() || !state || !state.pauseRequest || !active || state.auctionPaused) {
-    container.innerHTML = '';
-    return;
-  }
-  const req = state.pauseRequest;
-  const slot = state.slots?.find(s => s.slotId === req.slotId);
-  const teamName = slot?.teamId ? (TEAM_BY_ID[slot.teamId]?.name || slot.teamId) : '';
-  container.innerHTML = `
-    <div class="host-time-alert">
-      <div>
-        <span style="font-size:18px">⏳</span>
-        <b>${escapeHtml(req.name)}</b> ${teamName ? `(${escapeHtml(teamName)})` : ''} requested <b>1 minute</b> discussion time!
-      </div>
-      <div style="display:flex;gap:10px">
-        <button class="btn gold" onclick="approveTimeRequest()" style="font-weight:900;padding:8px 16px">✅ Approve (+1 Min)</button>
-        <button class="btn secondary" onclick="declineTimeRequest()" style="font-weight:700;padding:8px 14px">❌ Decline</button>
-      </div>
-    </div>
-  `;
-}
-
-function approveTimeRequest(){
-  if(!isHostUser() || !state || !state.pauseRequest || !active) return;
-  const who = state.pauseRequest.name;
-  state.pauseRequest = null;
-  renderHostTimeAlert();
-  setAuctionPaused(true, `${who} requested one minute discussion time`, 60);
-}
-
-function declineTimeRequest(){
-  if(!isHostUser() || !state) return;
-  const req = state.pauseRequest;
-  state.pauseRequest = null;
-  renderHostTimeAlert();
-  save();
-  renderAuction();
-  broadcastAction('auction:time_request_declined', {
-    targetSlotId: req?.slotId,
-    requesterName: req?.name,
-    message: 'Your 1-minute time request was declined by the host.'
-  }, state);
+  container.innerHTML = '';
 }
 
 function requestTime(){
-  if(!isNonHostHuman() || !active || auctionPhase!=='bidding' || state.auctionPaused) return;
-  if(state.pauseRequest){ alert('A time request is already pending host approval.'); return; }
+  if(!active || !['bidding','going1','going2'].includes(auctionPhase) || state.auctionPaused) return;
   const currentSlotId = getMySlotId();
   const me = state.slots?.find(s => s.slotId === currentSlotId);
-  state.pauseRequest = { slotId: currentSlotId, name: me?.name || 'Human player', requestedAt: Date.now() };
-  save();
-  renderAuction();
-  broadcastAction('auction:time_request', { pauseRequest: state.pauseRequest }, state);
-  showOutbidAlert('⏳ Time request sent to Host for approval!');
+  const myTeam = activeTeamForMe();
+  const teamName = myTeam ? (TEAM_BY_ID[myTeam]?.name || myTeam) : '';
+  const who = me?.name || 'Human player';
+  const reason = `${who}${teamName ? ' (' + teamName + ')' : ''} requested time for team discussion`;
+  setAuctionPaused(true, reason, 0);
+  showOutbidAlert(`⏸️ Auction paused for discussion by ${who}! Host can resume when discussion is done.`);
 }
 function activeTeamForMe(){const currentSlotId = (typeof mySlotId !== 'undefined' && mySlotId) ? mySlotId : (window.mySlotId || localStorage.getItem(MY_SLOT_STORE) || null); return state?.slots?.find(s=>s.slotId===currentSlotId)?.teamId||null}
 function groupNow(){return ORDER[state.groupIndex]||null}
@@ -5035,39 +5013,51 @@ function awardsAndPowerHtml(){
     <div class="awards-grid">
       <div class="award-card">
         <div class="award-icon">🏆</div>
-        <div class="award-title">Best Balanced Squad</div>
-        <div class="award-winner">${bestSquad ? TEAM_BY_ID[bestSquad.teamId]?.name : 'Pending'}</div>
-        <div class="award-stat">Power Rating: ${teamRatings[0]?.score || 0}/100</div>
+        <div class="award-details">
+          <div class="award-title">Best Balanced Squad</div>
+          <div class="award-winner">${bestSquad ? TEAM_BY_ID[bestSquad.teamId]?.name : 'Pending'}</div>
+          <div class="award-stat">Power Rating: ${teamRatings[0]?.score || 0}/100</div>
+        </div>
       </div>
       <div class="award-card">
         <div class="award-icon">👑</div>
-        <div class="award-title">Record Buy</div>
-        <div class="award-winner">${topPlayer ? `${topPlayer.name} (${TEAM_BY_ID[topPlayer.soldTo]?.name || topPlayer.soldTo})` : 'Pending'}</div>
-        <div class="award-stat">${topPlayer ? `Record: ${money(topPlayer.soldPrice)}` : 'No sales yet'}</div>
+        <div class="award-details">
+          <div class="award-title">Record Buy</div>
+          <div class="award-winner">${topPlayer ? `${topPlayer.name} (${TEAM_BY_ID[topPlayer.soldTo]?.name || topPlayer.soldTo})` : 'Pending'}</div>
+          <div class="award-stat">${topPlayer ? `Record: ${money(topPlayer.soldPrice)}` : 'No sales yet'}</div>
+        </div>
       </div>
       <div class="award-card">
         <div class="award-icon">💰</div>
-        <div class="award-title">Bargain of the Auction</div>
-        <div class="award-winner">${stealPlayer ? `${stealPlayer.name} (${TEAM_BY_ID[stealPlayer.soldTo]?.name || stealPlayer.soldTo})` : 'Pending'}</div>
-        <div class="award-stat">${stealPlayer ? `Bought for ${money(stealPlayer.soldPrice)} (Base ${money(stealPlayer.basePrice)})` : 'Requires Cat A/B sales'}</div>
+        <div class="award-details">
+          <div class="award-title">Bargain of the Auction</div>
+          <div class="award-winner">${stealPlayer ? `${stealPlayer.name} (${TEAM_BY_ID[stealPlayer.soldTo]?.name || stealPlayer.soldTo})` : 'Pending'}</div>
+          <div class="award-stat">${stealPlayer ? `Bought for ${money(stealPlayer.soldPrice)} (Base ${money(stealPlayer.basePrice)})` : 'Requires Cat A/B sales'}</div>
+        </div>
       </div>
       <div class="award-card">
         <div class="award-icon">🛡️</div>
-        <div class="award-title">Defensive Fortress</div>
-        <div class="award-winner">${bestDefenseTeam ? TEAM_BY_ID[bestDefenseTeam.teamId]?.name : 'Pending'}</div>
-        <div class="award-stat">${maxDefense > 0 ? `${maxDefense} Dedicated Defenders` : '—'}</div>
+        <div class="award-details">
+          <div class="award-title">Defensive Fortress</div>
+          <div class="award-winner">${bestDefenseTeam ? TEAM_BY_ID[bestDefenseTeam.teamId]?.name : 'Pending'}</div>
+          <div class="award-stat">${maxDefense > 0 ? `${maxDefense} Dedicated Defenders` : '—'}</div>
+        </div>
       </div>
       <div class="award-card">
         <div class="award-icon">⚡</div>
-        <div class="award-title">Raid Powerhouse</div>
-        <div class="award-winner">${bestRaidTeam ? TEAM_BY_ID[bestRaidTeam.teamId]?.name : 'Pending'}</div>
-        <div class="award-stat">${maxRaid > 0 ? `${maxRaid} Attack Raiders` : '—'}</div>
+        <div class="award-details">
+          <div class="award-title">Raid Powerhouse</div>
+          <div class="award-winner">${bestRaidTeam ? TEAM_BY_ID[bestRaidTeam.teamId]?.name : 'Pending'}</div>
+          <div class="award-stat">${maxRaid > 0 ? `${maxRaid} Attack Raiders` : '—'}</div>
+        </div>
       </div>
       <div class="award-card">
         <div class="award-icon">🏦</div>
-        <div class="award-title">Budget Master</div>
-        <div class="award-winner">${budgetMasterTeam ? TEAM_BY_ID[budgetMasterTeam.teamId]?.name : (highestSpender ? TEAM_BY_ID[highestSpender.teamId]?.name : 'Pending')}</div>
-        <div class="award-stat">${budgetMasterTeam ? `Purse Left: ${money(budgetMasterTeam.purse)} (Valid Squad)` : `Spent: ${money(highestSpender?.spent || 0)}`}</div>
+        <div class="award-details">
+          <div class="award-title">Budget Master</div>
+          <div class="award-winner">${budgetMasterTeam ? TEAM_BY_ID[budgetMasterTeam.teamId]?.name : (highestSpender ? TEAM_BY_ID[highestSpender.teamId]?.name : 'Pending')}</div>
+          <div class="award-stat">${budgetMasterTeam ? `Purse Left: ${money(budgetMasterTeam.purse)} (Valid Squad)` : `Spent: ${money(highestSpender?.spent || 0)}`}</div>
+        </div>
       </div>
     </div>
     <div class="section-divider"></div>
