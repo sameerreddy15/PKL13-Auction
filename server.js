@@ -342,6 +342,25 @@ io.on('connection', (socket) => {
           fbmState,
           senderSlotId: currentSlotId
         });
+      } else if (actionType === 'auction:time_request_declined') {
+        const { targetSlotId, requesterName, message } = payload || {};
+        if (room.state) {
+          room.state.pauseRequest = null;
+        }
+        io.to(room.id).emit('auction:time_request_declined', {
+          targetSlotId,
+          requesterName,
+          message: message || 'Time request was declined by the host.',
+          state: room.state
+        });
+      } else if (actionType === 'auction:round2_start') {
+        if (room.state) {
+          if (stateDelta) room.state = { ...room.state, ...stateDelta };
+          room.state.isRound2 = true;
+        }
+        io.to(room.id).emit('auction:round2_sync', {
+          state: room.state
+        });
       } else if (actionType === 'auction:undo_sale') {
         io.to(room.id).emit('auction:undo_sale_sync', {
           state: room.state,
@@ -361,6 +380,18 @@ io.on('connection', (socket) => {
       console.error('room:action error:', err);
       if (callback) callback({ success: false, error: 'Server error applying action.' });
     }
+  });
+
+  socket.on("room:reaction", ({ roomId, emoji, senderName }) => {
+    try {
+      const cleanId = String(roomId || currentRoomId || '').toUpperCase();
+      if (!cleanId) return;
+      io.to(cleanId).emit("room:reaction_sync", {
+        emoji,
+        senderName,
+        senderSlotId: currentSlotId
+      });
+    } catch(e){}
   });
 
   socket.on("room:leave", ({ roomId, slotId }, callback) => {
