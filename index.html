@@ -344,6 +344,16 @@ body{padding:20px}.app{max-width:1380px;margin:auto}.hidden{display:none!importa
 .s7-picker-btn:hover{background:#2563eb;border-color:#60a5fa}
 .s7-picker-btn.active{background:#15803d;border-color:#22c55e}
 
+/* Starting 7 Substitutes Section */
+.s7-subs-box{background:rgba(15,23,42,.9);border:1.5px solid #6366f1;border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 4px 15px rgba(0,0,0,.4)}
+.s7-subs-header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(99,102,241,.3);padding-bottom:6px}
+.s7-subs-title{font-size:12px;font-weight:900;color:#a5b4fc;letter-spacing:.04em;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+.s7-subs-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media (max-width:520px){.s7-subs-grid{grid-template-columns:1fr}}
+.s7-sub-row{display:flex;align-items:center;gap:6px;background:rgba(2,6,23,.6);padding:4px 8px;border-radius:8px;border:1px solid #334155}
+.s7-sub-num{font-size:11px;font-weight:900;color:#ffd15b;min-width:18px}
+.s7-sub-select{flex:1;background:#0b1120;border:1px solid #475569;color:#fff;border-radius:6px;padding:4px 6px;font-size:11px;min-width:0}
+
 /* Superlative Awards Grid */
 .awards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px}
 @media(max-width:1024px){.awards-grid{grid-template-columns:repeat(2,1fr)}}
@@ -4376,9 +4386,9 @@ function openStarting7Modal(targetTeamId){
 function getS7Data(teamId){
   try{
     const raw = localStorage.getItem(`pkl_s7_${teamId}`);
-    return raw ? JSON.parse(raw) : { slots: {}, captain: '', viceCaptain: '' };
+    return raw ? JSON.parse(raw) : { slots: {}, captain: '', viceCaptain: '', substitutes: [] };
   }catch(e){
-    return { slots: {}, captain: '', viceCaptain: '' };
+    return { slots: {}, captain: '', viceCaptain: '', substitutes: [] };
   }
 }
 
@@ -4386,6 +4396,17 @@ function saveS7Data(teamId, data){
   try{
     localStorage.setItem(`pkl_s7_${teamId}`, JSON.stringify(data));
   }catch(e){}
+}
+
+function autoPickSubstitutes(team, slots){
+  const squad = team?.auctionSquad || [];
+  const pickedNames = new Set(Object.values(slots || {}).filter(Boolean));
+  const remaining = squad.filter(p => !pickedNames.has(p.name)).map(p => p.name);
+  const subs = remaining.slice(0, 7);
+  while(subs.length < 7){
+    subs.push('Unassigned');
+  }
+  return subs;
 }
 
 function renderStarting7ModalBody(){
@@ -4397,6 +4418,12 @@ function renderStarting7ModalBody(){
   const slots = s7Data.slots || {};
   const captain = s7Data.captain || '';
   const viceCaptain = s7Data.viceCaptain || '';
+  
+  if(!s7Data.substitutes || s7Data.substitutes.length !== 7){
+    s7Data.substitutes = autoPickSubstitutes(team, slots);
+    saveS7Data(team.teamId, s7Data);
+  }
+  const substitutes = s7Data.substitutes;
 
   // Separate Raiders and Defenders rows for court layout
   const raiders = S7_ROLES.filter(r => r.group === 'raid');
@@ -4421,11 +4448,10 @@ function renderStarting7ModalBody(){
   let pickerHtml = '';
   if(activePickingSlotId){
     const targetRole = S7_ROLES.find(r => r.id === activePickingSlotId);
-    const usedPlayers = new Set(Object.entries(slots).filter(([k,v]) => k !== activePickingSlotId && v).map(([,v]) => v));
     pickerHtml = `
       <div class="s7-picker-overlay">
         <div style="display:flex;justify-content:space-between;align-items:center">
-          <b style="color:#ffd15b;font-size:12px">👉 Select player from squad for ${targetRole?.label}:</b>
+          <b style="color:#ffd15b;font-size:12px">👉 Select squad player for ${targetRole?.label}:</b>
           <button class="btn secondary" onclick="activePickingSlotId=null;renderStarting7ModalBody()" style="padding:2px 8px;font-size:11px">✕ Close</button>
         </div>
         <div class="s7-picker-grid">
@@ -4444,15 +4470,15 @@ function renderStarting7ModalBody(){
     `;
   }
 
-  // Captain & Vice Captain options from the full squad
-  const leaderOptions = squad.map(p => `<option value="${escapeHtml(p.name)}">${escapeHtml(p.name)} (${p.position || 'Player'})</option>`).join('');
+  // Available squad list for substitutes
+  const pickedS7 = new Set(Object.values(slots).filter(Boolean));
 
   $('starting7Body').innerHTML = `
     <div class="starting7-container">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
         <div>
           <h3 style="margin:0;color:#ffd15b">${escapeHtml(tm.name)} Squad & Formation</h3>
-          <span class="muted small">${squad.length} Total Players in Roster • Manual Pick</span>
+          <span class="muted small">${squad.length} Total Players in Roster • Manual Formation</span>
         </div>
         <div style="display:flex;gap:6px">
           ${(state.teams || []).length > 1 ? `
@@ -4497,12 +4523,66 @@ function renderStarting7ModalBody(){
         </div>
       </div>
 
-      <div style="display:flex;gap:10px;justify-content:center;margin-top:6px;flex-wrap:wrap">
-        <button class="btn primary" onclick="copyStarting7Poster('${team.teamId}')" style="font-weight:900">📋 Copy Starting 7 Card (WhatsApp / Insta)</button>
-        <button class="btn gold" onclick="copyCompleteSquadPoster('${team.teamId}')" style="font-weight:900">📸 Copy Complete Squad Card (WhatsApp / Insta)</button>
+      <!-- 7 Substitutes Bench Section -->
+      <div class="s7-subs-box">
+        <div class="s7-subs-header">
+          <span class="s7-subs-title">🔄 7 Matchday Substitutes</span>
+          <button class="btn secondary" onclick="autoFillSubstitutes()" style="padding:2px 8px;font-size:10.5px;font-weight:800">⚡ Auto-Fill 7 Subs</button>
+        </div>
+        <div class="s7-subs-grid">
+          ${[0,1,2,3,4,5,6].map(i => {
+            const currentSub = substitutes[i] || '';
+            return `
+              <div class="s7-sub-row">
+                <span class="s7-sub-num">${i + 1})</span>
+                <select class="s7-sub-select" onchange="updateSubstitute(${i}, this.value)">
+                  <option value="">-- Select Sub ${i + 1} --</option>
+                  ${squad.map(p => `
+                    <option value="${escapeHtml(p.name)}" ${p.name === currentSub ? 'selected' : ''}>
+                      ${escapeHtml(p.name)} (${p.position || 'Player'})${pickedS7.has(p.name) ? ' [In S7]' : ''}
+                    </option>
+                  `).join('')}
+                </select>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;justify-content:center;margin-top:8px;flex-wrap:wrap">
+        <button class="btn gold big" onclick="downloadStarting7Poster('${team.teamId}')" style="font-weight:900;padding:10px 18px">
+          📥 Download Starting 7 & Subs Card (PNG)
+        </button>
+        <button class="btn green big" onclick="downloadCompleteSquadPoster('${team.teamId}')" style="font-weight:900;padding:10px 18px">
+          📥 Download Complete Squad Card (PNG)
+        </button>
+        <button class="btn secondary" onclick="copyStarting7Poster('${team.teamId}')" style="font-weight:700;padding:8px 14px">
+          📋 Copy Text Summary
+        </button>
       </div>
     </div>
   `;
+}
+
+function autoFillSubstitutes(){
+  const team = state.teams?.find(t => t.teamId === currentS7TeamId);
+  if(!team) return;
+  const s7Data = getS7Data(team.teamId);
+  s7Data.substitutes = autoPickSubstitutes(team, s7Data.slots || {});
+  saveS7Data(team.teamId, s7Data);
+  renderStarting7ModalBody();
+  showOutbidAlert('⚡ 7 Substitutes automatically assigned from squad!');
+}
+
+function updateSubstitute(index, playerName){
+  const team = state.teams?.find(t => t.teamId === currentS7TeamId);
+  if(!team) return;
+  const s7Data = getS7Data(team.teamId);
+  s7Data.substitutes = s7Data.substitutes || [];
+  while(s7Data.substitutes.length < 7) s7Data.substitutes.push('');
+  s7Data.substitutes[index] = playerName;
+  saveS7Data(team.teamId, s7Data);
+  renderStarting7ModalBody();
 }
 
 function toggleSlotPicker(roleId){
@@ -4517,7 +4597,6 @@ function toggleSlotPicker(roleId){
 function assignMatSlotPlayer(roleId, playerName){
   const s7Data = getS7Data(currentS7TeamId);
   s7Data.slots = s7Data.slots || {};
-  // If player was in another slot, clear that slot
   for(const [k, v] of Object.entries(s7Data.slots)){
     if(v === playerName) delete s7Data.slots[k];
   }
@@ -4541,6 +4620,455 @@ function setStarting7Leader(type, playerName){
   s7Data[type] = playerName;
   saveS7Data(currentS7TeamId, s7Data);
   renderStarting7ModalBody();
+}
+
+// Canvas Utility: Draw Rounded Rectangle
+function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
+  if (typeof radius === 'undefined') radius = 5;
+  if (typeof radius === 'number') {
+    radius = { tl: radius, tr: radius, br: radius, bl: radius };
+  } else {
+    const defaultRadius = { tl: 0, tr: 0, br: 0, bl: 0 };
+    for (const side in defaultRadius) {
+      radius[side] = radius[side] || defaultRadius[side];
+    }
+  }
+  ctx.beginPath();
+  ctx.moveTo(x + radius.tl, y);
+  ctx.lineTo(x + width - radius.tr, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + radius.tr);
+  ctx.lineTo(x + width, y + height - radius.br);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - radius.br, y + height);
+  ctx.lineTo(x + radius.bl, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - radius.bl);
+  ctx.lineTo(x, y + radius.tl);
+  ctx.quadraticCurveTo(x, y, x + radius.tl, y);
+  ctx.closePath();
+  if (fill) ctx.fill();
+  if (stroke) ctx.stroke();
+}
+
+// Canvas Utility: Download Image File
+function downloadCanvasImage(canvas, filename) {
+  try {
+    const link = document.createElement('a');
+    link.download = filename;
+    link.href = canvas.toDataURL('image/png');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showOutbidAlert(`📥 Poster downloaded: ${filename}!`);
+  } catch (err) {
+    console.error('Download error:', err);
+    window.open(canvas.toDataURL('image/png'), '_blank');
+  }
+}
+
+// Canvas Helper: Draw a Player Node on the Court
+function drawPlayerCourtNode(ctx, x, y, name, role, isCap, isVc, primaryCol) {
+  // 1. Circular Avatar Frame
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,0.6)';
+  ctx.shadowBlur = 12;
+  ctx.fillStyle = '#1e293b';
+  ctx.strokeStyle = isCap ? '#eab308' : (isVc ? '#38bdf8' : '#ffd15b');
+  ctx.lineWidth = 3.5;
+  ctx.beginPath();
+  ctx.arc(x, y - 32, 32, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // Avatar Icon / Silhouette
+  ctx.fillStyle = isCap ? '#eab308' : (isVc ? '#38bdf8' : '#f8fafc');
+  ctx.font = '900 24px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(isCap ? '👑' : (isVc ? '⭐' : '👤'), x, y - 23);
+  ctx.restore();
+
+  // 2. Rounded Nameplate Box
+  const boxW = 190;
+  const boxH = 54;
+  const boxX = x - (boxW / 2);
+  const boxY = y + 10;
+
+  ctx.fillStyle = 'rgba(11, 18, 32, 0.94)';
+  ctx.strokeStyle = isCap ? '#eab308' : (isVc ? '#38bdf8' : 'rgba(255, 255, 255, 0.35)');
+  ctx.lineWidth = 2;
+  roundRect(ctx, boxX, boxY, boxW, boxH, 10, true, true);
+
+  // Player Name
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '900 14.5px sans-serif';
+  ctx.textAlign = 'center';
+  const displayName = name ? (name.length > 18 ? name.slice(0, 17) + '…' : name) : 'UNASSIGNED';
+  ctx.fillText(displayName.toUpperCase(), x, boxY + 23);
+
+  // Role Text
+  ctx.fillStyle = '#38bdf8';
+  ctx.font = '800 11px sans-serif';
+  ctx.fillText((role || 'PLAYER').toUpperCase(), x, boxY + 42);
+
+  // Captain / VC Tag Badge
+  if (isCap || isVc) {
+    ctx.fillStyle = isCap ? '#eab308' : '#38bdf8';
+    roundRect(ctx, x - 42, boxY - 10, 84, 20, 10, true, false);
+    ctx.fillStyle = '#000000';
+    ctx.font = '900 10.5px sans-serif';
+    ctx.fillText(isCap ? '👑 CAPTAIN' : '⭐ VICE-CAP', x, boxY + 4);
+  }
+}
+
+// 1. Downloadable Starting 7 & Substitutes Poster
+function downloadStarting7Poster(teamId){
+  const targetId = teamId || currentS7TeamId;
+  const team = state.teams?.find(t => t.teamId === targetId);
+  if(!team) { alert('No team data found.'); return; }
+  const tm = TEAM_BY_ID[targetId] || { name: targetId };
+  const squad = team.auctionSquad || [];
+  const s7Data = getS7Data(targetId);
+  const slots = s7Data.slots || {};
+  const captain = s7Data.captain || '';
+  const viceCaptain = s7Data.viceCaptain || '';
+  const subs = (s7Data.substitutes && s7Data.substitutes.length === 7) ? s7Data.substitutes : autoPickSubstitutes(team, slots);
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 1080;
+  canvas.height = 1520;
+  const ctx = canvas.getContext('2d');
+  const col = TEAM_COLORS[targetId] || { primary: '#2563eb', secondary: '#1e3a8a' };
+
+  // 1. Background Gradient
+  const grad = ctx.createLinearGradient(0, 0, 0, 1520);
+  grad.addColorStop(0, '#111827');
+  grad.addColorStop(0.25, '#0f172a');
+  grad.addColorStop(0.65, '#090d16');
+  grad.addColorStop(1, '#05070c');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 1080, 1520);
+
+  // Stadium Radial Glow
+  const spotGrad = ctx.createRadialGradient(540, 480, 60, 540, 480, 650);
+  spotGrad.addColorStop(0, col.primary + '55');
+  spotGrad.addColorStop(0.6, col.secondary + '25');
+  spotGrad.addColorStop(1, 'transparent');
+  ctx.fillStyle = spotGrad;
+  ctx.fillRect(0, 0, 1080, 1520);
+
+  // Angular Court Diagonal Lines
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
+  ctx.lineWidth = 2;
+  for (let i = -500; i < 1500; i += 75) {
+    ctx.beginPath();
+    ctx.moveTo(i, 0);
+    ctx.lineTo(i + 400, 1520);
+    ctx.stroke();
+  }
+
+  // 2. Top Header
+  ctx.fillStyle = 'rgba(255, 209, 91, 0.15)';
+  ctx.strokeStyle = '#ffd15b';
+  ctx.lineWidth = 1.5;
+  roundRect(ctx, 380, 34, 320, 36, 18, true, true);
+  ctx.fillStyle = '#ffd15b';
+  ctx.font = '900 13px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('⚡ PRO KABADDI  •  PKL 13 ⚡', 540, 57);
+
+  // Franchise Name & Title
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '900 38px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(tm.name.toUpperCase(), 540, 118);
+
+  ctx.fillStyle = '#ffd15b';
+  ctx.font = '900 50px sans-serif';
+  ctx.shadowColor = 'rgba(255, 209, 91, 0.6)';
+  ctx.shadowBlur = 18;
+  ctx.fillText('PROBABLE STARTING 7', 540, 178);
+  ctx.shadowBlur = 0;
+
+  // 3. Kabaddi Court / Mat Outline
+  ctx.save();
+  ctx.strokeStyle = 'rgba(245, 158, 11, 0.85)';
+  ctx.lineWidth = 4;
+  ctx.shadowColor = 'rgba(245, 158, 11, 0.35)';
+  ctx.shadowBlur = 15;
+  ctx.beginPath();
+  ctx.moveTo(180, 240);
+  ctx.lineTo(900, 240);
+  ctx.lineTo(1020, 960);
+  ctx.lineTo(60, 960);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(15, 23, 42, 0.78)';
+  ctx.fill();
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // Mid Line & Baulk Lines
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(120, 600);
+  ctx.lineTo(960, 600);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(150, 420);
+  ctx.lineTo(930, 420);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(90, 780);
+  ctx.lineTo(990, 780);
+  ctx.stroke();
+  ctx.restore();
+
+  // Draw Central Monogram Watermark
+  ctx.save();
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+  ctx.font = '900 130px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(targetId, 540, 650);
+  ctx.restore();
+
+  // 4. Coordinates for 7 Starting Positions:
+  const positionsMap = {
+    center: { label: 'CENTER / MAIN RAIDER', x: 540, y: 320, defaultRole: 'Left Raider' },
+    lcov: { label: 'LEFT COVER', x: 340, y: 440, defaultRole: 'Left Cover' },
+    rcov: { label: 'RIGHT COVER', x: 740, y: 440, defaultRole: 'Right Cover' },
+    ri: { label: 'RIGHT RAIDER', x: 220, y: 600, defaultRole: 'Right Raider' },
+    li: { label: 'LEFT RAIDER', x: 860, y: 600, defaultRole: 'Left Raider' },
+    rc: { label: 'RIGHT CORNER', x: 190, y: 780, defaultRole: 'Right Corner' },
+    lc: { label: 'LEFT CORNER', x: 890, y: 780, defaultRole: 'Left Corner' }
+  };
+
+  for (const [slotId, posInfo] of Object.entries(positionsMap)) {
+    const pName = slots[slotId] || '';
+    const playerObj = squad.find(p => p.name === pName);
+    const posLabel = playerObj?.position || posInfo.defaultRole;
+    const isCap = (pName && pName === captain);
+    const isVc = (pName && pName === viceCaptain);
+
+    drawPlayerCourtNode(ctx, posInfo.x, posInfo.y, pName, posLabel, isCap, isVc, col.primary);
+  }
+
+  // 5. Bottom Substitutes Box (Exact match to reference poster)
+  const subBoxX = 60;
+  const subBoxY = 1000;
+  const subBoxW = 960;
+  const subBoxH = 430;
+
+  // Box container
+  ctx.fillStyle = 'rgba(15, 23, 42, 0.96)';
+  ctx.strokeStyle = '#6366f1';
+  ctx.lineWidth = 2.5;
+  ctx.shadowColor = 'rgba(99, 102, 241, 0.4)';
+  ctx.shadowBlur = 16;
+  roundRect(ctx, subBoxX, subBoxY, subBoxW, subBoxH, 20, true, true);
+  ctx.shadowBlur = 0;
+
+  // Header Cutout Ribbon
+  ctx.fillStyle = '#4338ca';
+  ctx.strokeStyle = '#818cf8';
+  ctx.lineWidth = 2;
+  roundRect(ctx, 430, subBoxY - 18, 220, 36, 18, true, true);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '900 16px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('SUBSTITUTE', 540, subBoxY + 6);
+
+  // 2-Column List of Substitutes
+  ctx.textAlign = 'left';
+  const leftSubs = subs.slice(0, 3);
+  const rightSubs = subs.slice(3, 7);
+
+  leftSubs.forEach((subName, idx) => {
+    const subObj = squad.find(p => p.name === subName);
+    const pPos = subObj?.position || 'Player';
+    const num = idx + 1;
+    const yPos = subBoxY + 80 + (idx * 90);
+
+    ctx.fillStyle = '#ffd15b';
+    ctx.font = '900 20px sans-serif';
+    ctx.fillText(`${num})`, subBoxX + 40, yPos);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '900 22px sans-serif';
+    const subDisplayName = subName ? (subName.length > 22 ? subName.slice(0, 21) + '…' : subName) : 'UNASSIGNED';
+    ctx.fillText(subDisplayName.toUpperCase(), subBoxX + 75, yPos);
+
+    ctx.fillStyle = '#38bdf8';
+    ctx.font = '700 16px sans-serif';
+    ctx.fillText(`(${pPos.toUpperCase()})`, subBoxX + 75, yPos + 26);
+  });
+
+  rightSubs.forEach((subName, idx) => {
+    const subObj = squad.find(p => p.name === subName);
+    const pPos = subObj?.position || 'Player';
+    const num = idx + 4;
+    const yPos = subBoxY + 65 + (idx * 80);
+
+    ctx.fillStyle = '#ffd15b';
+    ctx.font = '900 20px sans-serif';
+    ctx.fillText(`${num})`, subBoxX + 510, yPos);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '900 21px sans-serif';
+    const subDisplayName = subName ? (subName.length > 22 ? subName.slice(0, 21) + '…' : subName) : 'UNASSIGNED';
+    ctx.fillText(subDisplayName.toUpperCase(), subBoxX + 545, yPos);
+
+    ctx.fillStyle = '#38bdf8';
+    ctx.font = '700 15px sans-serif';
+    ctx.fillText(`(${pPos.toUpperCase()})`, subBoxX + 545, yPos + 24);
+  });
+
+  // Footer Social & Branding
+  ctx.fillStyle = 'rgba(148, 163, 184, 0.7)';
+  ctx.font = '700 13px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('⚡ PKL 13 MULTIPLAYER AUCTION ENGINE  •  #PKL13 #Starting7', 540, 1485);
+
+  const cleanName = tm.name.replace(/[^a-z0-9]+/gi, '_');
+  downloadCanvasImage(canvas, `${cleanName}_Starting7_Card.png`);
+}
+
+// 2. Downloadable Complete Squad Poster
+function downloadCompleteSquadPoster(teamId){
+  const targetId = teamId || currentS7TeamId;
+  const team = state.teams?.find(t => t.teamId === targetId);
+  if(!team) { alert('No team data found.'); return; }
+  const tm = TEAM_BY_ID[targetId] || { name: targetId };
+  const squad = team.auctionSquad || [];
+  const s7Data = getS7Data(targetId);
+  const captain = s7Data.captain || '';
+  const viceCaptain = s7Data.viceCaptain || '';
+
+  const raiders = squad.filter(p => (p.position || '').toLowerCase().includes('raid'));
+  const defenders = squad.filter(p => (p.position || '').toLowerCase().includes('defend'));
+  const allRounders = squad.filter(p => (p.position || '').toLowerCase().includes('all') || (p.position || '').toLowerCase().includes('round'));
+  const overseas = squad.filter(p => p.nationality === 'Overseas');
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 1080;
+  canvas.height = 1600;
+  const ctx = canvas.getContext('2d');
+  const col = TEAM_COLORS[targetId] || { primary: '#2563eb', secondary: '#1e3a8a' };
+
+  // 1. Background Gradient
+  const grad = ctx.createLinearGradient(0, 0, 0, 1600);
+  grad.addColorStop(0, '#0f172a');
+  grad.addColorStop(0.3, '#111827');
+  grad.addColorStop(0.8, '#080c14');
+  grad.addColorStop(1, '#030508');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 1080, 1600);
+
+  // Stadium Header Glow
+  const spotGrad = ctx.createRadialGradient(540, 160, 40, 540, 160, 500);
+  spotGrad.addColorStop(0, col.primary + '66');
+  spotGrad.addColorStop(1, 'transparent');
+  ctx.fillStyle = spotGrad;
+  ctx.fillRect(0, 0, 1080, 400);
+
+  // 2. Header
+  ctx.fillStyle = '#ffd15b';
+  ctx.font = '900 14px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('🏆 OFFICIAL FRANCHISE ROSTER  •  PKL 13 🏆', 540, 54);
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '900 40px sans-serif';
+  ctx.fillText(tm.name.toUpperCase(), 540, 110);
+
+  // Budget & Roster Summary Pill Bar
+  ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+  ctx.strokeStyle = '#38bdf8';
+  ctx.lineWidth = 1.5;
+  roundRect(ctx, 80, 140, 920, 54, 14, true, true);
+
+  ctx.fillStyle = '#cbd5e1';
+  ctx.font = '700 15px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(`👥 Total Squad: ${squad.length}/25   •   🌍 Overseas: ${overseas.length}/4   •   💰 Spent: ${money(team.spent || 0)}   •   💵 Left: ${money(team.purse || 0)}`, 540, 173);
+
+  // Leadership Banner (if set)
+  if (captain || viceCaptain) {
+    ctx.fillStyle = 'rgba(234, 179, 8, 0.12)';
+    ctx.strokeStyle = '#eab308';
+    ctx.lineWidth = 1.5;
+    roundRect(ctx, 80, 210, 920, 46, 12, true, true);
+    ctx.fillStyle = '#ffd15b';
+    ctx.font = '900 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(`👑 Captain: ${captain || 'TBD'}      ⭐ Vice-Captain: ${viceCaptain || 'TBD'}`, 540, 240);
+  }
+
+  // 3. Main Roster 3-Column Display (Raiders, Defenders, All-Rounders)
+  const drawPlayerListSection = (title, icon, list, x, y, w, h) => {
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+    ctx.strokeStyle = '#334155';
+    ctx.lineWidth = 1.5;
+    roundRect(ctx, x, y, w, h, 16, true, true);
+
+    // Section Title
+    ctx.fillStyle = '#ffd15b';
+    ctx.font = '900 18px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText(`${icon} ${title} (${list.length})`, x + 20, y + 36);
+
+    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x + 20, y + 48);
+    ctx.lineTo(x + w - 20, y + 48);
+    ctx.stroke();
+
+    let curY = y + 74;
+    list.slice(0, 12).forEach((p, idx) => {
+      const isCap = (p.name === captain);
+      const isVc = (p.name === viceCaptain);
+      const capTag = isCap ? ' 👑(C)' : (isVc ? ' ⭐(VC)' : '');
+      const priceText = p.retained ? 'Retained' : money(p.price || p.soldPrice || 0);
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '800 14px sans-serif';
+      ctx.textAlign = 'left';
+      const pDisplayName = `${idx + 1}. ${p.name}${capTag}`;
+      ctx.fillText(pDisplayName.length > 22 ? pDisplayName.slice(0, 21) + '…' : pDisplayName, x + 20, curY);
+
+      ctx.fillStyle = '#38bdf8';
+      ctx.font = '700 13px sans-serif';
+      ctx.textAlign = 'right';
+      ctx.fillText(priceText, x + w - 20, curY);
+
+      curY += 28;
+    });
+  };
+
+  const colW = 445;
+  const topY = (captain || viceCaptain) ? 275 : 215;
+
+  // Left Column: Raiders
+  drawPlayerListSection('ATTACK RAIDERS', '⚔️', raiders, 80, topY, colW, 430);
+
+  // Right Column: Defenders
+  drawPlayerListSection('DEFENSIVE WALL', '🛡️', defenders, 555, topY, colW, 430);
+
+  // Middle Bottom: All-Rounders
+  drawPlayerListSection('ALL-ROUNDERS', '⚡', allRounders, 80, topY + 450, colW, 360);
+
+  // Right Bottom: Overseas & Retentions Summary
+  drawPlayerListSection('OVERSEAS STARS', '🌍', overseas, 555, topY + 450, colW, 360);
+
+  // 4. Footer
+  ctx.fillStyle = 'rgba(148, 163, 184, 0.75)';
+  ctx.font = '700 14px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('⚡ PKL 13 MULTIPLAYER AUCTION ENGINE  •  PRO KABADDI OFFICIAL ROSTER CARD', 540, 1560);
+
+  const cleanName = tm.name.replace(/[^a-z0-9]+/gi, '_');
+  downloadCanvasImage(canvas, `${cleanName}_Complete_Squad_Card.png`);
 }
 
 function copyStarting7Poster(teamId){
@@ -4587,7 +5115,7 @@ function copyStarting7Poster(teamId){
   if(bench.length > 0){
     lines.push(`----------------------------------------`);
     lines.push(`👥 *BENCH & SUBSTITUTES (${bench.length})*`);
-    lines.push(bench.slice(0, 8).join(', ') + (bench.length > 8 ? ` + ${bench.length - 8} more` : ''));
+    lines.push(bench.slice(0, 7).join(', ') + (bench.length > 7 ? ` + ${bench.length - 7} more` : ''));
   }
 
   lines.push(`----------------------------------------`);
@@ -4601,73 +5129,7 @@ function copyStarting7Poster(teamId){
 }
 
 function copyCompleteSquadPoster(teamId){
-  const targetId = teamId || currentS7TeamId;
-  const team = state.teams?.find(t => t.teamId === targetId);
-  const tm = TEAM_BY_ID[targetId] || { name: targetId };
-  const squad = team?.auctionSquad || [];
-  const s7Data = getS7Data(targetId);
-  const captain = s7Data.captain || '';
-  const viceCaptain = s7Data.viceCaptain || '';
-
-  const raiders = squad.filter(p => (p.position || '').toLowerCase().includes('raid'));
-  const defenders = squad.filter(p => (p.position || '').toLowerCase().includes('defend'));
-  const allRounders = squad.filter(p => (p.position || '').toLowerCase().includes('all') || (p.position || '').toLowerCase().includes('round'));
-  const overseas = squad.filter(p => p.nationality === 'Overseas');
-  const retained = squad.filter(p => p.retained);
-  const auctionBuys = squad.filter(p => !p.retained);
-
-  const formatPlayerRow = (p, idx) => {
-    const priceText = p.retained ? `(Retained - ${p.retentionCategory || 'ERP'})` : money(p.price || p.soldPrice || 0);
-    const capTag = (p.name === captain) ? ' 👑 (C)' : (p.name === viceCaptain ? ' ⭐ (VC)' : '');
-    return `${idx + 1}. ${p.name}${capTag} [Cat ${p.category || '—'}] • ${priceText}`;
-  };
-
-  const lines = [
-    `🏆 *${tm.name.toUpperCase()} — COMPLETE SQUAD ROSTER* 🏆`,
-    `PKL Season 13 Official Roster & Purse Summary`,
-    `----------------------------------------`
-  ];
-
-  if(captain || viceCaptain){
-    lines.push(`👑 *LEADERSHIP*`);
-    if(captain) lines.push(`• Captain (C): ${captain}`);
-    if(viceCaptain) lines.push(`• Vice-Captain (VC): ${viceCaptain}`);
-    lines.push(`----------------------------------------`);
-  }
-
-  lines.push(`⚡ *RAIDERS (${raiders.length})*`);
-  if(raiders.length === 0) lines.push(`• None`);
-  else raiders.forEach((p, i) => lines.push(formatPlayerRow(p, i)));
-
-  lines.push(``);
-  lines.push(`🛡️ *DEFENDERS (${defenders.length})*`);
-  if(defenders.length === 0) lines.push(`• None`);
-  else defenders.forEach((p, i) => lines.push(formatPlayerRow(p, i)));
-
-  lines.push(``);
-  lines.push(`🌟 *ALL-ROUNDERS (${allRounders.length})*`);
-  if(allRounders.length === 0) lines.push(`• None`);
-  else allRounders.forEach((p, i) => lines.push(formatPlayerRow(p, i)));
-
-  if(overseas.length > 0){
-    lines.push(``);
-    lines.push(`🌍 *OVERSEAS PLAYERS (${overseas.length}/4)*`);
-    overseas.forEach(p => lines.push(`• ${p.name} (${p.position || 'Overseas'}) - ${p.retained ? 'Retained' : money(p.price || p.soldPrice || 0)}`));
-  }
-
-  lines.push(`----------------------------------------`);
-  lines.push(`📊 *ROSTER & FINANCIAL SUMMARY*`);
-  lines.push(`• Total Squad Size: ${squad.length} / 25 (${squad.length >= 18 ? 'Valid Limit' : (18 - squad.length) + ' more needed'})`);
-  lines.push(`• Retained Players: ${retained.length}`);
-  lines.push(`• Auction Purchases: ${auctionBuys.length}`);
-  lines.push(`• Total Purse Spent: ${money(team?.spent || 0)}`);
-  lines.push(`• Remaining Budget: ${money(team?.purse || 0)}`);
-  lines.push(`🎮 PKL 13 Auction Simulator`);
-
-  const text = lines.join('\n');
-  navigator.clipboard.writeText(text).then(() => {
-    showOutbidAlert(`📸 Complete Squad Card copied to clipboard!`);
-  }).catch(() => alert(text));
+  downloadCompleteSquadPoster(teamId);
 }
 
 function closeStarting7Modal(){
