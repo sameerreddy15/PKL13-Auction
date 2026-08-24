@@ -5683,7 +5683,7 @@ function renderAuction(){
     $('pauseStatus').innerHTML='';
   }
   if($('timeRequestBox')){
-    if(host&&state.pauseRequest){$('timeRequestBox').innerHTML=`<div class="request-box"><b>⏳ Time request</b><div class="small muted">${state.pauseRequest.name} requested time to discuss.</div><div class="control-row"><button class="btn gold" onclick="approveTimeRequest()">Accept (Pause)</button><button class="btn secondary" onclick="declineTimeRequest()">Decline (Continue)</button></div></div>`} else if(!host&&state.pauseRequest){$('timeRequestBox').innerHTML='<div class="request-box">⏳ Time request sent to host. Waiting for approval…</div>'} else $('timeRequestBox').innerHTML='';
+    $('timeRequestBox').innerHTML = '';
   }
   renderHostTimeAlert();
   const onAuctionScreen = (typeof currentScreen === 'function' && currentScreen() === 'auctionScreen');
