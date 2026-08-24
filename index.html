@@ -831,6 +831,21 @@ function stopAuctionActivity(){
   auctionPhase='idle';
   if('speechSynthesis' in window) speechSynthesis.cancel();
   active=null;
+  const fAsk = $('floatingAskTimeContainer');
+  if(fAsk) fAsk.classList.add('hidden');
+  const fHost = $('floatingHostPauseContainer');
+  if(fHost){
+    fHost.classList.add('hidden');
+    fHost.innerHTML = '';
+  }
+  const bWar = $('biddingWarBanner');
+  if(bWar) bWar.classList.add('hidden');
+  const cCel = $('croreCelebrationBanner');
+  if(cCel) cCel.classList.add('hidden');
+  const wToast = $('watchlistToast');
+  if(wToast) wToast.classList.add('hidden');
+  const hAlert = $('hostTimeAlertContainer');
+  if(hAlert) hAlert.innerHTML = '';
 }
 // --- MULTIPLAYER REAL-TIME SYNC ENGINE ---
 let socket = null;
@@ -1568,7 +1583,32 @@ function checkUrlParams(){
   }catch(e){}
 }
 
-function show(id){['createScreen','lobbyScreen','retentionScreen','auctionScreen'].forEach(x=>$(x).classList.add('hidden'));$(id).classList.remove('hidden')}
+function show(id){
+  ['createScreen','lobbyScreen','retentionScreen','auctionScreen'].forEach(x=>{
+    const el = $(x);
+    if(el) el.classList.add('hidden');
+  });
+  const target = $(id);
+  if(target) target.classList.remove('hidden');
+  
+  if(id !== 'auctionScreen'){
+    const fAsk = $('floatingAskTimeContainer');
+    if(fAsk) fAsk.classList.add('hidden');
+    const fHost = $('floatingHostPauseContainer');
+    if(fHost){
+      fHost.classList.add('hidden');
+      fHost.innerHTML = '';
+    }
+    const bWar = $('biddingWarBanner');
+    if(bWar) bWar.classList.add('hidden');
+    const cCel = $('croreCelebrationBanner');
+    if(cCel) cCel.classList.add('hidden');
+    const wToast = $('watchlistToast');
+    if(wToast) wToast.classList.add('hidden');
+    const hAlert = $('hostTimeAlertContainer');
+    if(hAlert) hAlert.innerHTML = '';
+  }
+}
 function safeStorage(){try{return window.localStorage}catch{return null}}
 function clearSavedRoom(){const st=safeStorage();if(!st)return;try{st.removeItem(STORE);st.removeItem(MY_SLOT_STORE)}catch{}}
 function save(){if(!state)return;state.uiScreen=state.uiScreen||currentScreen();const st=safeStorage();if(!st)return;try{st.setItem(STORE,JSON.stringify(state));if(mySlotId)st.setItem(MY_SLOT_STORE,mySlotId)}catch{}}
@@ -5646,9 +5686,10 @@ function renderAuction(){
     if(host&&state.pauseRequest){$('timeRequestBox').innerHTML=`<div class="request-box"><b>⏳ Time request</b><div class="small muted">${state.pauseRequest.name} requested time to discuss.</div><div class="control-row"><button class="btn gold" onclick="approveTimeRequest()">Accept (Pause)</button><button class="btn secondary" onclick="declineTimeRequest()">Decline (Continue)</button></div></div>`} else if(!host&&state.pauseRequest){$('timeRequestBox').innerHTML='<div class="request-box">⏳ Time request sent to host. Waiting for approval…</div>'} else $('timeRequestBox').innerHTML='';
   }
   renderHostTimeAlert();
+  const onAuctionScreen = (typeof currentScreen === 'function' && currentScreen() === 'auctionScreen');
   const floatingBtn = $('floatingAskTimeContainer');
   if(floatingBtn){
-    if(meHuman && !host && active && auctionPhase === 'bidding' && !state.auctionPaused && !state.pauseRequest){
+    if(onAuctionScreen && meHuman && !host && active && (auctionPhase === 'bidding' || auctionPhase === 'announcement') && !state.auctionPaused && !state.pauseRequest){
       floatingBtn.classList.remove('hidden');
     } else {
       floatingBtn.classList.add('hidden');
@@ -5656,12 +5697,13 @@ function renderAuction(){
   }
   const floatingHostPause = $('floatingHostPauseContainer');
   if(floatingHostPause){
-    if(host && typeof currentScreen === 'function' && currentScreen() === 'auctionScreen' && active){
+    if(onAuctionScreen && host && active){
       floatingHostPause.classList.remove('hidden');
       const isPaused = !!state.auctionPaused;
       floatingHostPause.innerHTML = `<button type="button" class="${isPaused ? 'resume-state' : 'pause-state'}" onclick="toggleHostPause()">${isPaused ? '▶ RESUME AUCTION' : '⏸ PAUSE AUCTION'}</button>`;
     } else {
       floatingHostPause.classList.add('hidden');
+      floatingHostPause.innerHTML = '';
     }
   }
   renderTimer();
