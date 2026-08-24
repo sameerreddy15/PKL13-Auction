@@ -230,7 +230,7 @@ body{padding:20px}.app{max-width:1380px;margin:auto}.hidden{display:none!importa
 <div class="app">
   <div class="topbar">
     <div class="brand"><h1>PKL 13 Auction Simulator</h1></div>
-    <div class="chips"><span id="netStatusBadge" class="pill" style="color:#2ad37e;font-weight:700">🟢 Online</span><span class="pill">A ₹30L</span><span class="pill">B ₹20L</span><span class="pill">C ₹13L</span><span class="pill">D ₹9L</span><button class="btn secondary" id="audioToggle" type="button">🔊 Voice: ON</button></div>
+    <div class="chips"><span id="netStatusBadge" class="pill" style="color:#2ad37e;font-weight:700">🟢 Online</span><span class="pill">A ₹30L</span><span class="pill">B ₹20L</span><span class="pill">C ₹13L</span><span class="pill">D ₹9L</span></div>
   </div>
 
   <section id="createScreen" class="create-grid">
@@ -277,7 +277,7 @@ body{padding:20px}.app{max-width:1380px;margin:auto}.hidden{display:none!importa
   <section id="retentionScreen" class="hidden">
     <div id="retentionFloatingBar" class="retention-floating-bar"></div>
     <div class="card">
-      <div class="retain-head"><div><h2 class="screen-title">Squads & Retentions</h2></div><div class="chips"><span class="pill" id="retentionState"></span></div></div>
+      <div class="retain-head"><div><h2 class="screen-title">Squads & Retentions</h2></div><div class="chips"><button class="btn secondary" id="retentionAudioToggle" type="button" onclick="toggleAudio()">🔊 Voice: ON</button><span class="pill" id="retentionState"></span></div></div>
       <div class="squad-tabs" id="squadTabs"></div>
       <div class="retention-grid" id="retentionGrid"></div>
       <div class="retention-footer"><button class="btn secondary" id="backLobbyFromRetention">Back to Room</button><button class="btn gold big" id="finalizeRetentions">Finalize Retentions & Start Auction</button></div>
@@ -294,7 +294,7 @@ body{padding:20px}.app{max-width:1380px;margin:auto}.hidden{display:none!importa
         <span class="pill" id="liveUserCountBadge">👥 1 Online</span>
       </div>
       <div class="chips">
-        <button class="btn gold" id="auctionShareBtn">🔗 Share</button>
+        <button class="btn secondary" id="auctionAudioToggle" type="button" onclick="toggleAudio()">🔊 Voice: ON</button>
         <button class="btn secondary" id="auctionChatBtn">💬 Chat</button>
         <button class="btn secondary" id="viewSquadBtn">Squads</button>
         <button class="btn secondary" id="viewPoolBtn">Auction Pool</button>
@@ -3244,21 +3244,25 @@ function playBuzzerSound(){
 }
 
 function playReadySound(){
-  if(!audioPrefs.enabled) return;
   try{
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if(!AudioCtx) return;
+    const ctx = window.__sharedAudioCtx || (window.__sharedAudioCtx = new AudioCtx());
+    if(ctx.state === 'suspended') {
+      ctx.resume();
+    }
     const notes = [261.63, 329.63, 392.00, 523.25];
     notes.forEach((freq, i) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = 'triangle';
-      osc.frequency.setValueAtTime(freq, ctx.currentTime + (i * 0.08));
-      gain.gain.setValueAtTime(0.4, ctx.currentTime + (i * 0.08));
-      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + (i * 0.08) + 0.35);
+      osc.frequency.setValueAtTime(freq, ctx.currentTime + (i * 0.07));
+      gain.gain.setValueAtTime(0.5, ctx.currentTime + (i * 0.07));
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + (i * 0.07) + 0.32);
       osc.connect(gain);
       gain.connect(ctx.destination);
-      osc.start(ctx.currentTime + (i * 0.08));
-      osc.stop(ctx.currentTime + (i * 0.08) + 0.38);
+      osc.start(ctx.currentTime + (i * 0.07));
+      osc.stop(ctx.currentTime + (i * 0.07) + 0.35);
     });
   }catch(e){}
 }
@@ -3278,12 +3282,14 @@ function unlockAudioOnInteraction(){
   window.addEventListener(ev, unlockAudioOnInteraction, { passive: true, once: true });
 });
 function updateVoiceUI(){
-  const label=audioPrefs.enabled?'🔊 Auction Voice: ON':'🔇 Auction Voice: OFF';
-  const t=$('audioToggle'); if(t)t.textContent=label;
-  const st=$('voiceStatus'); if(st)st.textContent=audioPrefs.enabled?'🔊 Voice announcements ON':'🔇 Voice announcements OFF';
+  const label = audioPrefs.enabled ? '🔊 Voice: ON' : '🔇 Voice: OFF';
+  const labelLong = audioPrefs.enabled ? '🔊 Voice announcements ON' : '🔇 Voice announcements OFF';
+  const tRet = $('retentionAudioToggle'); if(tRet) tRet.textContent = label;
+  const tAuc = $('auctionAudioToggle'); if(tAuc) tAuc.textContent = label;
+  const st = $('voiceStatus'); if(st) st.textContent = labelLong;
 }
-$('audioToggle').onclick=()=>{
-  audioPrefs.enabled=!audioPrefs.enabled;
+window.toggleAudio = function(){
+  audioPrefs.enabled = !audioPrefs.enabled;
   if(!audioPrefs.enabled && 'speechSynthesis' in window){ speechSynthesis.cancel(); restoredVoicePending=''; restoredVoiceArmed=false; }
   updateVoiceUI();
   if(audioPrefs.enabled){
@@ -3291,7 +3297,9 @@ $('audioToggle').onclick=()=>{
       const msg=restoredVoicePending; restoredVoicePending=''; restoredVoiceArmed=false; speechSynthesis.cancel(); speakAnnouncement(msg);
       document.removeEventListener('pointerdown',()=>{},true);
       document.removeEventListener('keydown',()=>{},true);
-    } else announce('Auction voice announcements enabled.');
+    } else if (typeof currentScreen === 'function' && currentScreen() === 'auctionScreen') {
+      announce('Auction voice announcements enabled.');
+    }
   }
 };
 updateVoiceUI();
@@ -4210,7 +4218,6 @@ $('joinUserName')?.addEventListener('keydown',function(e){if(e.key==='Enter'){$(
 $('joinId')?.addEventListener('keydown',function(e){if(e.key==='Enter'){$('joinRoom')?.click();}});
 
 $('shareRoomBtn')?.addEventListener('click', openShareModal);
-$('auctionShareBtn')?.addEventListener('click', openShareModal);
 $('closeShareModal')?.addEventListener('click', closeShareModal);
 $('shareModal')?.addEventListener('click', function(e){if(e.target.id==='shareModal') closeShareModal();});
 
