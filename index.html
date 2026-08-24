@@ -2353,15 +2353,18 @@ function autoRetainBots(){
     team.aiRetentionMeta={selected:team.retentions.length,spend,targetCount,maxRetentions:7,maxPrice:5000000,excluded:AI_RETENTION_EXCLUSIONS[team.teamId]||[]};
   }
 }
-function retentionCategory(teamId,name,pos){
-  const t=state.teams.find(x=>x.teamId===teamId);
-  if(t&&t.retentionCategories&&t.retentionCategories[canon(name)]) return t.retentionCategories[canon(name)];
-  return formCategory(season12FormScore(teamId,name,pos));
+function formCategory(score){
+  const s = Number(score) || 60;
+  if(s >= 85) return 'A';
+  if(s >= 70) return 'B';
+  if(s >= 55) return 'C';
+  return 'D';
 }
 function retentionCategory(teamId,name,pos){
-  const t=state.teams.find(x=>x.teamId===teamId);
+  const t=state?.teams?.find(x=>x.teamId===teamId);
   if(t&&t.retentionCategories&&t.retentionCategories[canon(name)]) return t.retentionCategories[canon(name)];
-  return formCategory(season12FormScore(teamId,name,pos));
+  const score = (typeof season12FormScore === 'function' ? season12FormScore(teamId,name,pos) : 60) || 60;
+  return formCategory(score);
 }
 
 // Base price shown in the retention screen. For S12 players with a verified historical
@@ -6280,8 +6283,8 @@ const USER_FULL_SQUADS={"BW":[["Devank Dalal","Raider"],["Himanshu","Raider"],["
 </script>
 <script>
 /* === AUTHORITATIVE FULL-SQUAD / RETENTION OVERRIDE === */
-const AREF=RETENTION_REFERENCE||{};
-const ATR=RETENTION_TYPE_RULES||{};
+const AREF = (typeof RETENTION_REFERENCE !== 'undefined' ? RETENTION_REFERENCE : (typeof PERMANENT_RETAINED !== 'undefined' ? PERMANENT_RETAINED : (window.__RETENTION_REFERENCE || {})));
+const ATR = (typeof RETENTION_TYPE_RULES !== 'undefined' ? RETENTION_TYPE_RULES : (typeof TYPE_RULE !== 'undefined' ? TYPE_RULE : {}));
 function retType(teamId,name){ const m=AREF[teamId]||{}; const k=Object.keys(m).find(x=>canon(x)===canon(name)); return k?m[k]:null; }
 function retRule(teamId,name){ const t=retType(teamId,name); return t?ATR[t]:null; }
 function authoritativeSquad(teamId){ const rows=_dedupeSquad(S12_SQUADS[teamId]||[]); return rows; }
