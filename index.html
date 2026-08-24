@@ -303,8 +303,8 @@ body{padding:20px}.app{max-width:1380px;margin:auto}.hidden{display:none!importa
 @media (max-width: 768px) {
   .hotkey-hint { display: none !important; }
 }
-/* Bidding War Banner (Placed between player card and team purse bar) */
-.bidding-war-banner{margin:12px 0;background:linear-gradient(90deg,#dc2626,#ea580c,#dc2626);background-size:200% auto;color:#fff;font-weight:900;font-size:15px;padding:12px 20px;border-radius:14px;text-align:center;box-shadow:0 8px 25px rgba(239,68,68,.55),0 0 18px rgba(249,115,22,.4);border:1.5px solid #fef08a;animation:croreGlow 1.2s linear infinite,fadeSlideDown .3s ease;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Bidding War Banner (Placed directly below top team purse ticker bar) */
+.bidding-war-banner{margin:10px 0 14px;background:linear-gradient(90deg,#dc2626,#ea580c,#dc2626);background-size:200% auto;color:#fff;font-weight:900;font-size:15px;padding:12px 20px;border-radius:14px;text-align:center;box-shadow:0 8px 25px rgba(239,68,68,.55),0 0 18px rgba(249,115,22,.4);border:1.5px solid #fef08a;animation:croreGlow 1.2s linear infinite,fadeSlideDown .3s ease;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* Watchlist Alert Toast */
 .watchlist-toast{position:fixed;top:132px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#eab308,#ca8a04);color:#000;padding:10px 20px;border-radius:999px;font-weight:900;font-size:14px;box-shadow:0 10px 30px rgba(234,179,8,.6);z-index:99997;display:flex;align-items:center;gap:8px;animation:fadeSlideDown .3s ease;max-width:90vw}
@@ -462,6 +462,7 @@ body.tv-projector-mode .timer{font-size:48px !important;padding:8px 24px !import
       </div>
     </div>
     <div class="team-ticker-wrap"><button class="ticker-scroll-btn" onclick="scrollTicker(-240)" type="button" aria-label="Scroll teams left">◀</button><div id="teamTicker" class="team-ticker"></div><button class="ticker-scroll-btn" onclick="scrollTicker(240)" type="button" aria-label="Scroll teams right">▶</button></div>
+    <div id="biddingWarBanner" class="bidding-war-banner hidden"></div>
     <div id="watchlistToast" class="watchlist-toast hidden"></div>
     <div id="hostTimeAlertContainer"></div>
     <div id="undoSaleBannerContainer"></div>
@@ -504,8 +505,6 @@ body.tv-projector-mode .timer{font-size:48px !important;padding:8px 24px !import
           </div>
           <div class="notice" id="bidNotice" style="margin-top:8px;color:var(--muted);font-size:13px"></div>
           
-          <div id="biddingWarBanner" class="bidding-war-banner hidden"></div>
-
           <div class="section-divider" style="margin:16px 0 12px"></div>
           <div style="display:flex;justify-content:space-between;align-items:center">
             <h3 style="margin:0;font-size:15px;color:#ffd15b">Franchise Budget & Squad Trackers</h3>
