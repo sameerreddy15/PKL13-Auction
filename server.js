@@ -12,8 +12,9 @@ const io = new Server(server, {
     origin: '*',
     methods: ['GET', 'POST']
   },
-  pingTimeout: 60000,
-  pingInterval: 25000
+  pingTimeout: 5000,
+  pingInterval: 2000,
+  transports: ['websocket', 'polling']
 });
 
 const PORT = process.env.PORT || 3000;
@@ -236,13 +237,21 @@ io.on('connection', (socket) => {
             }
           }
         }
+        const currentServerTime = Date.now();
+        const bidTimerSeconds = room.state?.timeLeft || 15;
+        const bidExpiresAt = currentServerTime + (bidTimerSeconds * 1000);
+        if (room.state) {
+          room.state.bidExpiresAt = bidExpiresAt;
+        }
         io.to(room.id).emit('auction:bid_update', {
           bidderTeamId: room.state?.active?.highestBidder || bidderTeamId,
           newBid: room.state?.active?.currentBid || parsedBid,
           bidderSlotId,
           bidderName,
           active: room.state?.active,
-          timeLeft: room.state?.timeLeft || 15,
+          timeLeft: bidTimerSeconds,
+          bidExpiresAt,
+          serverTime: currentServerTime,
           auctionPhase: 'bidding',
           bidsLocked: false,
           state: room.state
@@ -436,6 +445,27 @@ io.on('connection', (socket) => {
         senderSlotId: currentSlotId
       });
     } catch(e){}
+  });
+
+  socket.on("room:request_sync", ({ roomId }, callback) => {
+    try {
+      const cleanId = String(roomId || currentRoomId || '').toUpperCase();
+      const room = getRoom(cleanId);
+      if (!room) {
+        if (callback) callback({ success: false, error: 'Room not found.' });
+        return;
+      }
+      if (callback) {
+        callback({
+          success: true,
+          state: room.state,
+          serverTime: Date.now(),
+          participants: Array.from(room.participants.values())
+        });
+      }
+    } catch(err) {
+      if (callback) callback({ success: false, error: err.message });
+    }
   });
 
   socket.on("room:leave", ({ roomId, slotId }, callback) => {

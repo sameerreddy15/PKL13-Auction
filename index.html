@@ -922,10 +922,7 @@ function stopAuctionActivity(){
   const fAsk = $('floatingAskTimeContainer');
   if(fAsk) fAsk.classList.add('hidden');
   const fHost = $('floatingHostPauseContainer');
-  if(fHost){
-    fHost.classList.add('hidden');
-    fHost.innerHTML = '';
-  }
+  if(fHost) fHost.classList.add('hidden');
   const bWar = $('biddingWarBanner');
   if(bWar) bWar.classList.add('hidden');
   const cCel = $('croreCelebrationBanner');
@@ -1242,15 +1239,22 @@ function initSocket() {
   if (typeof io !== 'undefined') {
     try {
       socket = io({
+        transports: ['websocket', 'polling'],
         reconnection: true,
-        reconnectionAttempts: 20,
-        reconnectionDelay: 1000
+        reconnectionAttempts: Infinity,
+        reconnectionDelay: 500,
+        timeout: 5000
       });
 
       socket.on('connect', () => {
         isMultiplayer = true;
         updateNetBadge('online');
         console.log('Connected to multiplayer server:', socket.id);
+        if (state && state.id) {
+          socket.emit('room:request_sync', { roomId: state.id }, (res) => {
+            if (res && res.serverTime) window.serverTimeOffset = res.serverTime - Date.now();
+          });
+        }
         
         fetch('/api/health').then(r => r.json()).then(data => {
           if(data && data.localIps) window.serverLanIps = data.localIps;
@@ -1552,13 +1556,17 @@ function initSocket() {
         showOutbidAlert('⚡ Accelerated Round 2 Started for Unsold Players!');
       });
 
-      socket.on('auction:undo_sale_sync', ({ state: remoteState }) => {
+      socket.on('auction:undo_sale_sync', ({ state: remoteState, payload }) => {
         if (remoteState) {
           applyRemoteState(remoteState, true);
         }
         closeFbmModal();
         hideUndoSaleBanner();
-        showOutbidAlert(`↩️ Host undid the last sale! Bidding reopened.`);
+        if (typeof playRebidChime === 'function') playRebidChime();
+        showOutbidAlert(`↩️ Host undid the last sale! Re-bidding reopened.`);
+        if (!isHostUser() && payload?.speakText) {
+          if (typeof announce === 'function') announce(payload.speakText, 'urgent');
+        }
       });
 
       socket.on('auction:bidding_war_sync', ({ teamA, teamB }) => {
@@ -1594,7 +1602,9 @@ function initSocket() {
         if(currentScreen() === 'lobbyScreen') renderLobby();
       });
 
-      socket.on('auction:bid_update', ({ bidderTeamId, newBid, bidderSlotId, bidderName, active: payloadActive, state: remoteState }) => {
+      socket.on('auction:bid_update', ({ bidderTeamId, newBid, bidderSlotId, bidderName, active: payloadActive, timeLeft: remoteTime, bidExpiresAt, serverTime, state: remoteState }) => {
+        if (serverTime) window.serverTimeOffset = serverTime - Date.now();
+        if (bidExpiresAt) window.currentBidExpiresAt = bidExpiresAt;
         const updatedBid = Number(newBid) || 0;
         // Guard against stale out-of-order bid packets for the active player
         if (active && payloadActive && active.id === payloadActive.id && Number(active.currentBid || 0) > updatedBid) {
@@ -1622,7 +1632,7 @@ function initSocket() {
           state.active.currentBid = updatedBid;
           state.active.highestBidder = bidderTeamId;
         }
-        timeLeft = remoteState?.bidTimer || state?.bidTimer || 15;
+        timeLeft = remoteTime || remoteState?.bidTimer || state?.bidTimer || 15;
         auctionPhase = 'bidding';
         bidsLocked = false;
         if (state) {
@@ -1727,6 +1737,23 @@ function initSocket() {
       socket.on('auction:crorepati_flare', (data) => {
         showCrorepatiCelebration(data);
       });
+
+      const handleTabWakeup = () => {
+        if (socket && socket.connected && state && state.id) {
+          socket.emit('room:request_sync', { roomId: state.id }, (res) => {
+            if (res && res.success && res.state) {
+              if (res.serverTime) window.serverTimeOffset = res.serverTime - Date.now();
+              applyRemoteState(res.state, true);
+            }
+          });
+        }
+      };
+      window.handleTabWakeup = handleTabWakeup;
+
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') handleTabWakeup();
+      });
+      window.addEventListener('pageshow', handleTabWakeup);
     } catch (e) {
       console.warn('Socket init error:', e);
       updateNetBadge(false);
@@ -1793,10 +1820,7 @@ function show(id){
     const fAsk = $('floatingAskTimeContainer');
     if(fAsk) fAsk.classList.add('hidden');
     const fHost = $('floatingHostPauseContainer');
-    if(fHost){
-      fHost.classList.add('hidden');
-      fHost.innerHTML = '';
-    }
+    if(fHost) fHost.classList.add('hidden');
     const bWar = $('biddingWarBanner');
     if(bWar) bWar.classList.add('hidden');
     const cCel = $('croreCelebrationBanner');
@@ -3942,6 +3966,7 @@ function undoLastSale() {
   if (!isHostUser() || !window.lastSaleRecord) return;
   const { player, winnerTeamId, price, isFbm, preFbmBidder } = window.lastSaleRecord;
   hideUndoSaleBanner();
+  clearTimeout(autoSellHandle); clearTimeout(aiHandle); clearPauseTimers();
 
   const team = state.teams.find(t => t.teamId === winnerTeamId);
   if (team) {
@@ -3957,15 +3982,27 @@ function undoLastSale() {
     }
   }
 
-  const db = state.players.find(p => p.id === player.id);
+  const db = (state.players || []).find(p => p.id === player.id);
   if (db) {
     db.status = 'upcoming';
     db.soldTo = null;
     db.soldPrice = 0;
   }
 
+  // Clear FBM evaluation flags so FBM is fully eligible to trigger again upon next sale
+  delete player.fbmEvaluated;
+  delete player.fbmDone;
+  delete player._fbmModalShown;
+
   const restoredBidder = (isFbm && preFbmBidder) ? preFbmBidder : winnerTeamId;
-  active = { ...player, currentBid: price, highestBidder: restoredBidder };
+  active = {
+    ...player,
+    currentBid: price,
+    highestBidder: restoredBidder,
+    fbmEvaluated: false,
+    fbmDone: false,
+    _fbmModalShown: false
+  };
   state.active = active;
   auctionPhase = 'bidding';
   bidsLocked = false;
@@ -3976,12 +4013,13 @@ function undoLastSale() {
   save();
   renderAuction();
   renderTimer();
+  if (typeof playRebidChime === 'function') playRebidChime();
   startTimer();
   scheduleAIBid();
 
-  const undoNotice = `Sale undone for ${player.name}. Bidding reopened at ${moneyWords(price)} rupees.`;
-  $('bidNotice').textContent = `↩️ Sale undone! Bidding reopened at ${money(price)}.`;
-  broadcastAction('auction:undo_sale', { player, restoredBidder, price, speakText: undoNotice }, state);
+  const undoNotice = `Sale undone for ${player.name}. Bidding reopened from last bid of ${moneyWords(price)} rupees.`;
+  $('bidNotice').textContent = `↩️ Sale undone! Bidding reopened from last bid of ${money(price)}.`;
+  broadcastAction('auction:undo_sale', { player: active, restoredBidder, price, speakText: undoNotice }, state);
   speakAnnouncement(undoNotice, null, 'urgent');
 }
 
@@ -4173,6 +4211,36 @@ function playPklTrumpetChime(){
   }catch(e){}
 }
 window.playPklTrumpetChime = playPklTrumpetChime;
+
+function playRebidChime(){
+  if(!audioPrefs.enabled) return;
+  try{
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if(!AudioCtx) return;
+    const ctx = window.__sharedAudioCtx || (window.__sharedAudioCtx = new AudioCtx());
+    if(ctx.state === 'suspended') ctx.resume();
+    const now = ctx.currentTime;
+    const notes = [
+      { f: 329.63, t: 0.00, d: 0.12, vol: 0.35 },
+      { f: 440.00, t: 0.09, d: 0.12, vol: 0.40 },
+      { f: 554.37, t: 0.18, d: 0.15, vol: 0.45 },
+      { f: 659.25, t: 0.28, d: 0.35, vol: 0.50 }
+    ];
+    notes.forEach(n => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(n.f, now + n.t);
+      gain.gain.setValueAtTime(n.vol, now + n.t);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + n.t + n.d);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now + n.t);
+      osc.stop(now + n.t + n.d + 0.05);
+    });
+  }catch(e){}
+}
+window.playRebidChime = playRebidChime;
 
 function spawnCrorepatiFireworks(){
   const count = 36;
@@ -4403,11 +4471,21 @@ function startClientTimer(){
       clearInterval(clientTimerHandle);
       return;
     }
-    if(timeLeft > 0){
-      timeLeft--;
+    if (window.currentBidExpiresAt) {
+      const now = Date.now() + (window.serverTimeOffset || 0);
+      const remaining = Math.max(0, Math.ceil((window.currentBidExpiresAt - now) / 1000));
+      timeLeft = remaining;
       renderTimer();
+      if (remaining <= 0) {
+        clearInterval(clientTimerHandle);
+      }
+    } else {
+      if(timeLeft > 0){
+        timeLeft--;
+        renderTimer();
+      }
     }
-  }, 1000);
+  }, 250);
 }
 
 function startTimer(){
@@ -4805,45 +4883,38 @@ function buildFbmUnavailableSaleText(player, origTeamId, winnerTeamId, price) {
 
 function skipPlayer(){
   if(!isHostUser() || !active || state.auctionPaused || !['announcement','bidding','going1','going2'].includes(auctionPhase)) return;
-  
-  // If a bid has already been placed by any team (human or bot), Force Settle instantly awards the player to the highest bidder
-  if (active.highestBidder) {
-    sold();
+
+  const aiSlots = (state.slots || []).filter(s => s.mode === 'bot' && s.teamId);
+  if (!aiSlots.length) {
+    alert('Force Settle is disabled because all 12 teams are human players (Force Settle is only available for AI bot franchises).');
     return;
   }
 
-  const base=Number(active.basePrice||0);
-  const current=Number(active.currentBid||0);
-  const stepSize=current<10000000?25000:50000;
-  const minPrice=Math.max(base,current+stepSize);
-  const aiSlots=state.slots.filter(s=>s.mode==='bot'&&s.teamId);
-  const targetSlots = aiSlots.length > 0 ? aiSlots : state.slots.filter(s=>s.teamId);
+  const base = Number(active.basePrice || 0);
+  const current = Number(active.currentBid || 0);
+  const stepSize = current < 10000000 ? 25000 : 50000;
+  const minPrice = active.highestBidder ? (current + stepSize) : Math.max(base, current);
   const origTeamId = active.s12Team || active.originalTeam || ((typeof getPlayerOriginalTeam === 'function') ? getPlayerOriginalTeam(active) : null);
 
-  const eligible=state.teams.filter(t=>{
-    const slot=targetSlots.find(s=>s.teamId===t.teamId); if(!slot)return false;
-    if((t.auctionSquad||[]).length>=25)return false;
-    if(Number(t.purse||0)<minPrice)return false;
-    if((active.nationality==='Overseas' || isOverseasPlayer(active.name)) && overseasCount(t)>=4)return false;
-
-    // Rule: When force settled, the player should NOT move to his previous year AI team if FBM is available with that AI team
-    const isBot = (!slot || slot.mode === 'bot');
-    const fbmLeft = (typeof t.fbmRemaining !== 'undefined') ? t.fbmRemaining : (typeof t.fbmTotal !== 'undefined' ? t.fbmTotal : 3);
-    if (isBot && origTeamId === t.teamId && fbmLeft > 0) {
-      return false;
-    }
-
+  const eligible = state.teams.filter(t => {
+    const slot = aiSlots.find(s => s.teamId === t.teamId);
+    if (!slot || slot.mode !== 'bot') return false; // STRICTLY AI TEAMS ONLY
+    if (origTeamId && t.teamId === origTeamId) return false; // NEVER TO HIS PREVIOUS SEASON 12 TEAM
+    if ((t.auctionSquad || []).length >= 25) return false;
+    if (Number(t.purse || 0) < minPrice) return false;
+    if ((active.nationality === 'Overseas' || isOverseasPlayer(active.name)) && overseasCount(t) >= 4) return false;
     return true;
   });
 
   if(!eligible.length){
-    // If no team can afford or take the player, mark unsold cleanly
+    // If no eligible AI team can afford or take the player, mark unsold cleanly
     unsold();
     return;
   }
-  const bidCounts=new Map();
-  (active.bidHistory||[]).forEach(id=>bidCounts.set(id,(bidCounts.get(id)||0)+1));
-  eligible.sort((a,b)=>{
+
+  const bidCounts = new Map();
+  (active.bidHistory || []).forEach(id => bidCounts.set(id, (bidCounts.get(id) || 0) + 1));
+  eligible.sort((a,b) => {
     const bidsA = bidCounts.get(a.teamId) || 0;
     const bidsB = bidCounts.get(b.teamId) || 0;
     if (bidsB !== bidsA) return bidsB - bidsA;
@@ -4852,42 +4923,49 @@ function skipPlayer(){
     if (posA !== posB) return posA - posB;
     return (b.purse || 0) - (a.purse || 0);
   });
+
   const topCandidates = eligible.slice(0, Math.min(3, eligible.length));
   const team = topCandidates[Math.floor(Math.random() * topCandidates.length)];
-  const maxAffordable=Number(team.purse||0);
-  const desiredMax=Math.min(maxAffordable,Math.max(minPrice,Math.floor(Math.max(base*1.75,current*1.35))));
-  let price=minPrice;
-  if(desiredMax>minPrice){const slots=Math.floor((desiredMax-minPrice)/stepSize);price=minPrice+Math.floor(Math.random()*(slots+1))*stepSize;}
-  price=Math.min(price,maxAffordable);
-  if(price<=current) price=minPrice;
-  const teamName=TEAM_BY_ID[team.teamId]?.name||team.teamId;
+  const maxAffordable = Number(team.purse || 0);
+  const desiredMax = Math.min(maxAffordable, Math.max(minPrice, Math.floor(Math.max(base * 1.5, current * 1.25))));
+  let price = minPrice;
+  if (desiredMax > minPrice) {
+    const slots = Math.floor((desiredMax - minPrice) / stepSize);
+    price = minPrice + Math.floor(Math.random() * (slots + 1)) * stepSize;
+  }
+  price = Math.min(price, maxAffordable);
+  if (price <= current && active.highestBidder) price = minPrice;
+  const teamName = TEAM_BY_ID[team.teamId]?.name || team.teamId;
 
+  // FBM rules remain same whether sold via Sold or Force Settle
   if (checkAndTriggerFbm(active, team.teamId, price)) {
     return;
   }
 
-  if('speechSynthesis' in window)speechSynthesis.cancel();
-  clearInterval(timerHandle);clearTimeout(autoSellHandle);clearTimeout(aiHandle);
-  active.currentBid=price;active.highestBidder=team.teamId;auctionPhase='settling';bidsLocked=true;timeLeft=1;
+  if('speechSynthesis' in window) speechSynthesis.cancel();
+  clearInterval(timerHandle); clearTimeout(autoSellHandle); clearTimeout(aiHandle);
+  active.currentBid = price; active.highestBidder = team.teamId; auctionPhase = 'settling'; bidsLocked = true; timeLeft = 1;
   state.active = active;
   state.auctionPhase = 'settling';
   state.bidsLocked = true;
   state.timeLeft = 1;
-  $('bidNotice').textContent=`SOLD to ${teamName} for ${money(price)}.`;$('leader').textContent=teamName;
-  const db=state.players.find(p=>p.id===active.id);if(db)Object.assign(db,{status:'sold',soldTo:team.teamId,soldPrice:price,currentBid:price});
-  team.purse-=price;team.spent+=price;team.auctionSquad.push({name:active.name,price,category:active.category,position:active.position,nationality:active.nationality,auction:true});
+  $('bidNotice').textContent = `SOLD to ${teamName} for ${money(price)}.`;
+  $('leader').textContent = teamName;
+  const db = (state.players || []).find(p => p.id === active.id);
+  if (db) Object.assign(db, { status: 'sold', soldTo: team.teamId, soldPrice: price, currentBid: price });
+  team.purse -= price; team.spent += price; team.auctionSquad.push({ name: active.name, price, category: active.category, position: active.position, nationality: active.nationality, auction: true });
   logAuction(`${active.name} SOLD to ${teamName} for ${money(price)}`);
   recordLastSale(active, team.teamId, price);
-  save();renderAuction();renderTimer();
+  save(); renderAuction(); renderTimer();
   playGavelSound();
   triggerHaptic([120]);
   const saleOrigTeamId = getPlayerOriginalTeam(active);
   const saleText = buildFbmUnavailableSaleText(active, saleOrigTeamId, team.teamId, price);
   broadcastAction('auction:skip', { player: active, teamId: team.teamId, price, speakText: saleText }, state);
-  speakAnnouncement(saleText,()=>{
-    timeLeft=0;active=null;auctionPhase='idle';bidsLocked=false;state.active=null;state.auctionRuntime=null;save();renderAuction();
-    setTimeout(nextPlayer,700);
-  },'urgent');
+  speakAnnouncement(saleText, () => {
+    timeLeft = 0; active = null; auctionPhase = 'idle'; bidsLocked = false; state.active = null; state.auctionRuntime = null; save(); renderAuction();
+    setTimeout(nextPlayer, 700);
+  }, 'urgent');
 }
 
 function sold(auto=false){
@@ -5990,7 +6068,9 @@ function renderAuction(){
     $('nextPlayerBtn').innerHTML='Next Player <span class="hotkey-hint">N</span>';
     $('soldBtn').disabled=!host||auctionPhase==='idle'||auctionPhase==='settling'||!active.highestBidder;
     $('unsoldBtn').disabled=!host||auctionPhase==='idle'||auctionPhase!=='bidding'||!!active.highestBidder;
-    $('skipBtn').disabled=!host||auctionPhase==='idle'||!['announcement','bidding','going1','going2'].includes(auctionPhase)||!active||state.auctionPaused;
+    const hasBots = (state.slots || []).some(s => s.mode === 'bot' && s.teamId);
+    $('skipBtn').disabled = !host || auctionPhase === 'idle' || !['announcement','bidding','going1','going2'].includes(auctionPhase) || !active || state.auctionPaused || !hasBots;
+    $('skipBtn').title = !hasBots ? 'Force Settle is disabled for 12 human teams (only available with AI bot teams)' : 'Force Settle player to an AI franchise';
     $('nextPlayerBtn').disabled=true;
     const origTeamId = getPlayerOriginalTeam(active.name);
     const m = season12Metrics(origTeamId, active.name, active.position);
@@ -6079,6 +6159,9 @@ function renderAuction(){
   const floatingBtn = $('floatingAskTimeContainer');
   if(floatingBtn){
     if(onAuctionScreen && meHuman && !host && active && (auctionPhase === 'bidding' || auctionPhase === 'announcement') && !state.auctionPaused && !state.pauseRequest){
+      if(!floatingBtn.querySelector('#floatingAskTimeBtn')){
+        floatingBtn.innerHTML = `<button type="button" id="floatingAskTimeBtn" onclick="requestTime()">⏳ Ask Time</button>`;
+      }
       floatingBtn.classList.remove('hidden');
     } else {
       floatingBtn.classList.add('hidden');
@@ -6087,6 +6170,9 @@ function renderAuction(){
   const floatingHostPause = $('floatingHostPauseContainer');
   if(floatingHostPause){
     if(onAuctionScreen && host && active){
+      if(!floatingHostPause.querySelector('#floatingHostPauseBtn')){
+        floatingHostPause.innerHTML = `<button type="button" id="floatingHostPauseBtn" onclick="toggleHostPause()">⏸ PAUSE AUCTION</button>`;
+      }
       floatingHostPause.classList.remove('hidden');
       const isPaused = !!state.auctionPaused;
       const pauseBtn = $('floatingHostPauseBtn');
