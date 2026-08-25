@@ -1680,7 +1680,7 @@ function restoreSavedRoom(){
           if(isBot && origTeam){
             setTimeout(() => {
               if (auctionPhase !== 'fbm' || !state || !state.fbmState) return;
-              const isWorthy = aiMaxBid(origTeam, state.fbmState.player) >= state.fbmState.price;
+              const isWorthy = aiMaxBid(origTeam, state.fbmState.player, true) >= state.fbmState.price;
               handleFbmDecision(isWorthy);
             }, 2000);
           }
@@ -3475,7 +3475,7 @@ function triggerFbmPrompt(origTeam, player, highestBidderTeamId, finalPrice) {
   if (isHostUser() && isBot) {
     setTimeout(() => {
       if (auctionPhase !== 'fbm' || !state || !state.fbmState) return;
-      const isWorthy = aiMaxBid(origTeam, player) >= finalPrice;
+      const isWorthy = aiMaxBid(origTeam, player, true) >= finalPrice;
       handleFbmDecision(isWorthy);
     }, 2500);
   }
@@ -4221,7 +4221,7 @@ function aiCanTargetPlayer(team,player){
 
   return true;
 }
-function aiMaxBid(team,player){
+function aiMaxBid(team,player,isFbmEvaluation=false){
   const squad = team.auctionSquad || [];
   const squadCount = squad.length;
   const posCount = squad.filter(p => p.position === player.position).length;
@@ -4235,10 +4235,11 @@ function aiMaxBid(team,player){
   const overseasInTeam = overseasCount(team);
   if (isOverseas && overseasInTeam >= 4) return 0;
 
-  // Rule: AI team should not bid for his previous year player if FBM is available with that team
+  // Rule: During regular bidding, AI team withholds bids if FBM is available.
+  // During FBM evaluation (isFbmEvaluation=true), it evaluates full true valuation against finalPrice.
   const origTeamId = player.s12Team || player.originalTeam || ((typeof getPlayerOriginalTeam === 'function') ? getPlayerOriginalTeam(player) : null);
   const fbmCards = (typeof team.fbmRemaining !== 'undefined') ? team.fbmRemaining : (typeof team.fbmTotal !== 'undefined' ? team.fbmTotal : 3);
-  if (origTeamId === team.teamId && fbmCards > 0) {
+  if (!isFbmEvaluation && origTeamId === team.teamId && fbmCards > 0) {
     return 0;
   }
 
