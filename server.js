@@ -223,6 +223,16 @@ io.on('connection', (socket) => {
               room.state.timeLeft = room.state.bidTimer || 15;
               room.state.auctionPhase = 'bidding';
               room.state.bidsLocked = false;
+
+              if (parsedBid >= 10000000 && (room.state.active._croreEmittedFor !== room.state.active.id)) {
+                room.state.active._croreEmittedFor = room.state.active.id;
+                io.to(room.id).emit('auction:crorepati_flare', {
+                  bidderTeamId: room.state?.active?.highestBidder || bidderTeamId,
+                  newBid: room.state?.active?.currentBid || parsedBid,
+                  playerName: room.state?.active?.name || 'Superstar',
+                  bidderName: bidderName || ''
+                });
+              }
             }
           }
         }

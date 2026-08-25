@@ -387,12 +387,52 @@ body.tv-projector-mode .timer{font-size:48px !important;padding:8px 24px !import
 .scout-name{font-size:22px;font-weight:900;color:#fff;margin-bottom:6px}
 .scout-role{display:flex;justify-content:center;gap:6px;margin-bottom:14px;flex-wrap:wrap}
 .scout-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;text-align:left;background:rgba(15,23,42,.7);padding:12px;border-radius:12px;margin:12px 0}
-.scout-stat-item small{display:block;color:#94a3b8;font-size:11px}
-.scout-stat-item b{color:#38bdf8;font-size:16px}
+/* PKL Arena Ambient Background with Kabaddi Court Markings */
+.court-ambient-backdrop{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;background:radial-gradient(ellipse at 50% 10%,rgba(59,130,246,.18) 0%,transparent 65%),radial-gradient(ellipse at 50% 90%,rgba(245,158,11,.12) 0%,transparent 65%)}
+.court-lines-svg{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:92vw;max-width:1400px;height:82vh;opacity:.22;animation:courtGlowPulse 6s ease-in-out infinite alternate}
+@keyframes courtGlowPulse{0%{opacity:.18;filter:drop-shadow(0 0 6px rgba(56,189,248,.18))}100%{opacity:.34;filter:drop-shadow(0 0 16px rgba(255,209,91,.35))}}
+
+/* Hologram FBM Cards Vault */
+.fbm-holo-vault{background:linear-gradient(135deg,rgba(15,23,42,.95),rgba(8,14,26,.98));border:1.5px solid rgba(255,209,91,.35);border-radius:18px;padding:16px 18px;margin:14px 0 18px;box-shadow:0 10px 30px rgba(0,0,0,.45)}
+.fbm-vault-header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.fbm-count-chip{padding:6px 14px;border-radius:999px;background:linear-gradient(135deg,#ffd15b,#f59e0b);color:#0b1120;font-weight:900;font-size:13px;box-shadow:0 0 16px rgba(255,209,91,.4)}
+.fbm-holo-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+@media(max-width:900px){.fbm-holo-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:500px){.fbm-holo-grid{grid-template-columns:repeat(2,1fr)}}
+.fbm-holo-card{position:relative;border-radius:12px;padding:12px 10px;display:flex;flex-direction:column;justify-content:space-between;min-height:95px;overflow:hidden;transition:transform .25s ease,box-shadow .25s ease}
+.fbm-holo-card.fbm-active{background:linear-gradient(135deg,#1e293b,#0f172a);border:1.5px solid #ffd15b;box-shadow:0 0 14px rgba(255,209,91,.25),inset 0 0 12px rgba(255,209,91,.1);transform:translateY(-2px)}
+.fbm-holo-card.fbm-active:hover{transform:translateY(-4px) scale(1.02);box-shadow:0 10px 25px rgba(255,209,91,.5),inset 0 0 16px rgba(255,209,91,.2)}
+.fbm-holo-card.fbm-used{background:rgba(15,23,42,.5);border:1px dashed #334155;opacity:.5}
+.fbm-holo-shimmer{position:absolute;inset:-100%;background:linear-gradient(45deg,transparent 40%,rgba(255,255,255,.22) 50%,transparent 60%);animation:holoSweep 4s infinite linear;pointer-events:none}
+@keyframes holoSweep{0%{transform:translate(-50%,-50%) rotate(0deg)}100%{transform:translate(50%,50%) rotate(360deg)}}
+.fbm-badge{font-size:9.5px;font-weight:900;color:#ffd15b;letter-spacing:.04em}
+.fbm-card-top{display:flex;justify-content:space-between;align-items:center}
+.fbm-card-title{font-size:11.5px;font-weight:900;color:#fff;margin-top:6px}
+.fbm-card-desc{font-size:9.5px;color:#94a3b8;line-height:1.25;margin-top:2px}
+
+/* Crorepati Club Celebration */
+.crorepati-modal-overlay{position:fixed;inset:0;background:rgba(2,6,15,.88);backdrop-filter:blur(8px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .35s ease}
+.crorepati-modal-overlay.active{opacity:1;pointer-events:auto}
+.crorepati-modal-card{background:linear-gradient(135deg,#131f36,#0a101d);border:2.5px solid #ffd15b;border-radius:26px;padding:32px 28px;max-width:540px;width:100%;text-align:center;box-shadow:0 0 80px rgba(255,209,91,.45),inset 0 0 30px rgba(255,209,91,.15);animation:croreCardPop .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes croreCardPop{0%{transform:scale(.7) translateY(30px);opacity:0}100%{transform:scale(1) translateY(0);opacity:1}}
+.crorepati-trophy{font-size:48px;animation:trophyBounce 1s infinite alternate}
+@keyframes trophyBounce{0%{transform:translateY(0) scale(1)}100%{transform:translateY(-8px) scale(1.1)}}
+.crorepati-tag{font-size:11px;font-weight:900;color:#ffd15b;letter-spacing:.12em;text-transform:uppercase;margin:10px 0 4px}
+.crorepati-title{font-size:36px;font-weight:950;margin:0 0 10px;background:linear-gradient(135deg,#ffd15b,#fff,#f59e0b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-shadow:0 0 30px rgba(255,209,91,.5);letter-spacing:1px}
+.crorepati-player{font-size:26px;font-weight:900;color:#fff;margin-bottom:6px}
+.crorepati-price{font-size:42px;font-weight:950;color:#ffd15b;text-shadow:0 0 25px rgba(255,209,91,.6);margin-bottom:16px}
+.crorepati-bidder{display:inline-flex;align-items:center;gap:10px;padding:10px 18px;border-radius:999px;background:rgba(255,209,91,.12);border:1px solid rgba(255,209,91,.35);font-size:14px;color:#f8fafc}
+.crorepati-logo{width:36px;height:36px;object-fit:contain}
+.crorepati-sparkles{font-size:20px;margin-top:18px;letter-spacing:8px}
+
+.crorepati-confetti{position:fixed;width:12px;height:12px;border-radius:3px;z-index:10000;pointer-events:none;animation:confettiFly 2.2s cubic-bezier(.25,.46,.45,.94) forwards}
+@keyframes confettiFly{0%{transform:translate(0,0) rotate(0deg) scale(1);opacity:1}100%{transform:translate(var(--dx),var(--dy)) rotate(720deg) scale(0);opacity:0}}
 </style>
 </head>
 <body>
+<div class="court-ambient-backdrop"><svg class="court-lines-svg" viewBox="0 0 1000 600" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="50" y="30" width="900" height="540" stroke="#38bdf8" stroke-width="2" rx="10"/><line x1="500" y1="30" x2="500" y2="570" stroke="#ffd15b" stroke-width="3" stroke-dasharray="8 6"/><line x1="320" y1="30" x2="320" y2="570" stroke="#38bdf8" stroke-width="2"/><line x1="680" y1="30" x2="680" y2="570" stroke="#38bdf8" stroke-width="2"/><line x1="240" y1="30" x2="240" y2="570" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="5 5"/><line x1="760" y1="30" x2="760" y2="570" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="5 5"/><circle cx="500" cy="300" r="70" stroke="#ffd15b" stroke-width="2" stroke-dasharray="6 6"/></svg></div>
 <div id="reconnectToast" class="reconnect-toast hidden"></div>
+<div id="crorepatiModal" class="crorepati-modal-overlay"></div>
 <div class="app">
   <div class="topbar">
     <div class="brand"><h1>PKL 13 Auction Simulator</h1></div>
@@ -1690,6 +1730,10 @@ function initSocket() {
       socket.on('room:reaction_broadcast', ({ emoji }) => {
         spawnFloatingEmoji(emoji);
       });
+
+      socket.on('auction:crorepati_flare', (data) => {
+        showCrorepatiCelebration(data);
+      });
     } catch (e) {
       console.warn('Socket init error:', e);
       updateNetBadge(false);
@@ -1959,6 +2003,7 @@ function createRoom(){
 
     show('lobbyScreen');
     renderLobby();
+    if(typeof playPklTrumpetChime === 'function') playPklTrumpetChime();
     return true;
   }catch(err){
     console.error('Create Auction Room failed:',err);
@@ -2007,6 +2052,7 @@ function joinRoom(){
         state.uiScreen = state.uiScreen || 'lobbyScreen';
         save();
         applyRemoteState(state, true);
+        if(typeof playPklTrumpetChime === 'function') playPklTrumpetChime();
       });
     };
 
@@ -4098,6 +4144,107 @@ function playCroreFanfare(){
     });
   }catch(e){}
 }
+
+function playPklTrumpetChime(){
+  if(!audioPrefs.enabled) return;
+  try{
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if(!AudioCtx) return;
+    const ctx = window.__sharedAudioCtx || (window.__sharedAudioCtx = new AudioCtx());
+    if(ctx.state === 'suspended') ctx.resume();
+    const notes = [
+      { f: 233.08, t: 0.00, d: 0.18, vol: 0.35 },
+      { f: 349.23, t: 0.14, d: 0.18, vol: 0.40 },
+      { f: 466.16, t: 0.28, d: 0.22, vol: 0.45 },
+      { f: 587.33, t: 0.46, d: 0.22, vol: 0.45 },
+      { f: 698.46, t: 0.64, d: 0.70, vol: 0.55 }
+    ];
+    const now = ctx.currentTime;
+    notes.forEach(n => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(n.f, now + n.t);
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(n.f * 4, now + n.t);
+      filter.frequency.exponentialRampToValueAtTime(n.f * 1.5, now + n.t + n.d);
+      gain.gain.setValueAtTime(n.vol, now + n.t);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + n.t + n.d);
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now + n.t);
+      osc.stop(now + n.t + n.d + 0.05);
+    });
+  }catch(e){}
+}
+window.playPklTrumpetChime = playPklTrumpetChime;
+
+function spawnCrorepatiFireworks(){
+  const count = 36;
+  const colors = ['#ffd15b', '#f59e0b', '#38bdf8', '#ef4444', '#10b981', '#ffffff'];
+  for(let i = 0; i < count; i++){
+    const p = document.createElement('div');
+    p.className = 'crorepati-confetti';
+    p.style.left = (Math.random() * 95 + 2.5) + 'vw';
+    p.style.top = (Math.random() * 40 + 10) + 'vh';
+    p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+    const dx = (Math.random() * 320 - 160) + 'px';
+    const dy = (Math.random() * 360 - 100) + 'px';
+    if(p.style && typeof p.style.setProperty === 'function'){
+      p.style.setProperty('--dx', dx);
+      p.style.setProperty('--dy', dy);
+    }
+    p.style.animationDelay = (Math.random() * 0.4) + 's';
+    if(document.body && document.body.appendChild){
+      document.body.appendChild(p);
+    }
+    setTimeout(() => { if(p.remove) p.remove(); }, 2400);
+  }
+}
+window.spawnCrorepatiFireworks = spawnCrorepatiFireworks;
+
+function showCrorepatiCelebration(data){
+  const { playerName, bidderTeamId, newBid, bidderName } = data || {};
+  const tMap = (window.TEAM_BY_ID || (typeof TEAMS !== 'undefined' ? Object.fromEntries(TEAMS.map(x=>[x.id,x])) : {}));
+  const team = bidderTeamId ? tMap[bidderTeamId] : null;
+  const teamName = team?.name || bidderTeamId || 'Franchise';
+  const priceDisplay = (typeof formatMoney === 'function') ? formatMoney(newBid) : (`₹${(newBid/10000000).toFixed(2)} Cr`);
+
+  playCroreFanfare();
+
+  let modal = $('crorepatiModal');
+  if(!modal){
+    modal = document.createElement('div');
+    modal.id = 'crorepatiModal';
+    modal.className = 'crorepati-modal-overlay';
+    document.body.appendChild(modal);
+  }
+
+  modal.innerHTML = `
+    <div class="crorepati-modal-card">
+      <div class="crorepati-trophy">🌟 👑 🌟</div>
+      <div class="crorepati-tag">PRO KABADDI LEAGUE 13 • MEGA RECORD</div>
+      <h2 class="crorepati-title">CROREPATI CLUB!</h2>
+      <div class="crorepati-player">${escapeHtml(playerName || 'Superstar')}</div>
+      <div class="crorepati-price">${priceDisplay}</div>
+      <div class="crorepati-bidder">
+        ${team?.logo ? `<img src="${team.logo}" class="crorepati-logo">` : ''}
+        <span>Bid by <b>${escapeHtml(teamName)}</b> ${bidderName ? `(${escapeHtml(bidderName)})` : ''}</span>
+      </div>
+      <div class="crorepati-sparkles">✨ 🔥 ✨ 🔥 ✨</div>
+    </div>
+  `;
+
+  modal.classList.add('active');
+  spawnCrorepatiFireworks();
+
+  setTimeout(() => {
+    if(modal) modal.classList.remove('active');
+  }, 4500);
+}
+window.showCrorepatiCelebration = showCrorepatiCelebration;
 
 function playReactionSound(emoji){
   if(!audioPrefs.enabled) return;
@@ -7062,9 +7209,43 @@ function buildFinalAuctionPool(){
     }).join('');
     const tMap = (window.TEAM_BY_ID || (typeof TEAMS !== 'undefined' ? Object.fromEntries(TEAMS.map(t=>[t.id,t])) : {}));
     const tObj = tMap[teamId] || { name: teamId, logo: '' };
+    const retainedCount = (t.retentions || []).length;
+    const fbmTotal = Math.max(0, 6 - retainedCount);
+
+    const fbmCardsHtml = `
+      <div class="fbm-holo-vault">
+        <div class="fbm-vault-header">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:24px">🃏</span>
+            <div>
+              <h4 style="margin:0;color:#ffd15b;font-size:15px;font-weight:900">Final Bid Match (FBM) Hologram Cards</h4>
+              <small style="color:#94a3b8">Official PKL 13 Rule: 6 Total Entitlements (6 − ${retainedCount} Retentions = <b style="color:#ffd15b">${fbmTotal} FBM Cards Remaining</b>)</small>
+            </div>
+          </div>
+          <div class="fbm-count-chip"><b>${fbmTotal}</b> / 6 Active FBM</div>
+        </div>
+        <div class="fbm-holo-grid">
+          ${Array.from({ length: 6 }).map((_, i) => {
+            const isAvailable = i < fbmTotal;
+            return `<div class="fbm-holo-card ${isAvailable ? 'fbm-active' : 'fbm-used'}">
+              <div class="fbm-holo-shimmer"></div>
+              <div class="fbm-card-top">
+                <span class="fbm-badge">${isAvailable ? '✨ ACTIVE FBM' : '🔒 USED'}</span>
+                <span class="fbm-icon">${isAvailable ? '🃏' : '✖'}</span>
+              </div>
+              <div class="fbm-card-body">
+                <div class="fbm-card-title">FBM CARD #${i + 1}</div>
+                <div class="fbm-card-desc">${isAvailable ? 'Match Winning Bid in Live Auction' : 'Converted to Squad Retention'}</div>
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+    `;
+
     $('retentionGrid').innerHTML=`<div class="team-retain">
       <div class="team-retain-top"><img src="${tObj.logo}"><div><h3>${tObj.name}</h3><div class="muted small">${cands.length} S12 Squad Players • ${ownerBadge}</div><div class="retain-purse">Purse remaining: <b>${money(remaining)}</b> • Spend: <b>${money(cost)}</b></div></div><div class="retain-team-cost">${money(cost)}</div></div>
-
+      ${fbmCardsHtml}
       <div class="retain-table-wrap"><table class="retain-table"><thead><tr><th>Player</th><th>Role</th><th>Category</th><th>Base Price</th><th>Retention Amount</th><th>Nationality</th></tr></thead><tbody>${rows}</tbody></table></div>
       <div class="retain-summary"><span>Squad players: <b>${cands.length}</b></span><span>Selected: <b>${(t.retentions||[]).length}</b></span><span>Purse left: <b>${money(remaining)}</b></span></div>
     </div>`;
