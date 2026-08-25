@@ -189,18 +189,21 @@ io.on('connection', (socket) => {
             room.state.active = payloadActive;
           }
           if (room.state.active) {
-            room.state.active.currentBid = parsedBid;
-            room.state.active.highestBidder = bidderTeamId;
-            room.state.active.bidHistory = room.state.active.bidHistory || [];
-            room.state.active.bidHistory.push(bidderTeamId);
-            room.state.timeLeft = room.state.bidTimer || 15;
-            room.state.auctionPhase = 'bidding';
-            room.state.bidsLocked = false;
+            // Enforce strictly monotonic bids: A bid on the active player must never go backwards
+            if (parsedBid >= (room.state.active.currentBid || 0)) {
+              room.state.active.currentBid = parsedBid;
+              room.state.active.highestBidder = bidderTeamId;
+              room.state.active.bidHistory = room.state.active.bidHistory || [];
+              room.state.active.bidHistory.push(bidderTeamId);
+              room.state.timeLeft = room.state.bidTimer || 15;
+              room.state.auctionPhase = 'bidding';
+              room.state.bidsLocked = false;
+            }
           }
         }
         io.to(room.id).emit('auction:bid_update', {
-          bidderTeamId,
-          newBid: parsedBid,
+          bidderTeamId: room.state?.active?.highestBidder || bidderTeamId,
+          newBid: room.state?.active?.currentBid || parsedBid,
           bidderSlotId,
           bidderName,
           active: room.state?.active,

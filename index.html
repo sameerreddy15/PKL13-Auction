@@ -648,7 +648,9 @@ body.tv-projector-mode .timer{font-size:48px !important;padding:8px 24px !import
 <div id="floatingAskTimeContainer" class="floating-ask-time hidden">
   <button type="button" id="floatingAskTimeBtn" onclick="requestTime()">⏳ Ask Time</button>
 </div>
-<div id="floatingHostPauseContainer" class="floating-host-pause hidden"></div>
+<div id="floatingHostPauseContainer" class="floating-host-pause hidden">
+  <button type="button" id="floatingHostPauseBtn" onclick="toggleHostPause()">⏸ PAUSE AUCTION</button>
+</div>
 
 <script src="auction_data.js"></script>
 <script src="teams.js"></script>
@@ -1068,7 +1070,16 @@ function applyRemoteState(remoteState, shouldRerender=true){
   }
   else if(screen === 'auctionScreen') {
     const prevActiveId = active ? active.id : null;
+    const prevBid = active ? Number(active.currentBid || 0) : 0;
+    const prevLeader = active ? active.highestBidder : null;
+
     if(state.active) {
+      if (active && active.id === state.active.id && ['bidding','going1','going2'].includes(auctionPhase)) {
+        if (prevBid > Number(state.active.currentBid || 0)) {
+          state.active.currentBid = prevBid;
+          state.active.highestBidder = prevLeader;
+        }
+      }
       active = { ...state.active };
       groupIndex = (typeof state.groupIndex !== 'undefined') ? state.groupIndex : 0;
       timeLeft = (typeof state.timeLeft !== 'undefined') ? state.timeLeft : (state.bidTimer || 15);
@@ -1484,6 +1495,14 @@ function initSocket() {
 
       socket.on('auction:bid_update', ({ bidderTeamId, newBid, bidderSlotId, bidderName, active: payloadActive, state: remoteState }) => {
         const updatedBid = Number(newBid) || 0;
+        // Guard against stale out-of-order bid packets for the active player
+        if (active && payloadActive && active.id === payloadActive.id && Number(active.currentBid || 0) > updatedBid) {
+          return;
+        }
+        if (active && !payloadActive && Number(active.currentBid || 0) > updatedBid) {
+          return;
+        }
+
         if (remoteState) {
           state = { ...state, ...remoteState };
           window.state = state;
@@ -2967,7 +2986,6 @@ function setAuctionPaused(flag, reason = '', seconds = 0) {
     clearInterval(timerHandle);
     clearInterval(clientTimerHandle);
     if('speechSynthesis' in window) speechSynthesis.cancel();
-    if(reason) announce(reason);
   } else {
     state.pauseRemaining = 0;
     state.pauseReason = '';
@@ -3431,6 +3449,10 @@ function renderTeamTicker() {
 
 function checkAndTriggerFbm(player, highestBidderTeamId, finalPrice) {
   if (!player || !highestBidderTeamId) return false;
+  // Guard: If FBM was already evaluated/decided for this player or sale is settling, do NOT trigger again
+  if (player.fbmEvaluated || player.fbmDone || (active && (active.fbmEvaluated || active.fbmDone))) return false;
+  if (auctionPhase === 'fbm' || auctionPhase === 'settling' || auctionPhase === 'idle') return false;
+
   const price = Number(finalPrice || player.currentBid || player.basePrice || 0);
   if (price <= 0) return false;
 
@@ -3519,7 +3541,7 @@ function triggerFbmPrompt(origTeam, player, highestBidderTeamId, finalPrice) {
 
 function renderFbmModal() {
   const modal = $('fbmModal');
-  if (!modal || !state || !state.fbmState) {
+  if (!modal || !state || !state.fbmState || auctionPhase !== 'fbm' || (active && (active.fbmEvaluated || active.fbmDone))) {
     if (modal) modal.classList.add('hidden');
     return;
   }
@@ -3624,6 +3646,13 @@ function handleFbmDecision(exercised) {
   if (!state || !state.fbmState) return;
 
   const { player, origTeamId, highestBidder, price } = state.fbmState;
+  player.fbmEvaluated = true;
+  player.fbmDone = true;
+  if (active) {
+    active.fbmEvaluated = true;
+    active.fbmDone = true;
+  }
+  state.fbmState = null;
   const origTeam = state.teams.find(t => t.teamId === origTeamId);
   const winnerTeam = state.teams.find(t => t.teamId === (exercised ? origTeamId : highestBidder));
   const origName = TEAM_BY_ID[origTeamId]?.name || origTeamId;
@@ -5779,10 +5808,13 @@ function renderAuction(){
     if(onAuctionScreen && host && active){
       floatingHostPause.classList.remove('hidden');
       const isPaused = !!state.auctionPaused;
-      floatingHostPause.innerHTML = `<button type="button" class="${isPaused ? 'resume-state' : 'pause-state'}" onclick="toggleHostPause()">${isPaused ? '▶ RESUME AUCTION' : '⏸ PAUSE AUCTION'}</button>`;
+      const pauseBtn = $('floatingHostPauseBtn');
+      if(pauseBtn){
+        pauseBtn.className = isPaused ? 'resume-state' : 'pause-state';
+        pauseBtn.textContent = isPaused ? '▶ RESUME AUCTION' : '⏸ PAUSE AUCTION';
+      }
     } else {
       floatingHostPause.classList.add('hidden');
-      floatingHostPause.innerHTML = '';
     }
   }
   renderTimer();
