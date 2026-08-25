@@ -189,6 +189,12 @@ io.on('connection', (socket) => {
           slots: room.state.slots,
           state: room.state
         });
+        io.to(room.id).emit('room:state_sync', {
+          state: room.state,
+          actionType,
+          payload,
+          senderSlotId: currentSlotId
+        });
         if (callback) callback({ success: true, state: room.state });
         return;
       }

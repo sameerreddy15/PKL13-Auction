@@ -1277,13 +1277,16 @@ function initSocket() {
         if(remoteSlots) state.slots = remoteSlots;
         if(remoteState && remoteState.teams) state.teams = remoteState.teams;
         save();
-        if(currentScreen() === 'lobbyScreen') renderLobby();
-        else if(currentScreen() === 'retentionScreen') renderRetentions();
+        renderLobby();
+        if(currentScreen() === 'retentionScreen') renderRetentions();
         else if(currentScreen() === 'auctionScreen') renderAuction();
       });
 
       socket.on('room:state_sync', ({ state: remoteState }) => {
         if (!remoteState) return;
+        if (remoteState.slots && state) {
+          state.slots = remoteState.slots;
+        }
         if (isHostUser() && state && state.started) {
           // Host is the authoritative auction master. Preserve active in-memory auction loop and timers
           if (remoteState.slots) state.slots = remoteState.slots;
@@ -1292,6 +1295,7 @@ function initSocket() {
           return;
         }
         applyRemoteState(remoteState, true);
+        renderLobby();
       });
 
       socket.on('auction:player_next_sync', ({ active: remoteActive, timeLeft: remoteTime, groupIndex: remoteGroup, auctionPhase: remotePhase, bidsLocked: remoteLocked, state: remoteState }) => {
