@@ -105,10 +105,18 @@ io.on('connection', (socket) => {
 
       let slot = null;
       if (slotId && room.state.slots) {
-        slot = room.state.slots.find(s => s.slotId === slotId);
+        const candidate = room.state.slots.find(s => s.slotId === slotId);
+        if (candidate) {
+          const hostParticipant = Array.from(room.participants.values()).find(p => p.slotId === room.state.hostSlotId && p.online);
+          if (candidate.slotId === room.state.hostSlotId && hostParticipant && hostParticipant.socketId !== socket.id) {
+            slot = null; // Do not overwrite host slot from another device
+          } else {
+            slot = candidate;
+          }
+        }
       }
       if (!slot && room.state.slots) {
-        slot = room.state.slots.find(s => s.name.toLowerCase() === cleanName.toLowerCase() && s.mode === 'human');
+        slot = room.state.slots.find(s => s.name.toLowerCase() === cleanName.toLowerCase() && s.mode === 'human' && s.slotId !== room.state.hostSlotId);
       }
 
       if (slot) {

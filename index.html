@@ -393,6 +393,15 @@ body.tv-projector-mode .timer{font-size:48px !important;padding:8px 24px !import
   </div>
 
   <section id="createScreen" class="create-grid">
+    <div id="directInviteBanner" class="card hero hidden" style="border:2px solid #ffd15b;margin-bottom:20px;background:linear-gradient(180deg,#1e293b,#0f172a);text-align:center;grid-column:1/-1">
+      <h2 style="margin:0 0 6px;color:#ffd15b">🏆 PKL 13 Auction Direct Invitation</h2>
+      <p style="margin:0 0 16px;color:#94a3b8;font-size:14px">You have been invited to live auction room <b id="directInviteRoomDisplay" style="color:#ffd15b;font-size:18px;letter-spacing:1px"></b></p>
+      <div style="max-width:440px;margin:0 auto;display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
+        <input id="directInviteName" placeholder="Enter your name" maxlength="30" style="flex:1;min-width:180px;padding:12px 14px;border-radius:10px;background:#0b1322;color:#fff;border:1px solid #33486e;font-weight:700">
+        <button type="button" class="btn green big" id="directInviteJoinBtn" onclick="joinFromInviteBanner()" style="padding:12px 22px">🚀 Enter Room</button>
+      </div>
+      <div id="directInviteError" class="error" style="margin-top:10px"></div>
+    </div>
     <div class="card hero">
       <h2 class="screen-title">Create Auction Room</h2>
       <div class="option-row">
@@ -992,19 +1001,23 @@ function appendChatMessage(item){
   box.scrollTop = box.scrollHeight;
 }
 
-function getShareableJoinUrl() {
+function getShareableJoinUrl(preferredIp) {
   if (!state || !state.id) return '';
   const port = window.serverPort || window.location.port || '3000';
   let host = window.location.hostname;
   
-  if ((host === 'localhost' || host === '127.0.0.1') && window.serverLanIps && window.serverLanIps.length > 0) {
-    host = window.serverLanIps[0];
+  if (preferredIp) {
+    host = preferredIp;
+  } else if ((host === 'localhost' || host === '127.0.0.1') && window.serverLanIps && window.serverLanIps.length > 0) {
+    const wifiIp = window.serverLanIps.find(ip => /^192\.168\.[01]\./.test(ip) || /^10\./.test(ip)) || window.serverLanIps[0];
+    host = wifiIp;
   }
   
-  const protocol = window.location.protocol;
+  const protocol = (window.location.protocol === 'file:') ? 'http:' : window.location.protocol;
   const portPart = (port && port !== '80' && port !== '443') ? `:${port}` : '';
-  const pathname = window.location.pathname;
-  return `${protocol}//${host}${portPart}${pathname}?room=${state.id}`;
+  let pathname = window.location.pathname || '/';
+  if (window.location.protocol === 'file:') pathname = '/';
+  return `${protocol}//${host}${portPart}${pathname}?room=${encodeURIComponent(state.id)}`;
 }
 
 function openShareModal(){
@@ -1180,9 +1193,15 @@ function initSocket() {
           if(data && data.localIps) window.serverLanIps = data.localIps;
         }).catch(() => {});
 
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlRoom = (urlParams.get('room') || urlParams.get('join') || '').trim().toUpperCase();
+
         const saved = load();
         const savedSlot = localStorage.getItem(MY_SLOT_STORE);
-        if(saved && saved.id && savedSlot) {
+        // Only auto-join saved room if we didn't arrive via a direct invite link to a DIFFERENT room
+        if(urlRoom && saved && saved.id !== urlRoom) {
+          // Arriving via direct link for a new room; do not auto-join old saved room
+        } else if(saved && saved.id && savedSlot) {
           const mySlot = saved.slots?.find(s => s.slotId === savedSlot);
           socket.emit('room:join', {
             roomId: saved.id,
@@ -1638,23 +1657,42 @@ function checkUrlParams(){
     if(roomParam){
       const clean = roomParam.trim().toUpperCase();
       if($('joinId')) $('joinId').value = clean;
-      show('createScreen');
-      const joinCard = (typeof $('joinUserName')?.closest === 'function') ? $('joinUserName').closest('.card') : null;
-      if(joinCard){
-        if(typeof joinCard.scrollIntoView === 'function') joinCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        joinCard.style.boxShadow = '0 0 25px rgba(255,209,91,.4)';
-      }
-      setTimeout(() => {
-        if($('joinUserName')) {
-          const storedName = localStorage.getItem('pkl_last_user_name') || '';
-          if (storedName && !$('joinUserName').value) $('joinUserName').value = storedName;
-          $('joinUserName').focus();
+      
+      const banner = $('directInviteBanner');
+      const roomDisp = $('directInviteRoomDisplay');
+      const directName = $('directInviteName');
+      const storedName = localStorage.getItem('pkl_last_user_name') || '';
+
+      if(banner && roomDisp){
+        roomDisp.textContent = clean;
+        banner.classList.remove('hidden');
+        if(directName){
+          if(storedName && !directName.value) directName.value = storedName;
+          setTimeout(() => directName.focus(), 150);
+          directName.onkeydown = (e) => { if(e.key === 'Enter') joinFromInviteBanner(); };
         }
-      }, 100);
+      }
+
+      show('createScreen');
       return clean;
     }
   }catch(e){}
   return null;
+}
+
+function joinFromInviteBanner(){
+  const name = ($('directInviteName')?.value || '').trim();
+  const roomId = ($('directInviteRoomDisplay')?.textContent || $('joinId')?.value || '').trim().toUpperCase();
+  const err = $('directInviteError');
+  if(err) err.textContent = '';
+  if(!name){
+    if(err) err.textContent = 'Please enter your name to enter the room.';
+    $('directInviteName')?.focus();
+    return;
+  }
+  if($('joinUserName')) $('joinUserName').value = name;
+  if($('joinId')) $('joinId').value = roomId;
+  joinRoom();
 }
 
 function show(id){
@@ -1901,20 +1939,40 @@ function joinRoom(){
   }
   try { localStorage.setItem('pkl_last_user_name', userName); } catch(e){}
 
-  if(socket && socket.connected){
-    socket.emit('room:join', { roomId: id, userName, slotId: mySlotId }, (res) => {
-      if(res && res.lanIps) window.serverLanIps = res.lanIps;
-      if(res && res.port) window.serverPort = res.port;
-      if(!res || !res.success){
-        if(el) el.textContent = res?.error || `Room ${id} was not found on this server.`;
-        return;
-      }
-      state = res.state;
-      mySlotId = res.slotId;
-      state.uiScreen = state.uiScreen || 'lobbyScreen';
-      save();
-      applyRemoteState(state, true);
-    });
+  const targetSlotId = (state?.id === id ? mySlotId : null);
+
+  if(socket){
+    if(el) el.textContent = 'Connecting to auction room…';
+    const doEmit = () => {
+      socket.emit('room:join', { roomId: id, userName, slotId: targetSlotId }, (res) => {
+        if(res && res.lanIps) window.serverLanIps = res.lanIps;
+        if(res && res.port) window.serverPort = res.port;
+        if(!res || !res.success){
+          if(el) el.textContent = res?.error || `Room ${id} was not found on this server.`;
+          return;
+        }
+        if(el) el.textContent = '';
+        state = res.state;
+        mySlotId = res.slotId;
+        try { localStorage.setItem(MY_SLOT_STORE, mySlotId); } catch(e){}
+        state.uiScreen = state.uiScreen || 'lobbyScreen';
+        save();
+        applyRemoteState(state, true);
+      });
+    };
+
+    if(socket.connected){
+      doEmit();
+    } else {
+      let timeoutId = setTimeout(() => {
+        if(el) el.textContent = `Connecting to server (${window.location.host}) timed out. Please check network.`;
+      }, 5000);
+      socket.once('connect', () => {
+        clearTimeout(timeoutId);
+        doEmit();
+      });
+      if(typeof socket.connect === 'function') socket.connect();
+    }
   } else {
     const s=load();
     if(!s||s.id!==id){
