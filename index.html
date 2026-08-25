@@ -705,6 +705,9 @@ if('speechSynthesis' in window){
   speechSynthesis.onvoiceschanged = chooseVoice;
 }
 
+let isAnnouncementSpeaking = false;
+window.isAnnouncementSpeaking = false;
+
 function speakAnnouncement(text, done, priority = 'normal'){
   if (typeof currentScreen === 'function' && currentScreen() !== 'auctionScreen') {
     if ('speechSynthesis' in window) {
@@ -713,33 +716,66 @@ function speakAnnouncement(text, done, priority = 'normal'){
     if (done) setTimeout(done, 80);
     return;
   }
+  if (!text) { if(done) done(); return; }
+  const clean = String(text).replace(/[#*`_]/g, '').trim();
+  if (!clean) { if(done) done(); return; }
+
   if (!audioPrefs.enabled || !('speechSynthesis' in window)) {
-    if (done) setTimeout(done, 2600);
+    isAnnouncementSpeaking = true;
+    window.isAnnouncementSpeaking = true;
+    if (typeof renderAuction === 'function') renderAuction();
+    const estTime = Math.max(1600, Math.min(6000, clean.split(/\s+/).length * 280));
+    setTimeout(() => {
+      isAnnouncementSpeaking = false;
+      window.isAnnouncementSpeaking = false;
+      if (done) done();
+      if (typeof renderAuction === 'function') renderAuction();
+    }, estTime);
     return;
   }
+
   try {
     if (speechSynthesis.paused) {
       try { speechSynthesis.resume(); } catch(e){}
     }
     speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
+    const u = new SpeechSynthesisUtterance(clean);
     chooseVoice();
     if (audioPrefs.voice) u.voice = audioPrefs.voice;
-    u.rate = priority === 'urgent' ? 1.03 : 0.95;
+    u.rate = priority === 'urgent' ? 1.02 : 0.96;
     u.pitch = 1.0;
     u.volume = 1;
+
+    isAnnouncementSpeaking = true;
+    window.isAnnouncementSpeaking = true;
+    if (typeof renderAuction === 'function') renderAuction();
+
     let finished = false;
+    let safetyTimer = null;
+
     const finish = () => {
       if (finished) return;
       finished = true;
+      if (safetyTimer) clearTimeout(safetyTimer);
+      isAnnouncementSpeaking = false;
+      window.isAnnouncementSpeaking = false;
       if (done) done();
+      if (typeof renderAuction === 'function') renderAuction();
     };
+
     u.onend = finish;
     u.onerror = finish;
-    setTimeout(finish, priority === 'urgent' ? 3500 : 5000);
+
+    const wordCount = clean.split(/\s+/).length;
+    const estMs = Math.max(4500, Math.min(14000, wordCount * 450 + 2000));
+    safetyTimer = setTimeout(finish, estMs);
+
     speechSynthesis.speak(u);
   } catch(e) {
-    if (done) setTimeout(done, 2600);
+    isAnnouncementSpeaking = false;
+    window.isAnnouncementSpeaking = false;
+    if (done) setTimeout(done, 1500);
+    if (typeof renderAuction === 'function') renderAuction();
   }
 }
 function announce(text, priority = 'normal'){ speakAnnouncement(text, null, priority); }
@@ -3068,7 +3104,7 @@ function startAuction(){
 }
 function nextPlayer(){
   if(!isHostUser()) return;
-  if(active)return;
+  if(active || window.isAnnouncementSpeaking || auctionPhase === 'settling' || auctionPhase === 'fbm') return;
   if(state) state.auctionRuntime=null;
   clearTimeout(autoSellHandle);clearTimeout(aiHandle);clearPauseTimers();
   state.auctionPaused=false; state.pauseRemaining=0; state.pauseRequest=null;
@@ -5669,9 +5705,15 @@ function renderAuction(){
     }
     $('soldBtn').disabled=true;
     $('unsoldBtn').disabled=true;
-    $('skipBtn').disabled=true;
-    $('nextPlayerBtn').disabled=!host;
-    $('nextPlayerBtn').innerHTML='Next Player <span class="hotkey-hint">N</span>';
+    const canNext = host && !active && !window.isAnnouncementSpeaking && auctionPhase === 'idle';
+    $('nextPlayerBtn').disabled = !canNext;
+    $('nextPlayerBtn').innerHTML = 'Next Player <span class="hotkey-hint">N</span>';
+    if (window.isAnnouncementSpeaking || auctionPhase === 'settling' || auctionPhase === 'fbm') {
+      $('nextPlayerBtn').disabled = true;
+      $('nextPlayerBtn').title = 'Waiting for announcement to complete…';
+    } else {
+      $('nextPlayerBtn').title = '';
+    }
     $('sMatches').textContent='—';
     $('sPower').textContent='—';
     $('sRaid').textContent='—';
@@ -7031,7 +7073,7 @@ function buildFinalAuctionPool(){
         unsold();
       } else if (key === 'f' && isHostUser() && ['announcement','bidding','going1','going2'].includes(auctionPhase)) {
         skipPlayer();
-      } else if (key === 'n' && isHostUser() && auctionPhase === 'idle') {
+      } else if (key === 'n' && isHostUser() && auctionPhase === 'idle' && !window.isAnnouncementSpeaking && !active) {
         nextPlayer();
       }
     });
