@@ -1211,12 +1211,12 @@ function initSocket() {
             if(res && res.lanIps) window.serverLanIps = res.lanIps;
             if(res && res.port) window.serverPort = res.port;
             if(res && res.success && res.state){
-              if(isHostUser() && (active || state?.active)){
-                if(res.state.slots) state.slots = res.state.slots;
-                if(res.state.logs) state.logs = res.state.logs;
+              if(state && res.state.slots) state.slots = res.state.slots;
+              if(state && res.state.logs) state.logs = res.state.logs;
+              save();
+              if(isHostUser() && (active || state?.active) && state.started){
                 persistAuctionRuntime();
                 renderAuction();
-                broadcastAction('room:state_sync', {}, state);
               } else {
                 applyRemoteState(res.state, true);
               }
@@ -1241,6 +1241,16 @@ function initSocket() {
           showReconnectionToast('Reconnected! Auction state refreshed.', 2500, true);
         });
       }
+
+      socket.on('room:slot_sync', ({ slots: remoteSlots, state: remoteState }) => {
+        if(!state) return;
+        if(remoteSlots) state.slots = remoteSlots;
+        if(remoteState && remoteState.teams) state.teams = remoteState.teams;
+        save();
+        if(currentScreen() === 'lobbyScreen') renderLobby();
+        else if(currentScreen() === 'retentionScreen') renderRetentions();
+        else if(currentScreen() === 'auctionScreen') renderAuction();
+      });
 
       socket.on('room:state_sync', ({ state: remoteState }) => {
         if (!remoteState) return;
@@ -2136,7 +2146,7 @@ window.setTeam=function(slotId,teamId){
   }
   s.teamId=teamId||null;
   save();renderLobby();
-  broadcastAction('slot:update',{slots:st.slots}, st);
+  broadcastAction('slot:set_team',{slotId, teamId: s.teamId, slots:st.slots}, st);
 };
 
 $('copyRoom').onclick=async()=>{try{await navigator.clipboard.writeText(state.id);$('copyRoom').textContent='Copied!';setTimeout(()=>$('copyRoom').textContent='Copy Room ID',1200)}catch{alert('Room ID: '+state.id)}};

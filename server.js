@@ -105,18 +105,10 @@ io.on('connection', (socket) => {
 
       let slot = null;
       if (slotId && room.state.slots) {
-        const candidate = room.state.slots.find(s => s.slotId === slotId);
-        if (candidate) {
-          const hostParticipant = Array.from(room.participants.values()).find(p => p.slotId === room.state.hostSlotId && p.online);
-          if (candidate.slotId === room.state.hostSlotId && hostParticipant && hostParticipant.socketId !== socket.id) {
-            slot = null; // Do not overwrite host slot from another device
-          } else {
-            slot = candidate;
-          }
-        }
+        slot = room.state.slots.find(s => s.slotId === slotId);
       }
       if (!slot && room.state.slots) {
-        slot = room.state.slots.find(s => s.name.toLowerCase() === cleanName.toLowerCase() && s.mode === 'human' && s.slotId !== room.state.hostSlotId);
+        slot = room.state.slots.find(s => s.name.toLowerCase() === cleanName.toLowerCase() && s.mode === 'human');
       }
 
       if (slot) {
@@ -181,6 +173,25 @@ io.on('connection', (socket) => {
       }
 
       room.lastActivity = Date.now();
+
+      if (actionType === 'slot:update' || actionType === 'slot:set_team') {
+        const { slotId: targetSlotId, teamId: targetTeamId, slots: updatedSlots, newName: targetName } = payload || {};
+        if (updatedSlots && Array.isArray(updatedSlots) && room.state) {
+          room.state.slots = updatedSlots;
+        } else if (targetSlotId && room.state && room.state.slots) {
+          const s = room.state.slots.find(x => x.slotId === targetSlotId);
+          if (s) {
+            if (typeof targetTeamId !== 'undefined') s.teamId = targetTeamId || null;
+            if (targetName) s.name = String(targetName).trim();
+          }
+        }
+        io.to(room.id).emit('room:slot_sync', {
+          slots: room.state.slots,
+          state: room.state
+        });
+        if (callback) callback({ success: true, state: room.state });
+        return;
+      }
 
       if (stateDelta) {
         room.state = { ...room.state, ...stateDelta };
