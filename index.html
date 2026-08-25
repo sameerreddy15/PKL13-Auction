@@ -115,7 +115,7 @@ body{padding:20px}.app{max-width:1380px;margin:auto}.hidden{display:none!importa
   .retention-floating-bar{top:6px;right:6px;padding:3px 8px}
   .ready-btn{padding:5px 12px;font-size:11.5px}
   .outbid-banner{top:8px!important;font-size:13px!important;padding:8px 16px!important;border-radius:12px!important;max-width:94vw!important}
-  .bidding-war-banner{top:58px!important;font-size:12px!important;padding:6px 14px!important;max-width:94vw!important}
+  .bidding-war-banner{font-size:13px!important;padding:8px 14px!important;margin:8px 0 10px!important;max-width:100%!important}
   .watchlist-toast{top:104px!important;font-size:12px!important;padding:6px 14px!important;max-width:94vw!important}
   .chat-toast{top:10px!important;right:10px!important;max-width:calc(100vw - 20px)!important}
 }
@@ -1464,6 +1464,10 @@ function initSocket() {
         showOutbidAlert(`↩️ Host undid the last sale! Bidding reopened.`);
       });
 
+      socket.on('auction:bidding_war_sync', ({ teamA, teamB }) => {
+        showBiddingWarFlare(teamA, teamB, false);
+      });
+
       socket.on('room:player_ready_sync', ({ slotId, teamId, isReady, playerName, state: remoteState }) => {
         if (remoteState) {
           state = { ...remoteState };
@@ -1529,17 +1533,17 @@ function initSocket() {
           state.auctionPhase = 'bidding';
           state.bidsLocked = false;
         }
-        if (active) {
-          active.recentBids = active.recentBids || [];
-          active.recentBids.push({ teamId: bidderTeamId, time: Date.now() });
-          if (active.recentBids.length >= 2) {
-            const last2 = active.recentBids.slice(-2);
-            if (last2[0].teamId !== last2[1].teamId && (last2[1].time - last2[0].time) <= 3500) {
-              const tMap = (window.TEAM_BY_ID || (typeof TEAMS !== 'undefined' ? Object.fromEntries(TEAMS.map(x=>[x.id,x])) : {}));
-              const t1 = tMap[last2[0].teamId]?.name || last2[0].teamId;
-              const t2 = tMap[last2[1].teamId]?.name || last2[1].teamId;
-              showBiddingWarFlare(t1, t2);
-            }
+        window.__recentBidsList = window.__recentBidsList || [];
+        window.__recentBidsList.push({ teamId: bidderTeamId, time: Date.now() });
+        if (window.__recentBidsList.length > 10) window.__recentBidsList.shift();
+        if (window.__recentBidsList.length >= 2) {
+          const l1 = window.__recentBidsList[window.__recentBidsList.length - 1];
+          const l2 = window.__recentBidsList[window.__recentBidsList.length - 2];
+          if (l1.teamId !== l2.teamId && (l1.time - l2.time) <= 6000) {
+            const tMap = (window.TEAM_BY_ID || (typeof TEAMS !== 'undefined' ? Object.fromEntries(TEAMS.map(x=>[x.id,x])) : {}));
+            const t1 = tMap[l2.teamId]?.name || l2.teamId;
+            const t2 = tMap[l1.teamId]?.name || l1.teamId;
+            showBiddingWarFlare(t1, t2, false);
           }
         }
         if (updatedBid >= 10000000 && active && !active.croreCelebrated) {
@@ -4679,7 +4683,7 @@ function unsold(auto=false){
   if(auto || audioPrefs.enabled){ speakAnnouncement(`${name} remains unsold.`,finish,'urgent'); } else finish();
 }
 function logAuction(msg){state.logs=state.logs||[];state.logs.unshift(new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+' '+msg);save()}
-function showBiddingWarFlare(teamA, teamB){
+function showBiddingWarFlare(teamA, teamB, broadcast = true){
   const banner = $('biddingWarBanner');
   if(!banner) return;
   banner.innerHTML = `⚔️ <b>BIDDING WAR:</b> ${escapeHtml(teamA)} vs ${escapeHtml(teamB)}! 🔥`;
@@ -4688,6 +4692,9 @@ function showBiddingWarFlare(teamA, teamB){
   window.__biddingWarTimer = setTimeout(() => {
     banner.classList.add('hidden');
   }, 4000);
+  if (broadcast && isHostUser()) {
+    broadcastAction('auction:bidding_war', { teamA, teamB }, state);
+  }
 }
 
 function getWatchlistSet(){

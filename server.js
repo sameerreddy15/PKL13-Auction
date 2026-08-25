@@ -364,6 +364,12 @@ io.on('connection', (socket) => {
         io.to(room.id).emit('auction:round2_sync', {
           state: room.state
         });
+      } else if (actionType === 'auction:bidding_war') {
+        const { teamA, teamB } = payload || {};
+        io.to(room.id).emit('auction:bidding_war_sync', {
+          teamA,
+          teamB
+        });
       } else if (actionType === 'auction:undo_sale') {
         io.to(room.id).emit('auction:undo_sale_sync', {
           state: room.state,
