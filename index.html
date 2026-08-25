@@ -3279,8 +3279,16 @@ function calculateFbmCards(retentionCount) {
   return 0;
 }
 
-function getPlayerOriginalTeam(playerName) {
+function getPlayerOriginalTeam(playerOrName) {
+  if (!playerOrName) return null;
+  if (typeof playerOrName === 'object') {
+    if (playerOrName.s12Team) return playerOrName.s12Team;
+    if (playerOrName.originalTeam) return playerOrName.originalTeam;
+    if (playerOrName.prevTeam) return playerOrName.prevTeam;
+  }
+  const playerName = (typeof playerOrName === 'object') ? (playerOrName.name || '') : String(playerOrName);
   if (!playerName) return null;
+
   const raw = String(playerName).toLowerCase().trim().replace(/[^a-z0-9]+/g, ' ');
   const canonTarget = typeof canon === 'function' ? String(canon(playerName)).toLowerCase().trim().replace(/[^a-z0-9]+/g, ' ') : raw;
   const canonNameTarget = typeof canonicalName === 'function' ? canonicalName(playerName).toLowerCase().trim().replace(/[^a-z0-9]+/g, ' ') : raw;
@@ -3386,8 +3394,11 @@ function renderTeamTicker() {
 }
 
 function checkAndTriggerFbm(player, highestBidderTeamId, finalPrice) {
-  if (!player || !highestBidderTeamId || !finalPrice) return false;
-  const origTeamId = getPlayerOriginalTeam(player.name);
+  if (!player || !highestBidderTeamId) return false;
+  const price = Number(finalPrice || player.currentBid || player.basePrice || 0);
+  if (price <= 0) return false;
+
+  const origTeamId = player.s12Team || player.originalTeam || getPlayerOriginalTeam(player);
   if (!origTeamId || origTeamId === highestBidderTeamId) return false;
 
   const origTeam = state.teams?.find(t => t.teamId === origTeamId);
@@ -3399,10 +3410,10 @@ function checkAndTriggerFbm(player, highestBidderTeamId, finalPrice) {
   }
   if (origTeam.fbmRemaining <= 0) return false;
   if ((origTeam.auctionSquad || []).length >= 25) return false;
-  if (origTeam.purse < finalPrice) return false;
-  if (player.nationality === 'Overseas' && overseasCount(origTeam) >= 4) return false;
+  if (origTeam.purse < price) return false;
+  if ((player.nationality === 'Overseas' || isOverseasPlayer(player.name)) && overseasCount(origTeam) >= 4) return false;
 
-  triggerFbmPrompt(origTeam, player, highestBidderTeamId, finalPrice);
+  triggerFbmPrompt(origTeam, player, highestBidderTeamId, price);
   return true;
 }
 
@@ -4196,9 +4207,18 @@ function aiPassProbability(team,player){
   return Math.max(.01,Math.min(.38,p));
 }
 function aiCanTargetPlayer(team,player){
+  if(!team || !player) return false;
   const oc=overseasCount(team);
-  if(player.nationality==='Overseas' && oc>=4) return false;
+  if((player.nationality==='Overseas' || isOverseasPlayer(player.name)) && oc>=4) return false;
   if(totalSquadCount(team)>=25) return false;
+
+  // Rule: AI team should not bid for his previous year player if FBM is available with that team
+  const origTeamId = player.s12Team || player.originalTeam || ((typeof getPlayerOriginalTeam === 'function') ? getPlayerOriginalTeam(player) : null);
+  const fbmCards = (typeof team.fbmRemaining !== 'undefined') ? team.fbmRemaining : (typeof team.fbmTotal !== 'undefined' ? team.fbmTotal : 3);
+  if (origTeamId === team.teamId && fbmCards > 0) {
+    return false;
+  }
+
   return true;
 }
 function aiMaxBid(team,player){
@@ -4211,9 +4231,16 @@ function aiMaxBid(team,player){
   // If AI team already fulfilled position quota and has >= 14 players, don't overspend
   if (posCount >= maxTarget && squadCount >= 14) return 0;
 
-  const isOverseas = (player.nationality === 'Overseas');
+  const isOverseas = (player.nationality === 'Overseas' || isOverseasPlayer(player.name));
   const overseasInTeam = overseasCount(team);
   if (isOverseas && overseasInTeam >= 4) return 0;
+
+  // Rule: AI team should not bid for his previous year player if FBM is available with that team
+  const origTeamId = player.s12Team || player.originalTeam || ((typeof getPlayerOriginalTeam === 'function') ? getPlayerOriginalTeam(player) : null);
+  const fbmCards = (typeof team.fbmRemaining !== 'undefined') ? team.fbmRemaining : (typeof team.fbmTotal !== 'undefined' ? team.fbmTotal : 3);
+  if (origTeamId === team.teamId && fbmCards > 0) {
+    return 0;
+  }
 
   // Strict reserve budget: preserve 9 Lakhs for each remaining slot needed to reach 18 players
   const remainingSlotsNeeded = Math.max(0, 18 - squadCount - 1);
@@ -4236,13 +4263,9 @@ function aiMaxBid(team,player){
   // Overseas priority
   if (isOverseas && overseasInTeam < 2) value *= 1.30;
 
-  // Season 12 loyalty & FBM card strategic awareness
-  const origTeamId = (typeof getPlayerOriginalTeam === 'function') ? getPlayerOriginalTeam(player.name) : null;
-  const isMyS12Player = (origTeamId === team.teamId);
-  const hasFbm = isMyS12Player && ((team.fbmRemaining || 0) > 0);
-
-  if (isMyS12Player && !hasFbm) {
-    value *= 1.15; // Loyalty boost if no FBM card left
+  // Loyalty boost if player belonged to team but NO FBM cards are left
+  if (origTeamId === team.teamId && fbmCards <= 0) {
+    value *= 1.15;
   }
 
   // Discipline & remaining purse proportion
@@ -4265,6 +4288,14 @@ function aiChooseBidder(){
     const team = state.teams?.find(t => t.teamId === teamId);
     if(!team) continue;
 
+    // Rule: AI team should not bid for his previous year player if FBM is available with that team
+    const origTeamId = active.s12Team || active.originalTeam || ((typeof getPlayerOriginalTeam === 'function') ? getPlayerOriginalTeam(active) : null);
+    const fbmCards = (typeof team.fbmRemaining !== 'undefined') ? team.fbmRemaining : (typeof team.fbmTotal !== 'undefined' ? team.fbmTotal : 3);
+    if (origTeamId === teamId && fbmCards > 0) {
+      active.aiPassed[teamId] = true;
+      continue;
+    }
+
     const limit = (typeof active.aiLimits[teamId] !== 'undefined') ? active.aiLimits[teamId] : aiMaxBid(team, active);
     active.aiLimits[teamId] = limit;
 
@@ -4275,20 +4306,12 @@ function aiChooseBidder(){
     }
     if(active.highestBidder === teamId) continue;
 
-    // FBM Strategic Awareness: If AI team has FBM for this player and someone else is contesting,
-    // AI avoids bidding against other teams past 1.4x base price and preserves purse for the final FBM match!
-    const origTeamId = (typeof getPlayerOriginalTeam === 'function') ? getPlayerOriginalTeam(active.name) : null;
-    const hasFbmForThis = (origTeamId === teamId && (team.fbmRemaining || 0) > 0);
-    if (hasFbmForThis && active.highestBidder && active.highestBidder !== teamId && (active.currentBid || 0) >= (active.basePrice || 0) * 1.4) {
-      continue;
-    }
-
     const squad = team.auctionSquad || [];
     const squadCount = squad.length;
     const posCount = squad.filter(p => p.position === active.position).length;
     const targetByPos = { Raider: 6, Defender: 7, 'All-Rounder': 4 };
     const need = Math.max(0, (targetByPos[active.position] || 6) - posCount);
-    const overseasNeed = (active.nationality === 'Overseas' && overseasCount(team) < 2) ? 1.5 : 0;
+    const overseasNeed = ((active.nationality === 'Overseas' || isOverseasPlayer(active.name)) && overseasCount(team) < 2) ? 1.5 : 0;
     
     // Squad requirement priority score
     const needScore = need * 1.8 + overseasNeed + (18 - Math.min(18, squadCount)) * 0.8;
@@ -4451,13 +4474,24 @@ function skipPlayer(){
   const minPrice=Math.max(base,current+stepSize);
   const aiSlots=state.slots.filter(s=>s.mode==='bot'&&s.teamId);
   const targetSlots = aiSlots.length > 0 ? aiSlots : state.slots.filter(s=>s.teamId);
+  const origTeamId = active.s12Team || active.originalTeam || ((typeof getPlayerOriginalTeam === 'function') ? getPlayerOriginalTeam(active) : null);
+
   const eligible=state.teams.filter(t=>{
     const slot=targetSlots.find(s=>s.teamId===t.teamId); if(!slot)return false;
     if((t.auctionSquad||[]).length>=25)return false;
     if(Number(t.purse||0)<minPrice)return false;
-    if(active.nationality==='Overseas' && overseasCount(t)>=4)return false;
+    if((active.nationality==='Overseas' || isOverseasPlayer(active.name)) && overseasCount(t)>=4)return false;
+
+    // Rule: When force settled, the player should NOT move to his previous year AI team if FBM is available with that AI team
+    const isBot = (!slot || slot.mode === 'bot');
+    const fbmLeft = (typeof t.fbmRemaining !== 'undefined') ? t.fbmRemaining : (typeof t.fbmTotal !== 'undefined' ? t.fbmTotal : 3);
+    if (isBot && origTeamId === t.teamId && fbmLeft > 0) {
+      return false;
+    }
+
     return true;
   });
+
   if(!eligible.length){
     // If no team can afford or take the player, mark unsold cleanly
     unsold();
@@ -4503,40 +4537,42 @@ function skipPlayer(){
   save();renderAuction();renderTimer();
   playGavelSound();
   triggerHaptic([120]);
-  const origTeamId = getPlayerOriginalTeam(active.name);
-  const saleText = buildFbmUnavailableSaleText(active, origTeamId, team.teamId, price);
+  const saleOrigTeamId = getPlayerOriginalTeam(active);
+  const saleText = buildFbmUnavailableSaleText(active, saleOrigTeamId, team.teamId, price);
   broadcastAction('auction:skip', { player: active, teamId: team.teamId, price, speakText: saleText }, state);
   speakAnnouncement(saleText,()=>{
     timeLeft=0;active=null;auctionPhase='idle';bidsLocked=false;state.active=null;state.auctionRuntime=null;save();renderAuction();
     setTimeout(nextPlayer,700);
   },'urgent');
 }
+
 function sold(auto=false){
   if(!isHostUser() || !active || state.auctionPaused)return;
   if(!active.highestBidder){unsold(auto);return}
-  if(!auto && checkAndTriggerFbm(active, active.highestBidder, active.currentBid)){
+  const finalPrice = Number(active.currentBid || active.basePrice || 0);
+  if(checkAndTriggerFbm(active, active.highestBidder, finalPrice)){
     return;
   }
   const t=state.teams.find(x=>x.teamId===active.highestBidder);
-  if(!t||active.currentBid>t.purse){alert('Invalid bid.');return}
+  if(!t||finalPrice>t.purse){alert('Invalid bid: insufficient team purse.');return}
   if((t.auctionSquad||[]).length>=25){alert('Maximum squad size reached: 25 players.'); active.highestBidder=null; active.currentBid=0; renderAuction(); return}
-  t.purse-=active.currentBid;
-  t.spent+=active.currentBid;
-  t.auctionSquad.push({name:active.name,price:active.currentBid,category:active.category,position:active.position,nationality:active.nationality,auction:true});
+  t.purse-=finalPrice;
+  t.spent+=finalPrice;
+  t.auctionSquad.push({name:active.name,price:finalPrice,category:active.category,position:active.position,nationality:active.nationality,auction:true});
   const db=state.players.find(p=>p.id===active.id);
-  if(db)Object.assign(db,{status:'sold',soldTo:t.teamId,soldPrice:active.currentBid,currentBid:active.currentBid});
+  if(db)Object.assign(db,{status:'sold',soldTo:t.teamId,soldPrice:finalPrice,currentBid:finalPrice});
   const winnerName = TEAM_BY_ID[t.teamId]?.name || t.teamId;
-  logAuction(`${active.name} SOLD to ${winnerName} for ${money(active.currentBid)}`);
+  logAuction(`${active.name} SOLD to ${winnerName} for ${money(finalPrice)}`);
   clearInterval(timerHandle);
   clearTimeout(autoSellHandle);
   clearTimeout(aiHandle);
-  const soldPrice = active.currentBid;
+  const soldPrice = finalPrice;
   const winnerTeamId = t.teamId;
-  const salePlayer = { ...active };
+  const salePlayer = { ...active, currentBid: finalPrice };
   auctionPhase = 'settling';
   bidsLocked = true;
   timeLeft = 1;
-  state.active = active;
+  state.active = salePlayer;
   state.auctionPhase = 'settling';
   state.bidsLocked = true;
   state.timeLeft = 1;
@@ -4548,7 +4584,7 @@ function sold(auto=false){
   renderTimer();
   playGavelSound();
   triggerHaptic([120]);
-  const saleOrigTeamId = getPlayerOriginalTeam(salePlayer.name);
+  const saleOrigTeamId = getPlayerOriginalTeam(salePlayer);
   const saleText = buildFbmUnavailableSaleText(salePlayer, saleOrigTeamId, winnerTeamId, soldPrice);
   broadcastAction('auction:sold', { player: salePlayer, teamId: winnerTeamId, price: soldPrice, speakText: saleText }, state);
   speakAnnouncement(saleText, () => {
