@@ -2106,16 +2106,7 @@ function renderLobby(){
   const currentSlotId = (typeof mySlotId !== 'undefined' && mySlotId) ? mySlotId : (window.mySlotId || localStorage.getItem(MY_SLOT_STORE) || null);
   const humanCount = (st.slots || []).filter(s => s.mode === 'human').length;
   $('lobbyTitle').textContent=st.name;
-  
-  const lanUrl = getShareableJoinUrl();
-  let lanDisplay = '';
-  if (lanUrl) {
-    try {
-      const u = new URL(lanUrl);
-      lanDisplay = `<button type="button" class="lobby-lan-chip" onclick="copyLobbyJoinUrl()" title="Click to copy direct join link">📶 ${u.host} 📋</button>`;
-    } catch(e){}
-  }
-  $('roomIdText').innerHTML = `${st.id}${lanDisplay}`;
+  $('roomIdText').textContent=st.id;
   $('teamCountNote').textContent=`👥 ${humanCount} / 12 Human Devices (${12 - humanCount} AI Bots)`;
   
   const isMeHost = isHostUser();
