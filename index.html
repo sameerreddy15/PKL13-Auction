@@ -387,19 +387,13 @@ body.tv-projector-mode .timer{font-size:48px !important;padding:8px 24px !import
 .scout-name{font-size:22px;font-weight:900;color:#fff;margin-bottom:6px}
 .scout-role{display:flex;justify-content:center;gap:6px;margin-bottom:14px;flex-wrap:wrap}
 .scout-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;text-align:left;background:rgba(15,23,42,.7);padding:12px;border-radius:12px;margin:12px 0}
-/* PKL Arena Ambient Background with Kabaddi Court Markings */
-.court-ambient-backdrop{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;background:radial-gradient(ellipse at 50% 10%,rgba(59,130,246,.18) 0%,transparent 65%),radial-gradient(ellipse at 50% 90%,rgba(245,158,11,.12) 0%,transparent 65%)}
-.court-lines-svg{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:92vw;max-width:1400px;height:82vh;opacity:.22;animation:courtGlowPulse 6s ease-in-out infinite alternate}
-@keyframes courtGlowPulse{0%{opacity:.18;filter:drop-shadow(0 0 6px rgba(56,189,248,.18))}100%{opacity:.34;filter:drop-shadow(0 0 16px rgba(255,209,91,.35))}}
-
 /* Hologram FBM Cards Vault */
 .fbm-holo-vault{background:linear-gradient(135deg,rgba(15,23,42,.95),rgba(8,14,26,.98));border:1.5px solid rgba(255,209,91,.35);border-radius:18px;padding:16px 18px;margin:14px 0 18px;box-shadow:0 10px 30px rgba(0,0,0,.45)}
 .fbm-vault-header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
 .fbm-count-chip{padding:6px 14px;border-radius:999px;background:linear-gradient(135deg,#ffd15b,#f59e0b);color:#0b1120;font-weight:900;font-size:13px;box-shadow:0 0 16px rgba(255,209,91,.4)}
-.fbm-holo-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
-@media(max-width:900px){.fbm-holo-grid{grid-template-columns:repeat(3,1fr)}}
-@media(max-width:500px){.fbm-holo-grid{grid-template-columns:repeat(2,1fr)}}
-.fbm-holo-card{position:relative;border-radius:12px;padding:12px 10px;display:flex;flex-direction:column;justify-content:space-between;min-height:95px;overflow:hidden;transition:transform .25s ease,box-shadow .25s ease}
+.fbm-holo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:640px){.fbm-holo-grid{grid-template-columns:1fr}}
+.fbm-holo-card{position:relative;border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;justify-content:space-between;min-height:95px;overflow:hidden;transition:transform .25s ease,box-shadow .25s ease}
 .fbm-holo-card.fbm-active{background:linear-gradient(135deg,#1e293b,#0f172a);border:1.5px solid #ffd15b;box-shadow:0 0 14px rgba(255,209,91,.25),inset 0 0 12px rgba(255,209,91,.1);transform:translateY(-2px)}
 .fbm-holo-card.fbm-active:hover{transform:translateY(-4px) scale(1.02);box-shadow:0 10px 25px rgba(255,209,91,.5),inset 0 0 16px rgba(255,209,91,.2)}
 .fbm-holo-card.fbm-used{background:rgba(15,23,42,.5);border:1px dashed #334155;opacity:.5}
@@ -407,8 +401,8 @@ body.tv-projector-mode .timer{font-size:48px !important;padding:8px 24px !import
 @keyframes holoSweep{0%{transform:translate(-50%,-50%) rotate(0deg)}100%{transform:translate(50%,50%) rotate(360deg)}}
 .fbm-badge{font-size:9.5px;font-weight:900;color:#ffd15b;letter-spacing:.04em}
 .fbm-card-top{display:flex;justify-content:space-between;align-items:center}
-.fbm-card-title{font-size:11.5px;font-weight:900;color:#fff;margin-top:6px}
-.fbm-card-desc{font-size:9.5px;color:#94a3b8;line-height:1.25;margin-top:2px}
+.fbm-card-title{font-size:12px;font-weight:900;color:#fff;margin-top:6px}
+.fbm-card-desc{font-size:10px;color:#94a3b8;line-height:1.3;margin-top:2px}
 
 /* Crorepati Club Celebration */
 .crorepati-modal-overlay{position:fixed;inset:0;background:rgba(2,6,15,.88);backdrop-filter:blur(8px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .35s ease}
@@ -430,7 +424,6 @@ body.tv-projector-mode .timer{font-size:48px !important;padding:8px 24px !import
 </style>
 </head>
 <body>
-<div class="court-ambient-backdrop"><svg class="court-lines-svg" viewBox="0 0 1000 600" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="50" y="30" width="900" height="540" stroke="#38bdf8" stroke-width="2" rx="10"/><line x1="500" y1="30" x2="500" y2="570" stroke="#ffd15b" stroke-width="3" stroke-dasharray="8 6"/><line x1="320" y1="30" x2="320" y2="570" stroke="#38bdf8" stroke-width="2"/><line x1="680" y1="30" x2="680" y2="570" stroke="#38bdf8" stroke-width="2"/><line x1="240" y1="30" x2="240" y2="570" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="5 5"/><line x1="760" y1="30" x2="760" y2="570" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="5 5"/><circle cx="500" cy="300" r="70" stroke="#ffd15b" stroke-width="2" stroke-dasharray="6 6"/></svg></div>
 <div id="reconnectToast" class="reconnect-toast hidden"></div>
 <div id="crorepatiModal" class="crorepati-modal-overlay"></div>
 <div class="app">
@@ -7210,7 +7203,7 @@ function buildFinalAuctionPool(){
     const tMap = (window.TEAM_BY_ID || (typeof TEAMS !== 'undefined' ? Object.fromEntries(TEAMS.map(t=>[t.id,t])) : {}));
     const tObj = tMap[teamId] || { name: teamId, logo: '' };
     const retainedCount = (t.retentions || []).length;
-    const fbmTotal = Math.max(0, 6 - retainedCount);
+    const fbmTotal = (typeof calculateFbmCards === 'function') ? calculateFbmCards(retainedCount) : (retainedCount <= 3 ? 3 : (retainedCount <= 6 ? 2 : 0));
 
     const fbmCardsHtml = `
       <div class="fbm-holo-vault">
@@ -7219,23 +7212,23 @@ function buildFinalAuctionPool(){
             <span style="font-size:24px">🃏</span>
             <div>
               <h4 style="margin:0;color:#ffd15b;font-size:15px;font-weight:900">Final Bid Match (FBM) Hologram Cards</h4>
-              <small style="color:#94a3b8">Official PKL 13 Rule: 6 Total Entitlements (6 − ${retainedCount} Retentions = <b style="color:#ffd15b">${fbmTotal} FBM Cards Remaining</b>)</small>
+              <small style="color:#94a3b8">Official PKL 13 FBM Rule: 0–3 Retentions = 3 FBMs • 4–6 Retentions = 2 FBMs • 7+ Retentions = 0 FBMs (Current Retentions: <b>${retainedCount}</b> → <b style="color:#ffd15b">${fbmTotal} FBM Cards Available</b>)</small>
             </div>
           </div>
-          <div class="fbm-count-chip"><b>${fbmTotal}</b> / 6 Active FBM</div>
+          <div class="fbm-count-chip"><b>${fbmTotal}</b> / 3 Active FBM</div>
         </div>
         <div class="fbm-holo-grid">
-          ${Array.from({ length: 6 }).map((_, i) => {
+          ${Array.from({ length: 3 }).map((_, i) => {
             const isAvailable = i < fbmTotal;
             return `<div class="fbm-holo-card ${isAvailable ? 'fbm-active' : 'fbm-used'}">
               <div class="fbm-holo-shimmer"></div>
               <div class="fbm-card-top">
-                <span class="fbm-badge">${isAvailable ? '✨ ACTIVE FBM' : '🔒 USED'}</span>
+                <span class="fbm-badge">${isAvailable ? '✨ ACTIVE FBM' : '🔒 NOT AVAILABLE'}</span>
                 <span class="fbm-icon">${isAvailable ? '🃏' : '✖'}</span>
               </div>
               <div class="fbm-card-body">
                 <div class="fbm-card-title">FBM CARD #${i + 1}</div>
-                <div class="fbm-card-desc">${isAvailable ? 'Match Winning Bid in Live Auction' : 'Converted to Squad Retention'}</div>
+                <div class="fbm-card-desc">${isAvailable ? 'Match Winning Bid in Live Auction' : (retainedCount >= 7 ? '0 FBMs (7+ Retentions in Squad)' : 'Locked (4–6 Retentions in Squad)')}</div>
               </div>
             </div>`;
           }).join('')}
