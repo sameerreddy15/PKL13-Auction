@@ -615,7 +615,10 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log('======================================================');
   console.log('  Local URL:        http://localhost:' + PORT);
   ips.forEach(ip => {
-    console.log('  Network (LAN) URL: http://' + ip + ':' + PORT);
+    console.log('  Same Wi-Fi URL:   http://' + ip + ':' + PORT);
   });
+  console.log('------------------------------------------------------');
+  console.log('  🌐 To play with friends on Mobile Data / Different Networks:');
+  console.log('     Open a 2nd terminal and run: npm run tunnel');
   console.log('======================================================\n');
 });
