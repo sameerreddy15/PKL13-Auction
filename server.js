@@ -18,6 +18,7 @@ const io = new Server(server, {
 });
 
 const PORT = process.env.PORT || 3000;
+const PUBLIC_APP_URL = (process.env.PUBLIC_URL || 'https://pkl13-auction.onrender.com').replace(/\/$/, '');
 
 app.use(cors());
 app.use(express.json());
@@ -79,7 +80,7 @@ io.on('connection', (socket) => {
       rooms.set(roomId, room);
       socket.join(roomId);
 
-      if (callback) callback({ success: true, roomId, state: room.state, lanIps: getLocalIPAddresses(), port: PORT });
+      if (callback) callback({ success: true, roomId, state: room.state, lanIps: getLocalIPAddresses(), port: PORT, publicUrl: PUBLIC_APP_URL });
       io.to(roomId).emit('room:presence', Array.from(room.participants.values()));
       console.log(`[ROOM CREATED] ${roomId} by ${currentUserName} (${socket.id})`);
     } catch (err) {
@@ -145,6 +146,7 @@ io.on('connection', (socket) => {
           state: room.state,
           lanIps: getLocalIPAddresses(),
           port: PORT,
+          publicUrl: PUBLIC_APP_URL,
           isSpectator: currentSlotId.startsWith('spectator-')
         });
       }
@@ -587,7 +589,8 @@ app.get('/api/health', (req, res) => {
     status: 'ok',
     version: '1.0.0',
     roomsActive: rooms.size,
-    localIps: getLocalIPAddresses()
+    localIps: getLocalIPAddresses(),
+    publicUrl: PUBLIC_APP_URL
   });
 });
 
@@ -618,7 +621,7 @@ server.listen(PORT, '0.0.0.0', () => {
     console.log('  Same Wi-Fi URL:   http://' + ip + ':' + PORT);
   });
   console.log('------------------------------------------------------');
-  console.log('  🌐 To play with friends on Mobile Data / Different Networks:');
-  console.log('     Open a 2nd terminal and run: npm run tunnel');
+  console.log('  🌐 Public multiplayer URL: ' + PUBLIC_APP_URL);
+  console.log('     Use this URL for devices on different Wi-Fi / Mobile Data.');
   console.log('======================================================\n');
 });

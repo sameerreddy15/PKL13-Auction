@@ -8,12 +8,23 @@ Full real-time multiplayer PKL 13 auction simulator with WebSocket synchronizati
 
 ## 🚀 How to Run Multiplayer Online Mode
 
+### Online play on different networks
+
+1. Deploy the project to Render using the included `render.yaml`.
+2. Open `https://pkl13-auction.onrender.com` on the host device.
+3. Create the room there and share the generated invite link.
+4. Players can join from any Wi-Fi network or mobile data.
+
+The app no longer requires or advertises an `npm run tunnel` command.
+
 ### Option 1: Run locally on your network (Wi-Fi / LAN)
+
+For play between different Wi-Fi networks or mobile data, use the deployed Render URL. The local page now connects its multiplayer socket to the public Render server automatically.
 1. Open PowerShell or Command Prompt in this folder:
    ```bash
    node server.js
    ```
-2. The server will output your local and network URLs:
+2. The server will output your local and network URLs. These are for same-network testing only:
    ```
    ======================================================
      🏆 PKL 13 AUCTION SIMULATOR - MULTIPLAYER SERVER 🏆

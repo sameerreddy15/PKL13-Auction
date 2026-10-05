@@ -1039,18 +1039,30 @@ function appendChatMessage(item){
   box.scrollTop = box.scrollHeight;
 }
 
+const PUBLIC_APP_URL = 'https://pkl13-auction.onrender.com';
+function isLocalAppHost(host) {
+  return host === 'localhost' || host === '127.0.0.1' || host === '::1' || /^192\.168\./.test(host) || /^10\./.test(host) || /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(host);
+}
+function getPublicAppUrl() {
+  return String(window.serverPublicUrl || PUBLIC_APP_URL).replace(/\/$/, '');
+}
 function getShareableJoinUrl(preferredIp) {
   if (!state || !state.id) return '';
+  const localHost = isLocalAppHost(window.location.hostname);
+
+  // Local pages use the public Render backend, so the room can be joined from
+  // mobile data or another Wi-Fi network instead of being trapped on the LAN.
+  if (!preferredIp && localHost) {
+    return `${getPublicAppUrl()}/?room=${encodeURIComponent(state.id)}`;
+  }
+
   const port = window.serverPort || window.location.port || '3000';
   let host = window.location.hostname;
-  
-  if (preferredIp) {
-    host = preferredIp;
-  } else if ((host === 'localhost' || host === '127.0.0.1') && window.serverLanIps && window.serverLanIps.length > 0) {
+  if (preferredIp) host = preferredIp;
+  else if (localHost && window.serverLanIps && window.serverLanIps.length > 0) {
     const wifiIp = window.serverLanIps.find(ip => /^192\.168\.[01]\./.test(ip) || /^10\./.test(ip)) || window.serverLanIps[0];
     host = wifiIp;
   }
-  
   const protocol = (window.location.protocol === 'file:') ? 'http:' : window.location.protocol;
   const portPart = (port && port !== '80' && port !== '443') ? `:${port}` : '';
   let pathname = window.location.pathname || '/';
@@ -1066,13 +1078,13 @@ function openShareModal(){
 
   const notice = $('shareNetworkNotice');
   if (notice) {
-    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || /^192\.168\./.test(window.location.hostname) || /^10\./.test(window.location.hostname);
+    const isLocal = isLocalAppHost(window.location.hostname);
     if (isLocal) {
       notice.innerHTML = `
-        <div style="font-weight:700;color:#ffd15b;margin-bottom:4px">📶 Same Wi-Fi Link</div>
-        <div>This link works when all devices are connected to the <b>same Wi-Fi router</b>.</div>
+        <div style="font-weight:700;color:#10b981;margin-bottom:4px">🌐 Internet Multiplayer Link</div>
+        <div>Share this link for <b>different Wi-Fi networks or Mobile Data (4G/5G)</b>.</div>
         <div style="margin-top:6px;padding-top:6px;border-top:1px dashed rgba(255,255,255,.08)">
-          🌐 <b>Different Network / Mobile Data?</b> Open a terminal on your PC and run <code style="background:rgba(255,255,255,0.1);padding:1px 5px;border-radius:4px;color:#38bdf8">npm run tunnel</code> to generate a free public link for anyone anywhere in the world!
+          The local app is connected to the public Render multiplayer server, so everyone joins the <b>same room</b>.
         </div>
       `;
     } else {
@@ -1259,7 +1271,11 @@ function broadcastAction(actionType, payload, stateDelta){
 function initSocket() {
   if (typeof io !== 'undefined') {
     try {
-      socket = io({
+      // When the page is opened from localhost/LAN, use the public Render
+      // server for the multiplayer socket. This makes rooms reachable from
+      // devices on completely different networks. On Render, keep same-origin.
+      const socketEndpoint = isLocalAppHost(window.location.hostname) ? getPublicAppUrl() : undefined;
+      socket = io(socketEndpoint, {
         transports: ['websocket', 'polling'],
         reconnection: true,
         reconnectionAttempts: Infinity,
@@ -1279,6 +1295,7 @@ function initSocket() {
         
         fetch('/api/health').then(r => r.json()).then(data => {
           if(data && data.localIps) window.serverLanIps = data.localIps;
+          if(data && data.publicUrl) window.serverPublicUrl = String(data.publicUrl).replace(/\/$/, '');
         }).catch(() => {});
 
         const urlParams = new URLSearchParams(window.location.search);
@@ -1298,6 +1315,7 @@ function initSocket() {
           }, (res) => {
             if(res && res.lanIps) window.serverLanIps = res.lanIps;
             if(res && res.port) window.serverPort = res.port;
+        if(res && res.publicUrl) window.serverPublicUrl = String(res.publicUrl).replace(/\/$/, '');
             if(res && res.success && res.state){
               if(state && res.state.slots) state.slots = res.state.slots;
               if(state && res.state.logs) state.logs = res.state.logs;
@@ -2033,6 +2051,7 @@ function createRoom(){
       sock.emit('room:create', { state, hostSlotId: mySlotId, hostName }, (res) => {
         if(res && res.lanIps) window.serverLanIps = res.lanIps;
         if(res && res.port) window.serverPort = res.port;
+        if(res && res.publicUrl) window.serverPublicUrl = String(res.publicUrl).replace(/\/$/, '');
         if(!res || !res.success){
           console.warn('Server room:create notice:', res?.error);
         }
