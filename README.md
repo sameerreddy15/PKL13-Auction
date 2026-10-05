@@ -1,42 +1,32 @@
 # PKL 13 Auction Simulator — Multiplayer Online Ready 🏆
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/sameerreddy15/PKL13-Auction)
-
 Full real-time multiplayer PKL 13 auction simulator with WebSocket synchronization across phones, tablets, and PCs.
 
 ---
 
 ## 🚀 How to Run Multiplayer Online Mode
 
-### Online play on different networks
+### Railway (recommended)
 
-1. Deploy the project to Render using the included `render.yaml`.
-2. Open `https://pkl13-auction.onrender.com` on the host device.
-3. Create the room there and share the generated invite link.
-4. Players can join from any Wi-Fi network or mobile data.
+1. Push this project to GitHub.
+2. In Railway, create a new project and choose **Deploy from GitHub Repo**.
+3. Select this repository and branch `main`. Railway detects the Node.js app and can use the `npm start` script.
+4. In the service, open **Settings → Networking → Public Networking → Generate Domain**.
+5. Open the generated `https://<your-service>.up.railway.app` URL.
+6. Create an auction room there and share the generated invite link/QR code with players.
+7. Set the Railway health check path to `/api/health` (this project also includes the same setting in `railway.json`).
 
-The app no longer requires or advertises an `npm run tunnel` command.
+The frontend and Socket.IO server run from the same Railway service, so deployed clients use the same public origin for real-time multiplayer. Railway supplies the `PORT` value and the app binds to `0.0.0.0`.
 
-### Option 1: Run locally on your network (Wi-Fi / LAN)
+### Option: Run locally on your network (Wi-Fi / LAN)
 
-For play between different Wi-Fi networks or mobile data, use the deployed Render URL. The local page now connects its multiplayer socket to the public Render server automatically.
-1. Open PowerShell or Command Prompt in this folder:
-   ```bash
-   node server.js
-   ```
-2. The server will output your local and network URLs. These are for same-network testing only:
-   ```
-   ======================================================
-     🏆 PKL 13 AUCTION SIMULATOR - MULTIPLAYER SERVER 🏆
-   ======================================================
-     Local URL:        http://localhost:3000
-     Network (LAN) URL: http://192.168.1.38:3000
-   ======================================================
-   ```
-3. **Host:** Open `http://localhost:3000` on your PC, enter your name, and click **Create Auction Room**.
-4. **Friends:** Open the Network (LAN) URL (e.g., `http://192.168.1.38:3000`) on their phones or laptops connected to the same Wi-Fi, enter their name and Room ID, or scan the in-app **QR Code**!
+For different Wi-Fi networks or mobile data, use the Railway public URL. For same-network testing, run:
 
----
+```bash
+node server.js
+```
+
+The server prints the local and LAN URLs.
 
 ## 🌟 Multiplayer Features Included
 - **Authoritative Real-Time Sync:** State is synchronized seamlessly via Socket.IO.

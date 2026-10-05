@@ -32,7 +32,9 @@ const io = new Server(server, {
 });
 
 const PORT = process.env.PORT || 3000;
-const PUBLIC_APP_URL = (process.env.RENDER_EXTERNAL_URL || process.env.PUBLIC_URL || 'https://pkl13-auction.onrender.com').replace(/\/$/, '');
+const railwayPublicDomain = String(process.env.RAILWAY_PUBLIC_DOMAIN || '').trim();
+const railwayPublicUrl = railwayPublicDomain ? `https://${railwayPublicDomain}` : '';
+const PUBLIC_APP_URL = (process.env.PUBLIC_URL || railwayPublicUrl || '').replace(/\/$/, '');
 
 app.use(cors());
 app.use(express.json());
@@ -156,49 +158,40 @@ function bidStep(currentBid) {
   return Number(currentBid || 0) < 10000000 ? 25000 : 50000;
 }
 
+function cloneJson(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
 function applyHostStateSnapshot(room, incomingState) {
   if (!incomingState || typeof incomingState !== 'object') return false;
-  const incoming = JSON.parse(JSON.stringify(incomingState));
+  const incoming = cloneJson(incomingState);
   incoming.id = room.id;
+
   const current = room.state || {};
   const incomingRevision = Number(incoming.stateRevision || 0);
   const currentRevision = Number(current.stateRevision || 0);
-  const currentActive = current.active;
-  const incomingActive = incoming.active;
 
-  if (incomingRevision >= currentRevision) {
-    room.state = incoming;
-    room.state.stateRevision = incomingRevision;
-    return true;
-  }
-
-  // A timer/host packet can legitimately arrive after a player bid from another
-  // socket. Keep the newest bid while accepting the host's other state changes.
-  room.state = incoming;
-  if (currentActive && incomingActive && currentActive.id === incomingActive.id) {
-    const currentBid = Number(currentActive.currentBid || 0);
-    const incomingBid = Number(incomingActive.currentBid || 0);
-    if (currentBid > incomingBid) {
-      room.state.active = {
-        ...incomingActive,
-        currentBid: currentBid,
-        highestBidder: currentActive.highestBidder || null,
-        bidHistory: Array.isArray(currentActive.bidHistory) ? [...currentActive.bidHistory] : [],
-        lastBidAt: currentActive.lastBidAt,
-        _croreEmittedFor: currentActive._croreEmittedFor,
-        croreCelebrated: currentActive.croreCelebrated
-      };
-      room.state.bidExpiresAt = current.bidExpiresAt || room.state.bidExpiresAt;
-      room.state.timeLeft = current.timeLeft ?? room.state.timeLeft;
-      room.state.auctionPhase = current.auctionPhase || room.state.auctionPhase;
-      room.state.bidsLocked = typeof current.bidsLocked === 'boolean' ? current.bidsLocked : room.state.bidsLocked;
+  // The server is authoritative. A host packet may arrive after a human bid
+  // from another socket, so never allow an older host snapshot to roll back
+  // server-owned auction fields, teams, or player statuses.
+  if (incomingRevision < currentRevision) {
+    const merged = { ...cloneJson(current), ...incoming };
+    const protectedFields = [
+      'teams', 'players', 'active', 'fbmState', 'groupIndex',
+      'auctionPhase', 'bidsLocked', 'timeLeft', 'bidExpiresAt',
+      'auctionPaused', 'pauseRequest', 'pauseRemaining', 'pauseExpiresAt'
+    ];
+    for (const field of protectedFields) {
+      if (typeof current[field] !== 'undefined') merged[field] = cloneJson(current[field]);
     }
-  } else if (currentActive && !incomingActive && currentRevision > incomingRevision) {
-    // Never let an older host snapshot erase a live player.
-    room.state.active = currentActive;
+    merged.stateRevision = currentRevision;
+    room.state = merged;
+    return false;
   }
-  room.state.stateRevision = currentRevision;
-  return false;
+
+  room.state = incoming;
+  room.state.stateRevision = incomingRevision;
+  return true;
 }
 
 const HOST_ACTIONS = new Set([
@@ -620,20 +613,22 @@ io.on('connection', (socket) => {
         room.state.stateRevision = Number(room.state.stateRevision || 0) + 1;
 
         const currentServerTime = Date.now();
+        const authoritativeState = cloneJson(room.state);
         io.to(room.id).emit('auction:bid_update', {
           bidderTeamId,
           newBid: parsedBid,
           bidderSlotId,
           bidderName,
-          active,
-          timeLeft: room.state.timeLeft,
-          bidExpiresAt: room.state.bidExpiresAt,
+          active: authoritativeState.active,
+          timeLeft: authoritativeState.timeLeft,
+          bidExpiresAt: authoritativeState.bidExpiresAt,
           serverTime: currentServerTime,
-          auctionPhase: room.state.auctionPhase,
-          bidsLocked: room.state.bidsLocked,
-          state: room.state
+          auctionPhase: authoritativeState.auctionPhase,
+          bidsLocked: authoritativeState.bidsLocked,
+          state: authoritativeState
         });
-        if (callback) callback({ success: true, state: room.state });
+        io.to(room.id).emit('room:state_sync', { state: authoritativeState, actionType, payload: { bidderTeamId, newBid: parsedBid, bidderSlotId, bidderName }, senderSlotId });
+        if (callback) callback({ success: true, state: authoritativeState, serverTime: currentServerTime });
         return;
       }
 
@@ -669,9 +664,11 @@ io.on('connection', (socket) => {
 
       // All remaining state-changing auction actions are host controlled.
       if (stateDelta && host) {
+        const beforeRevision = Number(room.state.stateRevision || 0);
         applyHostStateSnapshot(room, stateDelta);
         room.state.id = room.id;
         room.state.hostSlotId = room.state.hostSlotId || room.state.slots?.[0]?.slotId || 'slot-1';
+        room.state.stateRevision = Math.max(beforeRevision, Number(room.state.stateRevision || 0)) + 1;
       }
 
       if (actionType === 'auction:pause_toggle') {
@@ -711,8 +708,10 @@ io.on('connection', (socket) => {
         room.state.auctionPhase = 'settling';
         room.state.bidsLocked = true;
         room.state.timeLeft = 1;
-        io.to(room.id).emit('auction:skip_sync', { player, teamId, price, speakText, state: room.state });
-        if (actionType === 'auction:sold') io.to(room.id).emit('auction:sold_sync', { player, teamId, price, speakText, state: room.state });
+        const authoritativeState = cloneJson(room.state);
+        io.to(room.id).emit('auction:skip_sync', { player, teamId, price, speakText, state: authoritativeState });
+        if (actionType === 'auction:sold') io.to(room.id).emit('auction:sold_sync', { player, teamId, price, speakText, state: authoritativeState });
+        io.to(room.id).emit('room:state_sync', { state: authoritativeState, actionType, payload: { player, teamId, price }, senderSlotId });
       } else if (actionType === 'auction:unsold') {
         room.state.auctionPhase = 'settling';
         room.state.bidsLocked = true;

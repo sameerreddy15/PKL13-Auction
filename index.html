@@ -740,6 +740,7 @@ function getMyTeamId(){ const sid = getMySlotId(); const st = (typeof state !== 
 window.getMySlotId = getMySlotId;
 window.getMyTeamId = getMyTeamId;
 let active=null, groupIndex=0, timerHandle=null, timeLeft=0, aiHandle=null, autoSellHandle=null, pauseInterval=null, auctionPhase='idle', bidsLocked=false;
+function cloneAuctionData(value){ try { return value == null ? value : JSON.parse(JSON.stringify(value)); } catch(e) { return value; } }
 const audioPrefs = { enabled: false, voice: null };
 window.audioPrefs = audioPrefs;
 
@@ -1041,20 +1042,35 @@ function appendChatMessage(item){
   box.scrollTop = box.scrollHeight;
 }
 
-const PUBLIC_APP_URL = 'https://pkl13-auction.onrender.com';
+const PUBLIC_APP_URL = (window.__PKL_PUBLIC_URL || (window.location.protocol === 'http:' || window.location.protocol === 'https:' ? window.location.origin : ''));
 function isLocalAppHost(host) {
   return host === 'localhost' || host === '127.0.0.1' || host === '::1' || /^192\.168\./.test(host) || /^10\./.test(host) || /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(host);
 }
 function getPublicAppUrl() {
   return String(window.serverPublicUrl || PUBLIC_APP_URL).replace(/\/$/, '');
 }
+function getSocketEndpoint() {
+  const protocol = window.location.protocol || '';
+  const host = window.location.hostname || '';
+  if (protocol === 'http:' || protocol === 'https:') {
+    if (isLocalAppHost(host)) return window.location.origin;
+    return undefined;
+  }
+  return getPublicAppUrl();
+}
 function getShareableJoinUrl(preferredIp) {
   if (!state || !state.id) return '';
   const localHost = isLocalAppHost(window.location.hostname);
 
-  // Local pages use the public Render backend, so the room can be joined from
-  // mobile data or another Wi-Fi network instead of being trapped on the LAN.
+  // Local URLs point to the actual local server so devices on the same Wi-Fi
+  // join the same in-memory room. Deployed rooms remain same-origin.
   if (!preferredIp && localHost) {
+    const port = window.serverPort || window.location.port || '3000';
+    const wifiIp = (window.serverLanIps || []).find(ip => /^192\.168\./.test(ip) || /^10\./.test(ip) || /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(ip));
+    if (wifiIp) return `http://${wifiIp}:${port}/?room=${encodeURIComponent(state.id)}`;
+    if (window.location.hostname && !['localhost','127.0.0.1','::1'].includes(window.location.hostname)) {
+      return `${window.location.origin}/?room=${encodeURIComponent(state.id)}`;
+    }
     return `${getPublicAppUrl()}/?room=${encodeURIComponent(state.id)}`;
   }
 
@@ -1083,10 +1099,10 @@ function openShareModal(){
     const isLocal = isLocalAppHost(window.location.hostname);
     if (isLocal) {
       notice.innerHTML = `
-        <div style="font-weight:700;color:#10b981;margin-bottom:4px">🌐 Internet Multiplayer Link</div>
-        <div>Share this link for <b>different Wi-Fi networks or Mobile Data (4G/5G)</b>.</div>
+        <div style="font-weight:700;color:#10b981;margin-bottom:4px">📶 Same-Wi-Fi Multiplayer Link</div>
+        <div>Use this link on another phone or PC connected to the <b>same Wi-Fi</b>.</div>
         <div style="margin-top:6px;padding-top:6px;border-top:1px dashed rgba(255,255,255,.08)">
-          The local app is connected to the public Render multiplayer server, so everyone joins the <b>same room</b>.
+          For players on different networks, open the <b>deployed public server URL</b> and create the room there.
         </div>
       `;
     } else {
@@ -1161,9 +1177,30 @@ function sendChatMessage(){
 }
 
 function applyRemoteState(remoteState, shouldRerender=true){
-  if(!remoteState) return;
-  state = { ...remoteState };
+  if(!remoteState) return false;
+  const incomingRevision = Number(remoteState.stateRevision || 0);
+  const localRevision = Number(state?.stateRevision || 0);
+  if (incomingRevision < localRevision) return false;
+
+  const previousActiveId = active ? active.id : null;
+  state = cloneAuctionData(remoteState);
   window.state = state;
+  window.__lastServerStateRevision = incomingRevision;
+
+  if (state.active) {
+    active = cloneAuctionData(state.active);
+    groupIndex = Number(state.groupIndex ?? groupIndex ?? 0);
+    timeLeft = Number(state.timeLeft ?? state.bidTimer ?? 15);
+    auctionPhase = state.auctionPhase || 'bidding';
+    bidsLocked = ['announcement','settling','idle','fbm'].includes(auctionPhase) ? true : !!state.bidsLocked;
+  } else {
+    active = null;
+    groupIndex = Number(state.groupIndex ?? 0);
+    timeLeft = Number(state.timeLeft ?? 0);
+    auctionPhase = state.auctionPhase || (state.started ? 'idle' : 'idle');
+    bidsLocked = ['announcement','settling','idle','fbm'].includes(auctionPhase) ? true : !!state.bidsLocked;
+  }
+
   save();
   const screen = state.uiScreen || (state.started ? 'auctionScreen' : (state.retentionsStarted && !state.retentionsFinalized ? 'retentionScreen' : 'lobbyScreen'));
   show(screen);
@@ -1171,98 +1208,45 @@ function applyRemoteState(remoteState, shouldRerender=true){
   else if(screen === 'retentionScreen') {
     const myTeamId = (typeof getMyTeamId === 'function' ? getMyTeamId() : null) || (window.getMyTeamId ? window.getMyTeamId() : null);
     const cur = window.retentionTeam || retentionTeam;
-    if(!cur && myTeamId){
-      retentionTeam = myTeamId;
-      window.retentionTeam = myTeamId;
-    }
+    if(!cur && myTeamId){ retentionTeam = myTeamId; window.retentionTeam = myTeamId; }
     if(typeof renderRetentions === 'function') renderRetentions();
   }
   else if(screen === 'auctionScreen') {
-    const prevActiveId = active ? active.id : null;
-    const prevBid = active ? Number(active.currentBid || 0) : 0;
-    const prevLeader = active ? active.highestBidder : null;
-
-    if(state.active) {
-      if (active && active.id === state.active.id && ['bidding','going1','going2'].includes(auctionPhase)) {
-        if (prevBid > Number(state.active.currentBid || 0)) {
-          state.active.currentBid = prevBid;
-          state.active.highestBidder = prevLeader;
-        }
-      }
-      active = { ...state.active };
-      groupIndex = (typeof state.groupIndex !== 'undefined') ? state.groupIndex : 0;
-      timeLeft = (typeof state.timeLeft !== 'undefined') ? state.timeLeft : (state.bidTimer || 15);
-      auctionPhase = state.auctionPhase || 'bidding';
-      
-      if(isHostUser()){
-        bidsLocked = (auctionPhase === 'announcement' || auctionPhase === 'settling' || auctionPhase === 'idle' || auctionPhase === 'fbm') ? true : !!state.bidsLocked;
-        
-        if(!state.auctionPaused){
-          clearPauseTimers();
-          state.pauseRemaining = 0;
-          state.pauseExpiresAt = null;
-          state.pauseReason = '';
-          if(auctionPhase === 'bidding' || auctionPhase === 'going1' || auctionPhase === 'going2'){
-            startTimer();
-            startAILoop();
-          } else if(auctionPhase === 'settling'){
-            startTimer();
-          }
-        } else {
-          clearInterval(timerHandle);
-          clearInterval(clientTimerHandle);
-          clearTimeout(aiHandle);
-          if(state.pauseExpiresAt){
-            startPauseCountdown();
-          }
-        }
-      } else {
-        bidsLocked = (auctionPhase === 'announcement' || auctionPhase === 'settling' || auctionPhase === 'idle' || auctionPhase === 'fbm') ? true : !!state.bidsLocked;
-        if(!state.auctionPaused){
-          clearPauseTimers();
-          state.pauseRemaining = 0;
-          state.pauseExpiresAt = null;
-          state.pauseReason = '';
-          if(auctionPhase === 'bidding' || auctionPhase === 'going1' || auctionPhase === 'going2'){
-            startClientTimer();
-          }
-        } else {
-          clearInterval(clientTimerHandle);
-          if(state.pauseExpiresAt){
-            startPauseCountdown();
-          }
-        }
-
-        if(active && active.id && active.id !== prevActiveId && active.name && auctionPhase === 'announcement' && !state.auctionPaused){
-          const text = `Next player up for auction. ${active.name}. ${active.position || ''}. Category ${active.category || ''}. Base price ${moneyWords(active.basePrice)} rupees.`;
-          if(typeof announce === 'function') announce(text);
-        }
-      }
-    } else if (!isHostUser() || !active) {
-      active = null;
+    if (state.auctionPaused) {
       clearInterval(timerHandle);
       clearInterval(clientTimerHandle);
       clearTimeout(aiHandle);
-      clearPauseTimers();
-      if(isHostUser() && state.started && !state.auctionPaused && state.auctionPhase !== 'fbm' && state.auctionPhase !== 'settling'){
-        setTimeout(() => {
-          if(!active && isHostUser() && state && state.started && !state.auctionPaused && state.auctionPhase !== 'fbm' && state.auctionPhase !== 'settling'){
-            nextPlayer();
-          }
-        }, 80);
+      clearTimeout(autoSellHandle);
+      if(state.pauseExpiresAt) startPauseCountdown();
+    } else if (isHostUser()) {
+      if (active && ['bidding','going1','going2'].includes(auctionPhase)) {
+        startTimer();
+        startAILoop();
+      } else {
+        clearInterval(timerHandle);
+        clearTimeout(aiHandle);
       }
+    } else if (active && ['bidding','going1','going2'].includes(auctionPhase)) {
+      startClientTimer();
+    } else {
+      clearInterval(clientTimerHandle);
+    }
+
+    if(active && active.id && active.id !== previousActiveId && active.name && auctionPhase === 'announcement' && !state.auctionPaused && !isHostUser()){
+      const text = `Next player up for auction. ${active.name}. ${active.position || ''}. Category ${active.category || ''}. Base price ${moneyWords(active.basePrice)} rupees.`;
+      if(typeof announce === 'function') announce(text);
     }
     renderAuction();
     renderTimer();
   }
+  if (shouldRerender && currentScreen() === 'lobbyScreen') renderLobby();
+  return true;
 }
 
 function broadcastAction(actionType, payload, stateDelta){
   const st = (typeof state !== 'undefined' && state) ? state : (window.state || null);
   const sock = (window.socket || (typeof socket !== 'undefined' ? socket : null));
   if(sock && sock.connected && st && st.id){
-    // Never send a full client snapshot for player-controlled actions.
-    // The server is authoritative for bids, retention edits and time requests.
     const clientStateActions = new Set(['bid:placed','retention:update','auction:time_request']);
     const outgoingDelta = clientStateActions.has(actionType) ? undefined : stateDelta;
     sock.emit('room:action', {
@@ -1270,6 +1254,12 @@ function broadcastAction(actionType, payload, stateDelta){
       actionType,
       payload,
       ...(typeof outgoingDelta !== 'undefined' ? { stateDelta: outgoingDelta } : {})
+    }, (res) => {
+      if (res?.success && res.state) {
+        applyRemoteState(res.state, false);
+      } else if (res && res.success === false && res.error) {
+        showOutbidAlert(`⚠️ ${res.error}`);
+      }
     });
   }
 }
@@ -1277,10 +1267,9 @@ function broadcastAction(actionType, payload, stateDelta){
 function initSocket() {
   if (typeof io !== 'undefined') {
     try {
-      // When the page is opened from localhost/LAN, use the public Render
-      // server for the multiplayer socket. This makes rooms reachable from
-      // devices on completely different networks. On Render, keep same-origin.
-      const socketEndpoint = isLocalAppHost(window.location.hostname) ? getPublicAppUrl() : undefined;
+      // Local/LAN pages use the configured public server URL; deployed pages
+      // use same-origin so the frontend and Socket.IO server stay together.
+      const socketEndpoint = getSocketEndpoint();
       socket = io(socketEndpoint, {
         transports: ['websocket', 'polling'],
         reconnection: true,
@@ -1366,18 +1355,7 @@ function initSocket() {
 
       socket.on('room:state_sync', ({ state: remoteState }) => {
         if (!remoteState) return;
-        if (remoteState.slots && state) {
-          state.slots = remoteState.slots;
-        }
-        if (isHostUser() && state && state.started) {
-          // Host is the authoritative auction master. Preserve active in-memory auction loop and timers
-          if (remoteState.slots) state.slots = remoteState.slots;
-          if (remoteState.logs) state.logs = remoteState.logs;
-          renderLobby();
-          return;
-        }
         applyRemoteState(remoteState, true);
-        renderLobby();
       });
 
       socket.on('auction:player_next_sync', ({ active: remoteActive, timeLeft: remoteTime, groupIndex: remoteGroup, auctionPhase: remotePhase, bidsLocked: remoteLocked, state: remoteState }) => {
@@ -1521,10 +1499,7 @@ function initSocket() {
       });
 
       socket.on('auction:fbm_prompt_sync', ({ fbmState, speakText, state: remoteState }) => {
-        if (remoteState) {
-          state = { ...remoteState };
-          window.state = state;
-        }
+        if (remoteState) applyRemoteState(remoteState, false);
         if (fbmState) {
           state.fbmState = fbmState;
           auctionPhase = 'fbm';
@@ -1675,57 +1650,32 @@ function initSocket() {
       socket.on('auction:bid_update', ({ bidderTeamId, newBid, bidderSlotId, bidderName, active: payloadActive, timeLeft: remoteTime, bidExpiresAt, serverTime, state: remoteState }) => {
         if (serverTime) window.serverTimeOffset = serverTime - Date.now();
         if (bidExpiresAt) window.currentBidExpiresAt = bidExpiresAt;
-        const updatedBid = Number(newBid) || 0;
-        // Guard against stale out-of-order bid packets for the active player
-        if (active && payloadActive && active.id === payloadActive.id && Number(active.currentBid || 0) > updatedBid) {
-          return;
-        }
-        if (active && !payloadActive && Number(active.currentBid || 0) > updatedBid) {
-          return;
-        }
 
         if (remoteState) {
-          state = { ...state, ...remoteState };
-          window.state = state;
+          const accepted = applyRemoteState(remoteState, false);
+          if (!accepted) return;
+        } else if (payloadActive) {
+          active = cloneAuctionData(payloadActive);
+          if (state) state.active = cloneAuctionData(payloadActive);
+          auctionPhase = 'bidding';
+          bidsLocked = false;
+          timeLeft = Number(remoteTime || state?.bidTimer || 15);
         }
-        if (payloadActive) {
-          active = { ...(active || {}), ...payloadActive, currentBid: updatedBid, highestBidder: bidderTeamId };
-        } else if (active) {
-          active.currentBid = updatedBid;
-          active.highestBidder = bidderTeamId;
-          active.bidHistory = active.bidHistory || [];
-          active.bidHistory.push(bidderTeamId);
-        } else if (state?.active) {
-          active = { ...state.active, currentBid: updatedBid, highestBidder: bidderTeamId };
-        }
+
+        const updatedBid = Number(newBid) || Number(active?.currentBid || 0);
+        if (active) active.currentBid = updatedBid;
+        if (active) active.highestBidder = bidderTeamId;
         if (state?.active) {
           state.active.currentBid = updatedBid;
           state.active.highestBidder = bidderTeamId;
         }
-        timeLeft = remoteTime || remoteState?.bidTimer || state?.bidTimer || 15;
+        timeLeft = Number(remoteTime || state?.timeLeft || state?.bidTimer || 15);
         auctionPhase = 'bidding';
         bidsLocked = false;
         if (state) {
           state.timeLeft = timeLeft;
           state.auctionPhase = 'bidding';
           state.bidsLocked = false;
-        }
-        window.__recentBidsList = window.__recentBidsList || [];
-        window.__recentBidsList.push({ teamId: bidderTeamId, time: Date.now() });
-        if (window.__recentBidsList.length > 10) window.__recentBidsList.shift();
-        if (window.__recentBidsList.length >= 2) {
-          const l1 = window.__recentBidsList[window.__recentBidsList.length - 1];
-          const l2 = window.__recentBidsList[window.__recentBidsList.length - 2];
-          if (l1.teamId !== l2.teamId && (l1.time - l2.time) <= 6000) {
-            const tMap = (window.TEAM_BY_ID || (typeof TEAMS !== 'undefined' ? Object.fromEntries(TEAMS.map(x=>[x.id,x])) : {}));
-            const t1 = tMap[l2.teamId]?.name || l2.teamId;
-            const t2 = tMap[l1.teamId]?.name || l1.teamId;
-            showBiddingWarFlare(t1, t2, false);
-          }
-        }
-        if (updatedBid >= 10000000 && active && !active.croreCelebrated) {
-          active.croreCelebrated = true;
-          triggerCroreCelebration(bidderTeamId, updatedBid);
         }
         save();
         renderAuction();
@@ -2084,9 +2034,13 @@ function createRoom(){
         if(res && res.port) window.serverPort = res.port;
         if(res && res.publicUrl) window.serverPublicUrl = String(res.publicUrl).replace(/\/$/, '');
         if(!res || !res.success){
+          if(el) el.textContent = res?.error || 'Multiplayer server could not create the room.';
           console.warn('Server room:create notice:', res?.error);
         }
       });
+    } else {
+      if(el) el.textContent='Multiplayer server is not connected. Please open the server URL or start server.js and try again.';
+      return false;
     }
 
     show('lobbyScreen');
@@ -3956,7 +3910,7 @@ function handleFbmDecision(exercised) {
     origTeam.fbmRemaining = Math.max(0, (origTeam.fbmRemaining || 1) - 1);
     origTeam.purse -= price;
     origTeam.spent += price;
-    origTeam.auctionSquad.push({ name: player.name, price, category: player.category, position: player.position, nationality: player.nationality, auction: true, fbm: true });
+    origTeam.auctionSquad.push({ playerId: player.id, name: player.name, price, category: player.category, position: player.position, nationality: player.nationality, auction: true, fbm: true });
     const db = state.players.find(p => p.id === player.id);
     if (db) Object.assign(db, { status: 'sold', soldTo: origTeam.teamId, soldPrice: price, currentBid: price });
 
@@ -3989,7 +3943,7 @@ function handleFbmDecision(exercised) {
     if (winnerTeam) {
       winnerTeam.purse -= price;
       winnerTeam.spent += price;
-      winnerTeam.auctionSquad.push({ name: player.name, price, category: player.category, position: player.position, nationality: player.nationality, auction: true });
+      winnerTeam.auctionSquad.push({ playerId: player.id, name: player.name, price, category: player.category, position: player.position, nationality: player.nationality, auction: true });
     }
     const db = state.players.find(p => p.id === player.id);
     if (db) Object.assign(db, { status: 'sold', soldTo: highestBidder, soldPrice: price, currentBid: price });
@@ -4024,10 +3978,21 @@ function handleFbmDecision(exercised) {
 
 let undoSaleTimer = null;
 function recordLastSale(player, winnerTeamId, price, isFbm=false, preFbmBidder=null) {
-  window.lastSaleRecord = { player, winnerTeamId, price, isFbm, preFbmBidder, timestamp: Date.now() };
-  if (isHostUser()) {
-    showUndoSaleBanner(player, winnerTeamId, price);
-  }
+  const salePlayer = cloneAuctionData(player || active || state?.active || {});
+  const restoredBidder = (isFbm && preFbmBidder) ? preFbmBidder : winnerTeamId;
+  window.lastSaleRecord = {
+    player: salePlayer,
+    playerId: salePlayer.id,
+    winnerTeamId,
+    price: Number(price) || 0,
+    isFbm: !!isFbm,
+    preFbmBidder: preFbmBidder || null,
+    restoredBidder,
+    groupIndex: Number(state?.groupIndex ?? groupIndex ?? 0),
+    bidHistory: Array.isArray(salePlayer.bidHistory) ? [...salePlayer.bidHistory] : [],
+    timestamp: Date.now()
+  };
+  if (isHostUser()) showUndoSaleBanner(salePlayer, winnerTeamId, price);
 }
 
 function showUndoSaleBanner(player, winnerTeamId, price) {
@@ -4042,9 +4007,7 @@ function showUndoSaleBanner(player, winnerTeamId, price) {
     </div>
   `;
   clearTimeout(undoSaleTimer);
-  undoSaleTimer = setTimeout(() => {
-    hideUndoSaleBanner();
-  }, 5000);
+  undoSaleTimer = setTimeout(() => { hideUndoSaleBanner(); }, 5000);
 }
 
 function hideUndoSaleBanner() {
@@ -4053,65 +4016,125 @@ function hideUndoSaleBanner() {
   window.lastSaleRecord = null;
 }
 
-function undoLastSale() {
-  if (!isHostUser() || !window.lastSaleRecord) return;
-  const { player, winnerTeamId, price, isFbm, preFbmBidder } = window.lastSaleRecord;
-  hideUndoSaleBanner();
-  clearTimeout(autoSellHandle); clearTimeout(aiHandle); clearPauseTimers();
+function removeAuctionPurchaseFromTeam(team, playerId, playerName, price) {
+  if (!team || !Array.isArray(team.auctionSquad)) return false;
+  let idx = -1;
+  if (playerId) {
+    idx = team.auctionSquad.findIndex(p => String(p.playerId || '') === String(playerId) && p.auction && !p.retained);
+  }
+  if (idx === -1) {
+    idx = team.auctionSquad.findIndex(p => p.auction && !p.retained && String(p.name || '') === String(playerName || '') && Number(p.price || p.retentionPrice || 0) === Number(price || 0));
+  }
+  if (idx === -1) return false;
+  const item = team.auctionSquad[idx];
+  team.auctionSquad.splice(idx, 1);
+  return !!item;
+}
 
-  const team = state.teams.find(t => t.teamId === winnerTeamId);
-  if (team) {
-    team.purse += price;
-    team.spent -= price;
-    const idx = (team.auctionSquad || []).findIndex(p => p.name === player.name);
-    if (idx !== -1) {
-      const item = team.auctionSquad[idx];
-      if (item.fbm || isFbm) {
-        team.fbmRemaining = Math.min(team.fbmTotal || 3, (team.fbmRemaining || 0) + 1);
-      }
-      team.auctionSquad.splice(idx, 1);
-    }
+function undoLastSale() {
+  if (!isHostUser() || !window.lastSaleRecord || !state) return;
+  const record = cloneAuctionData(window.lastSaleRecord);
+  const player = record.player || {};
+  const playerId = record.playerId || player.id;
+  const winnerTeamId = record.winnerTeamId;
+  const price = Number(record.price || 0);
+  if (!playerId || !winnerTeamId || price <= 0) {
+    hideUndoSaleBanner();
+    return;
   }
 
-  const db = (state.players || []).find(p => p.id === player.id);
+  clearTimeout(undoSaleTimer);
+  clearInterval(timerHandle);
+  clearInterval(clientTimerHandle);
+  clearTimeout(autoSellHandle);
+  clearTimeout(aiHandle);
+  clearInterval(fbmCountdownTimer);
+  clearPauseTimers();
+
+  const team = state.teams?.find(t => t.teamId === winnerTeamId);
+  if (!team) {
+    showOutbidAlert('Unable to undo this sale because the winning franchise was not found.');
+    return;
+  }
+
+  const removed = removeAuctionPurchaseFromTeam(team, playerId, player.name, price);
+  if (!removed) {
+    showOutbidAlert(`Unable to undo ${player.name}: the exact auction purchase was not found.`);
+    return;
+  }
+
+  if (record.isFbm) {
+    team.fbmRemaining = Math.min(Number(team.fbmTotal || 3), Number(team.fbmRemaining || 0) + 1);
+  }
+  team.purse = Number(team.purse || 0) + price;
+  team.spent = Math.max(0, Number(team.spent || 0) - price);
+
+  const db = state.players?.find(p => String(p.id) === String(playerId));
   if (db) {
     db.status = 'upcoming';
     db.soldTo = null;
     db.soldPrice = 0;
+    db.currentBid = price;
   }
 
-  // Clear FBM evaluation flags so FBM is fully eligible to trigger again upon next sale
+  // Remove the most recent matching sale log, while preserving earlier history.
+  if (Array.isArray(state.logs)) {
+    const terms = [player.name + ' SOLD', 'SOLD to', 'FBM EXERCISED', 'FBM DECLINED'];
+    const idx = state.logs.findIndex(line => String(line).includes(player.name) && terms.some(term => String(line).includes(term)));
+    if (idx !== -1) state.logs.splice(idx, 1);
+  }
+
   delete player.fbmEvaluated;
   delete player.fbmDone;
   delete player._fbmModalShown;
 
-  const restoredBidder = (isFbm && preFbmBidder) ? preFbmBidder : winnerTeamId;
+  const restoredBidder = record.restoredBidder || winnerTeamId;
   active = {
     ...player,
+    status: 'upcoming',
     currentBid: price,
     highestBidder: restoredBidder,
+    bidHistory: Array.isArray(record.bidHistory) ? [...record.bidHistory] : [],
     fbmEvaluated: false,
     fbmDone: false,
     _fbmModalShown: false
   };
-  state.active = active;
-  auctionPhase = 'bidding';
-  bidsLocked = false;
-  timeLeft = state.bidTimer || 15;
+  state.active = cloneAuctionData(active);
+  state.groupIndex = Number(record.groupIndex ?? groupIndex ?? 0);
+  groupIndex = state.groupIndex;
+  state.fbmState = null;
   state.auctionPhase = 'bidding';
+  auctionPhase = 'bidding';
   state.bidsLocked = false;
+  bidsLocked = false;
+  timeLeft = Number(state.bidTimer || 15);
   state.timeLeft = timeLeft;
+  state.bidExpiresAt = Date.now() + timeLeft * 1000;
+  state.settlingStartedAt = null;
+  state.announcementStartedAt = null;
+  state.uiScreen = 'auctionScreen';
+  state.auctionRuntime = { active: cloneAuctionData(active), timeLeft, auctionPhase, bidsLocked, groupIndex };
+  window.lastSaleRecord = null;
+  hideUndoSaleBanner();
+
   save();
   renderAuction();
   renderTimer();
   if (typeof playRebidChime === 'function') playRebidChime();
+  $('bidNotice').textContent = `↩️ Sale undone! Bidding reopened from last bid of ${money(price)}.`;
+  const undoNotice = `Sale undone for ${player.name}. Bidding reopened from last bid of ${moneyWords(price)} rupees.`;
+  broadcastAction('auction:undo_sale', {
+    player: cloneAuctionData(active),
+    playerId,
+    restoredBidder,
+    winnerTeamId,
+    price,
+    isFbm: !!record.isFbm,
+    speakText: undoNotice
+  }, state);
+  speakAnnouncement(undoNotice, null, 'urgent');
   startTimer();
   scheduleAIBid();
-
-  const undoNotice = `Sale undone for ${player.name}. Bidding reopened from last bid of ${moneyWords(price)} rupees.`;
-  $('bidNotice').textContent = `↩️ Sale undone! Bidding reopened from last bid of ${money(price)}.`;
-  broadcastAction('auction:undo_sale', { player: active, restoredBidder, price, speakText: undoNotice }, state);
-  speakAnnouncement(undoNotice, null, 'urgent');
 }
 
 function exportSquadsCSV() {
@@ -5044,7 +5067,7 @@ function skipPlayer(){
   $('leader').textContent = teamName;
   const db = (state.players || []).find(p => p.id === active.id);
   if (db) Object.assign(db, { status: 'sold', soldTo: team.teamId, soldPrice: price, currentBid: price });
-  team.purse -= price; team.spent += price; team.auctionSquad.push({ name: active.name, price, category: active.category, position: active.position, nationality: active.nationality, auction: true });
+  team.purse -= price; team.spent += price; team.auctionSquad.push({ playerId: active.id, name: active.name, price, category: active.category, position: active.position, nationality: active.nationality, auction: true });
   logAuction(`${active.name} SOLD to ${teamName} for ${money(price)}`);
   recordLastSale(active, team.teamId, price);
   save(); renderAuction(); renderTimer();
@@ -5071,7 +5094,7 @@ function sold(auto=false){
   if((t.auctionSquad||[]).length>=25){alert('Maximum squad size reached: 25 players.'); active.highestBidder=null; active.currentBid=0; renderAuction(); return}
   t.purse-=finalPrice;
   t.spent+=finalPrice;
-  t.auctionSquad.push({name:active.name,price:finalPrice,category:active.category,position:active.position,nationality:active.nationality,auction:true});
+  t.auctionSquad.push({playerId:active.id,name:active.name,price:finalPrice,category:active.category,position:active.position,nationality:active.nationality,auction:true});
   const db=state.players.find(p=>p.id===active.id);
   if(db)Object.assign(db,{status:'sold',soldTo:t.teamId,soldPrice:finalPrice,currentBid:finalPrice});
   const winnerName = TEAM_BY_ID[t.teamId]?.name || t.teamId;
