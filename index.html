@@ -458,7 +458,7 @@ body.tv-projector-mode .timer{font-size:48px !important;padding:8px 24px !import
       <div id="createError" class="error"></div>
     </div>
     <div class="grid2" style="margin-top:18px">
-      <div class="card"><h3 style="margin-top:0">Join Room</h3><div class="field"><label>Your Name <span style="color:#ff5c67">*</span></label><input id="joinUserName" maxlength="30" placeholder="Enter your name" autocomplete="name"></div><div class="field"><label>Room ID <span style="color:#ff5c67">*</span></label><input id="joinId" maxlength="6" placeholder="6-character ID" style="text-transform:uppercase"></div><button class="btn green big" id="joinRoom" type="button" onclick="joinRoom()">Join Room</button><div id="joinError" class="error"></div></div>
+      <div class="card"><h3 style="margin-top:0">Join Room</h3><div class="field"><label>Your Name <span style="color:#ff5c67">*</span></label><input id="joinUserName" maxlength="30" placeholder="Enter your name" autocomplete="name"></div><div class="field"><label>Room ID <span style="color:#ff5c67">*</span></label><input id="joinId" maxlength="64" placeholder="6-character ID or invite link" style="text-transform:uppercase"></div><button class="btn green big" id="joinRoom" type="button">Join Room</button><div id="joinError" class="error"></div></div>
       <div class="card"><h3 style="margin-top:0">Auction Rules</h3><div class="muted" style="line-height:1.65">• 12 PKL Franchises (Up to 12 Human Devices)<br>• Purse: ₹5.00 Crore per Team<br>• Squad: 18–25 Players (2–4 Overseas)<br>• Base: Cat A ₹30L • Cat B ₹20L • Cat C ₹13L • Cat D ₹9L</div></div>
     </div>
   </section>
@@ -1051,12 +1051,8 @@ function getPublicAppUrl() {
 }
 function getSocketEndpoint() {
   const protocol = window.location.protocol || '';
-  const host = window.location.hostname || '';
-  if (protocol === 'http:' || protocol === 'https:') {
-    if (isLocalAppHost(host)) return window.location.origin;
-    return undefined;
-  }
-  return getPublicAppUrl();
+  if (protocol === 'http:' || protocol === 'https:') return window.location.origin;
+  return getPublicAppUrl() || undefined;
 }
 function getShareableJoinUrl(preferredIp) {
   if (!state || !state.id) return '';
@@ -1271,11 +1267,17 @@ function initSocket() {
       // use same-origin so the frontend and Socket.IO server stay together.
       const socketEndpoint = getSocketEndpoint();
       socket = io(socketEndpoint, {
-        transports: ['websocket', 'polling'],
+        // Start with polling and upgrade to WebSocket. This is more reliable
+        // through mobile networks, school/college Wi-Fi and reverse proxies.
+        transports: ['polling', 'websocket'],
+        upgrade: true,
+        rememberUpgrade: false,
         reconnection: true,
         reconnectionAttempts: Infinity,
         reconnectionDelay: 500,
-        timeout: 5000
+        reconnectionDelayMax: 5000,
+        timeout: 10000,
+        forceNew: true
       });
 
       socket.on('connect', () => {
@@ -1825,7 +1827,9 @@ function joinFromInviteBanner(){
   }
   if($('joinUserName')) $('joinUserName').value = name;
   if($('joinId')) $('joinId').value = roomId;
-  joinRoom();
+  const btn=$('directInviteJoinBtn');
+  if(btn){btn.disabled=true;btn.textContent='Joining…';}
+  Promise.resolve(joinRoom()).finally(()=>{ if(btn){btn.disabled=false;btn.textContent='🚀 Enter Room';} });
 }
 
 function show(id){
@@ -2004,7 +2008,7 @@ function restoreSavedRoom(){
 
 function renderCountChoices(){}
 $('bidTimer').oninput=e=>$('timerValue').textContent=e.target.value;
-$('joinId').oninput=e=>e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);
+$('joinId').oninput=e=>{ const v=e.target.value.trim(); const normalized=normalizeRoomInput(v); if(/^https?:\/\//i.test(v)||/(?:room|join)[=:/-]/i.test(v)) e.target.value=normalized; else e.target.value=v.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6); };
 
 function freshState(hostName){return {id:randId(),name:$('roomName').value.trim()||'PKL 13 Grand Auction',maxTeams:12,bidTimer:Number($('bidTimer').value),retentionsEnabled:$('retentionsEnabled').checked,started:false,retentionsStarted:false,retentionsFinalized:false,hostSlotId:'slot-1',hostName:hostName||'Host',pauseRequest:null,auctionPaused:false,pauseRemaining:0,slots:[],teams:TEAMS.map(t=>({teamId:t.id,purse:TEAM_PURSE,spent:0,retentions:[],retentionAmounts:{},auctionSquad:[],fbmTotal:3,fbmRemaining:3})),players:players.map(p=>({...p})),groupIndex:0,logs:[],uiScreen:'lobbyScreen',auctionRuntime:null}}
 function createRoom(){
@@ -2056,82 +2060,125 @@ function createRoom(){
 }
 window.createRoom=createRoom;
 
-function joinRoom(){
+function normalizeRoomInput(value){
+  const raw = String(value || '').trim();
+  if(!raw) return '';
+  try{
+    if(/^https?:\/\//i.test(raw)){
+      const u = new URL(raw);
+      const q = u.searchParams.get('room') || u.searchParams.get('join');
+      if(q) return String(q).replace(/[^A-Za-z0-9]/g,'').toUpperCase().slice(0,6);
+      const hash = String(u.hash || '').replace(/^#(?:room|join)[=:]?/i,'');
+      if(hash) return hash.replace(/[^A-Za-z0-9]/g,'').toUpperCase().slice(0,6);
+    }
+  }catch(e){}
+  const match = raw.match(/(?:room|join)[=:/-]([A-Za-z0-9]{6})/i);
+  if(match) return match[1].toUpperCase();
+  return raw.replace(/[^A-Za-z0-9]/g,'').toUpperCase().slice(0,6);
+}
+
+function waitForSocket(timeoutMs=10000){
+  return new Promise((resolve,reject)=>{
+    if(socket && socket.connected) return resolve(socket);
+    if(!socket){
+      reject(new Error('Multiplayer socket is unavailable.'));
+      return;
+    }
+    let done=false;
+    const finish=(ok, value)=>{
+      if(done) return;
+      done=true;
+      clearTimeout(timer);
+      socket.off('connect', onConnect);
+      socket.off('connect_error', onError);
+      ok ? resolve(value) : reject(value);
+    };
+    const onConnect=()=>finish(true,socket);
+    const onError=(err)=>{}; // Keep waiting; Socket.IO will retry automatically.
+    const timer=setTimeout(()=>finish(false,new Error('Connection to the multiplayer server timed out.')),timeoutMs);
+    socket.once('connect', onConnect);
+    socket.once('connect_error', onError);
+    try{ socket.connect(); }catch(e){ finish(false,e); }
+  });
+}
+
+async function joinRoom(){
   const userInput=$('joinUserName');
-  const userName=(userInput?userInput.value:'').trim();
+  const userName=(userInput?userInput.value:'').replace(/\s+/g,' ').trim();
   const idInput=$('joinId');
-  const id=(idInput?idInput.value:'').trim().toUpperCase();
+  const id=normalizeRoomInput(idInput?idInput.value:'');
   const el=$('joinError');
+  const button=$('joinRoom');
   if(el) el.textContent='';
   if(!userName){
     if(el) el.textContent='Please enter your name to join the auction room.';
     if(userInput) userInput.focus();
-    return;
+    return false;
   }
-  if(!id||id.length<6){
-    if(el) el.textContent='Please enter a valid 6-character Room ID.';
+  if(!id || id.length!==6){
+    if(el) el.textContent='Please enter the 6-character Room ID shown by the host.';
     if(idInput) idInput.focus();
-    return;
+    return false;
   }
+  if(idInput) idInput.value=id;
   try { localStorage.setItem('pkl_last_user_name', userName); } catch(e){}
+  if(button){button.disabled=true;button.textContent='Joining…';}
 
-  const targetSlotId = (state?.id === id ? mySlotId : null);
+  try{
+    const s=await waitForSocket(12000);
+    if(el) el.textContent='Checking room…';
 
-  if(socket){
-    if(el) el.textContent = 'Connecting to auction room…';
-    const doEmit = () => {
-      socket.emit('room:join', { roomId: id, userName, slotId: targetSlotId }, (res) => {
-        if(res && res.lanIps) window.serverLanIps = res.lanIps;
-        if(res && res.port) window.serverPort = res.port;
-        if(!res || !res.success){
-          if(el) el.textContent = res?.error || `Room ${id} was not found on this server.`;
-          return;
-        }
-        if(el) el.textContent = '';
-        state = res.state;
-        mySlotId = res.slotId;
-        try { localStorage.setItem(MY_SLOT_STORE, mySlotId); } catch(e){}
-        state.uiScreen = state.uiScreen || 'lobbyScreen';
-        save();
-        applyRemoteState(state, true);
-        if(typeof playPklTrumpetChime === 'function') playPklTrumpetChime();
-      });
-    };
-
-    if(socket.connected){
-      doEmit();
-    } else {
-      let timeoutId = setTimeout(() => {
-        if(el) el.textContent = `Connecting to server (${window.location.host}) timed out. Please check network.`;
-      }, 5000);
-      socket.once('connect', () => {
-        clearTimeout(timeoutId);
-        doEmit();
-      });
-      if(typeof socket.connect === 'function') socket.connect();
-    }
-  } else {
-    const s=load();
-    if(!s||s.id!==id){
-      if(el) el.textContent='Room not found in this browser. To play online across multiple devices, run "node server.js".';
-      return;
-    }
-    state=s;
-    mySlotId=localStorage.getItem(MY_SLOT_STORE)||('slot-'+Date.now());
-    const existingSlot=state.slots.find(x=>x.slotId===mySlotId);
-    if(!existingSlot){
-      if(state.slots.length>=state.maxTeams){
-        if(el) el.textContent='This auction room is already full (max teams reached).';
-        return;
+    // Same-origin preflight gives a clear error when the code belongs to a
+    // different Railway instance or the room has expired after a restart.
+    try{
+      const check=await fetch(`/api/room/${encodeURIComponent(id)}`,{cache:'no-store',headers:{'Cache-Control':'no-cache'}});
+      if(!check.ok){
+        let msg=`Room ${id} was not found on this multiplayer server.`;
+        try{const data=await check.json(); if(data?.error) msg=data.error;}catch(e){}
+        throw new Error(msg);
       }
-      state.slots.push({slotId:mySlotId,name:userName,mode:'human',teamId:null});
-    }else{
-      existingSlot.name=userName;
+    }catch(e){
+      if(String(e.message||'').toLowerCase().includes('room')) throw e;
+      throw new Error('The multiplayer server could not be reached. Please check your internet connection and try again.');
     }
-    state.uiScreen='lobbyScreen';
-    save();
-    renderLobby();
-    show('lobbyScreen');
+
+    if(el) el.textContent='Joining auction room…';
+    const targetSlotId = (state?.id === id ? mySlotId : null);
+    await new Promise((resolve,reject)=>{
+      let settled=false;
+      const finish=(ok,val)=>{if(settled)return;settled=true;ok?resolve(val):reject(new Error(val?.error||'Unable to join the auction room.'));};
+      s.emit('room:join', { roomId:id, userName, slotId:targetSlotId }, (res)=>{
+        if(res && res.lanIps) window.serverLanIps=res.lanIps;
+        if(res && res.port) window.serverPort=res.port;
+        if(res && res.publicUrl) window.serverPublicUrl=String(res.publicUrl).replace(/\/$/,'');
+        if(!res || !res.success){ finish(false,res||{}); return; }
+        finish(true,res);
+      });
+      setTimeout(()=>finish(false,{error:'The server did not respond to the room join request. Please try again.'}),10000);
+    }).then((res)=>{
+      if(el) el.textContent='';
+      state=res.state;
+      mySlotId=res.slotId;
+      window.mySlotId=mySlotId;
+      try { localStorage.setItem(MY_SLOT_STORE,mySlotId); } catch(e){}
+      state.uiScreen=state.uiScreen||'lobbyScreen';
+      state.stateRevision=Number(state.stateRevision||0);
+      save();
+      applyRemoteState(state,true);
+      try{
+        const u=new URL(window.location.href);
+        u.searchParams.delete('room');
+        u.searchParams.delete('join');
+        history.replaceState({},'',u.pathname + (u.search ? u.search : '') + (u.hash || ''));
+      }catch(e){}
+      if(typeof playPklTrumpetChime==='function') playPklTrumpetChime();
+      return true;
+    }).catch((err)=>{
+      if(el) el.textContent=err?.message||`Room ${id} could not be joined.`;
+      return false;
+    });
+  } finally {
+    if(button){button.disabled=false;button.textContent='Join Room';}
   }
 }
 

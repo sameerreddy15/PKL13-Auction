@@ -26,9 +26,11 @@ const io = new Server(server, {
     origin: '*',
     methods: ['GET', 'POST']
   },
-  pingTimeout: 5000,
-  pingInterval: 2000,
-  transports: ['websocket', 'polling']
+  pingTimeout: 10000,
+  pingInterval: 25000,
+  transports: ['polling', 'websocket'],
+  allowUpgrades: true,
+  connectionStateRecovery: { maxDisconnectionDuration: 120000, skipMiddlewares: true }
 });
 
 const PORT = process.env.PORT || 3000;
@@ -55,6 +57,21 @@ function getLocalIPAddresses() {
 }
 
 const rooms = new Map();
+
+function publicUrlFromRequest(req) {
+  const forwardedProto = String(req?.headers?.['x-forwarded-proto'] || '').split(',')[0].trim();
+  const proto = forwardedProto || (req?.secure ? 'https' : 'http');
+  const host = String(req?.headers?.host || '').trim();
+  return host ? `${proto}://${host}`.replace(/\/$/, '') : PUBLIC_APP_URL;
+}
+
+function publicUrlFromSocket(socket) {
+  const headers = socket?.handshake?.headers || {};
+  const forwardedProto = String(headers['x-forwarded-proto'] || '').split(',')[0].trim();
+  const proto = forwardedProto || 'https';
+  const host = String(headers.host || '').trim();
+  return host ? `${proto}://${host}`.replace(/\/$/, '') : PUBLIC_APP_URL;
+}
 
 function getRoom(roomId) {
   if (!roomId) return null;
@@ -263,7 +280,7 @@ io.on('connection', (socket) => {
       rooms.set(roomId, room);
       socket.join(roomId);
 
-      if (callback) callback({ success: true, roomId, state: room.state, lanIps: getLocalIPAddresses(), port: PORT, publicUrl: PUBLIC_APP_URL });
+      if (callback) callback({ success: true, roomId, state: room.state, lanIps: getLocalIPAddresses(), port: PORT, publicUrl: publicUrlFromSocket(socket), directJoinUrl: `${publicUrlFromSocket(socket)}/?room=${encodeURIComponent(roomId)}` });
       io.to(roomId).emit('room:presence', Array.from(room.participants.values()));
       console.log(`[ROOM CREATED] ${roomId} by ${currentUserName} (${socket.id})`);
     } catch (err) {
@@ -277,6 +294,11 @@ io.on('connection', (socket) => {
       const cleanId = cleanRoomId(roomId);
       const cleanName = cleanUserName(userName, 'Player');
       const room = getRoom(cleanId);
+
+      if (!/^[A-Z0-9]{6}$/.test(cleanId)) {
+        if (callback) callback({ success: false, error: 'Room ID must be exactly 6 letters/numbers.' });
+        return;
+      }
 
       if (!room) {
         if (callback) callback({ success: false, error: `Room ${cleanId} was not found on this server.` });
@@ -341,7 +363,8 @@ io.on('connection', (socket) => {
           state: room.state,
           lanIps: getLocalIPAddresses(),
           port: PORT,
-          publicUrl: PUBLIC_APP_URL,
+          publicUrl: publicUrlFromSocket(socket),
+          directJoinUrl: `${publicUrlFromSocket(socket)}/?room=${encodeURIComponent(cleanId)}`,
           isSpectator: currentSlotId.startsWith('spectator-')
         });
       }
@@ -901,16 +924,20 @@ app.get('/api/qr', async (req, res) => {
 });
 
 app.get('/api/health', (req, res) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.json({
     status: 'ok',
     version: '1.0.0',
     roomsActive: rooms.size,
     localIps: getLocalIPAddresses(),
-    publicUrl: PUBLIC_APP_URL
+    publicUrl: publicUrlFromRequest(req)
   });
 });
 
 app.get('/api/room/:id', (req, res) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
   const room = getRoom(req.params.id);
   if (!room) return res.status(404).json({ error: 'Room not found' });
   res.json({
