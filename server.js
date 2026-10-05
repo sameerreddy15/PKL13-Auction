@@ -18,7 +18,7 @@ const io = new Server(server, {
 });
 
 const PORT = process.env.PORT || 3000;
-const PUBLIC_APP_URL = (process.env.PUBLIC_URL || 'https://pkl13-auction.onrender.com').replace(/\/$/, '');
+const PUBLIC_APP_URL = (process.env.RENDER_EXTERNAL_URL || process.env.PUBLIC_URL || 'https://pkl13-auction.onrender.com').replace(/\/$/, '');
 
 app.use(cors());
 app.use(express.json());
