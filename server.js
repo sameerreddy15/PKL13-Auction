@@ -305,6 +305,45 @@ io.on('connection', (socket) => {
         return;
       }
 
+      // room:join is idempotent for the same socket + room. Repeated join
+      // events must never create a second human slot.
+      const existingParticipant = room.participants.get(socket.id);
+      if (currentRoomId === cleanId && existingParticipant) {
+        existingParticipant.online = true;
+        existingParticipant.userName = cleanName;
+        existingParticipant.lastSeenAt = Date.now();
+        currentSlotId = existingParticipant.slotId;
+        currentUserName = cleanName;
+        room.lastActivity = Date.now();
+        if (callback) callback({
+          success: true,
+          roomId: cleanId,
+          slotId: currentSlotId,
+          state: room.state,
+          lanIps: getLocalIPAddresses(),
+          port: PORT,
+          publicUrl: publicUrlFromSocket(socket),
+          directJoinUrl: `${publicUrlFromSocket(socket)}/?room=${encodeURIComponent(cleanId)}`,
+          isSpectator: String(currentSlotId).startsWith('spectator-'),
+          alreadyJoined: true
+        });
+        return;
+      }
+
+      if (currentRoomId && currentRoomId !== cleanId) {
+        const oldRoom = getRoom(currentRoomId);
+        if (oldRoom) {
+          const oldParticipant = oldRoom.participants.get(socket.id);
+          if (oldParticipant) {
+            oldParticipant.online = false;
+            oldParticipant.disconnectedAt = Date.now();
+            oldRoom.lastActivity = Date.now();
+            io.to(currentRoomId).emit('room:presence', Array.from(oldRoom.participants.values()));
+          }
+        }
+        socket.leave(currentRoomId);
+      }
+
       const requestedSlotId = slotId ? String(slotId) : null;
       let slot = requestedSlotId ? getSlot(room, requestedSlotId) : null;
       let reconnectingOwner = null;
@@ -927,7 +966,7 @@ app.get('/api/health', (req, res) => {
   res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.json({
     status: 'ok',
-    version: '1.0.0',
+    version: '1.1.0',
     roomsActive: rooms.size,
     localIps: getLocalIPAddresses(),
     publicUrl: publicUrlFromRequest(req)

@@ -940,6 +940,9 @@ function stopAuctionActivity(){
 let socket = null;
 let isMultiplayer = false;
 let presenceMap = new Map();
+let joinInProgress = false;
+let joinedRoomSession = false;
+let pendingInviteRoom = '';
 
 function showReconnectionToast(msg, duration=0, isOnline=false) {
   const el = $('reconnectToast');
@@ -1056,18 +1059,27 @@ function getSocketEndpoint() {
 }
 function getShareableJoinUrl(preferredIp) {
   if (!state || !state.id) return '';
+  const roomQuery = `?room=${encodeURIComponent(state.id)}`;
   const localHost = isLocalAppHost(window.location.hostname);
+  const protocol = window.location.protocol || '';
 
-  // Local URLs point to the actual local server so devices on the same Wi-Fi
-  // join the same in-memory room. Deployed rooms remain same-origin.
+  // Public deployments (Railway, Render, etc.) must use the public origin.
+  // serverPort is the internal container port and must NEVER be added to a
+  // public invite URL.
+  if (!localHost && (protocol === 'http:' || protocol === 'https:') && !preferredIp) {
+    return `${window.location.origin}/${roomQuery}`.replace('/?room', '?room');
+  }
+
+  // Local/LAN URLs use the actual server port so devices on the same network
+  // can reach the in-memory room.
   if (!preferredIp && localHost) {
     const port = window.serverPort || window.location.port || '3000';
     const wifiIp = (window.serverLanIps || []).find(ip => /^192\.168\./.test(ip) || /^10\./.test(ip) || /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(ip));
-    if (wifiIp) return `http://${wifiIp}:${port}/?room=${encodeURIComponent(state.id)}`;
+    if (wifiIp) return `http://${wifiIp}:${port}/${roomQuery}`.replace('/?room','?room');
     if (window.location.hostname && !['localhost','127.0.0.1','::1'].includes(window.location.hostname)) {
-      return `${window.location.origin}/?room=${encodeURIComponent(state.id)}`;
+      return `${window.location.origin}/${roomQuery}`.replace('/?room','?room');
     }
-    return `${getPublicAppUrl()}/?room=${encodeURIComponent(state.id)}`;
+    return `${getPublicAppUrl()}/${roomQuery}`.replace('/?room','?room');
   }
 
   const port = window.serverPort || window.location.port || '3000';
@@ -1077,11 +1089,12 @@ function getShareableJoinUrl(preferredIp) {
     const wifiIp = window.serverLanIps.find(ip => /^192\.168\.[01]\./.test(ip) || /^10\./.test(ip)) || window.serverLanIps[0];
     host = wifiIp;
   }
-  const protocol = (window.location.protocol === 'file:') ? 'http:' : window.location.protocol;
+  const localProtocol = (window.location.protocol === 'file:' || !window.location.protocol) ? 'http:' : window.location.protocol;
   const portPart = (port && port !== '80' && port !== '443') ? `:${port}` : '';
   let pathname = window.location.pathname || '/';
   if (window.location.protocol === 'file:') pathname = '/';
-  return `${protocol}//${host}${portPart}${pathname}?room=${encodeURIComponent(state.id)}`;
+  if (!pathname.endsWith('/')) pathname += '/';
+  return `${localProtocol}//${host}${portPart}${pathname}${roomQuery}`;
 }
 
 function openShareModal(){
@@ -1296,14 +1309,14 @@ function initSocket() {
         }).catch(() => {});
 
         const urlParams = new URLSearchParams(window.location.search);
-        const urlRoom = (urlParams.get('room') || urlParams.get('join') || '').trim().toUpperCase();
+        const urlRoom = normalizeRoomInput(urlParams.get('room') || urlParams.get('join') || '');
+        pendingInviteRoom = urlRoom || '';
 
         const saved = load();
         const savedSlot = localStorage.getItem(MY_SLOT_STORE);
-        // Only auto-join saved room if we didn't arrive via a direct invite link to a DIFFERENT room
-        if(urlRoom && saved && saved.id !== urlRoom) {
-          // Arriving via direct link for a new room; do not auto-join old saved room
-        } else if(saved && saved.id && savedSlot) {
+        // A direct invite always takes priority over an old saved room. This
+        // prevents the same browser from joining twice and creating duplicate slots.
+        if (!urlRoom && !joinedRoomSession && saved && saved.id && savedSlot) {
           const mySlot = saved.slots?.find(s => s.slotId === savedSlot);
           socket.emit('room:join', {
             roomId: saved.id,
@@ -1312,17 +1325,15 @@ function initSocket() {
           }, (res) => {
             if(res && res.lanIps) window.serverLanIps = res.lanIps;
             if(res && res.port) window.serverPort = res.port;
-        if(res && res.publicUrl) window.serverPublicUrl = String(res.publicUrl).replace(/\/$/, '');
+            if(res && res.publicUrl) window.serverPublicUrl = String(res.publicUrl).replace(/\/$/,'');
             if(res && res.success && res.state){
-              if(state && res.state.slots) state.slots = res.state.slots;
-              if(state && res.state.logs) state.logs = res.state.logs;
+              joinedRoomSession = true;
+              mySlotId = res.slotId || savedSlot;
+              window.mySlotId = mySlotId;
+              state = cloneAuctionData(res.state);
+              window.state = state;
               save();
-              if(isHostUser() && (active || state?.active) && state.started){
-                persistAuctionRuntime();
-                renderAuction();
-              } else {
-                applyRemoteState(res.state, true);
-              }
+              applyRemoteState(res.state, true);
               showReconnectionToast('Connected! Auction synchronized.', 2000, true);
             }
           });
@@ -1790,7 +1801,8 @@ function checkUrlParams(){
     const params = new URLSearchParams(window.location.search);
     const roomParam = params.get('room') || params.get('join');
     if(roomParam){
-      const clean = roomParam.trim().toUpperCase();
+      const clean = normalizeRoomInput(roomParam);
+      pendingInviteRoom = clean;
       if($('joinId')) $('joinId').value = clean;
       
       const banner = $('directInviteBanner');
@@ -1829,7 +1841,7 @@ function joinFromInviteBanner(){
   if($('joinId')) $('joinId').value = roomId;
   const btn=$('directInviteJoinBtn');
   if(btn){btn.disabled=true;btn.textContent='Joining…';}
-  Promise.resolve(joinRoom()).finally(()=>{ if(btn){btn.disabled=false;btn.textContent='🚀 Enter Room';} });
+  Promise.resolve(joinRoom()).then((ok)=>{ if(ok) $('directInviteBanner')?.classList.add('hidden'); }).finally(()=>{ if(btn){btn.disabled=false;btn.textContent='🚀 Enter Room';} });
 }
 
 function show(id){
@@ -2103,6 +2115,7 @@ function waitForSocket(timeoutMs=10000){
 }
 
 async function joinRoom(){
+  if (joinInProgress) return false;
   const userInput=$('joinUserName');
   const userName=(userInput?userInput.value:'').replace(/\s+/g,' ').trim();
   const idInput=$('joinId');
@@ -2123,6 +2136,7 @@ async function joinRoom(){
   if(idInput) idInput.value=id;
   try { localStorage.setItem('pkl_last_user_name', userName); } catch(e){}
   if(button){button.disabled=true;button.textContent='Joining…';}
+  joinInProgress = true;
 
   try{
     const s=await waitForSocket(12000);
@@ -2163,6 +2177,8 @@ async function joinRoom(){
       try { localStorage.setItem(MY_SLOT_STORE,mySlotId); } catch(e){}
       state.uiScreen=state.uiScreen||'lobbyScreen';
       state.stateRevision=Number(state.stateRevision||0);
+      joinedRoomSession = true;
+      pendingInviteRoom = '';
       save();
       applyRemoteState(state,true);
       try{
@@ -2178,6 +2194,7 @@ async function joinRoom(){
       return false;
     });
   } finally {
+    joinInProgress = false;
     if(button){button.disabled=false;button.textContent='Join Room';}
   }
 }
