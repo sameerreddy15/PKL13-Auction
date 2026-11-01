@@ -1648,6 +1648,615 @@ body {
   color: #f97316;
 }
 
+
+/* ==========================================================================
+   LAPTOP NO-SCROLL & CRICKAUCTION LOBBY (Images 1, 2, 3)
+   ========================================================================== */
+
+/* Public / Private Room Selector */
+.crick-vis-btn {
+  background: #181d27;
+  border: 1.5px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 12px 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.crick-vis-btn:hover {
+  background: #1f2735;
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.crick-vis-btn.active {
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.12), rgba(18, 21, 28, 0.95));
+  border-color: #f97316;
+  box-shadow: 0 0 20px rgba(249, 115, 22, 0.25);
+}
+
+.crick-vis-btn.active .vis-check {
+  display: inline-block !important;
+}
+
+/* --- CrickAuction Lobby (Matching Images 1 & 3) --- */
+.crick-lobby-wrap {
+  max-width: 1260px;
+  margin: 12px auto 20px;
+}
+
+.crick-lobby-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.crick-lobby-nav-btn {
+  background: #181d27;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #cbd5e1;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 9px 18px;
+  border-radius: 999px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.15s ease;
+}
+
+.crick-lobby-nav-btn:hover {
+  background: #232b3b;
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.crick-lobby-nav-btn.gold {
+  background: #252014;
+  color: #ffd15b;
+  border-color: rgba(255, 209, 91, 0.35);
+}
+
+.crick-lobby-nav-btn.gold:hover {
+  background: #362e1a;
+  border-color: #ffd15b;
+}
+
+.crick-lobby-room-badge {
+  background: #181d27;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 900;
+  padding: 8px 18px;
+  border-radius: 999px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.crick-lobby-room-badge:hover {
+  border-color: #f97316;
+}
+
+.crick-lobby-start-btn {
+  background: linear-gradient(90deg, #f97316, #ea580c);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 950;
+  padding: 10px 24px;
+  border-radius: 999px;
+  border: 0;
+  cursor: pointer;
+  box-shadow: 0 0 25px rgba(249, 115, 22, 0.45);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  transition: all 0.2s ease;
+}
+
+.crick-lobby-start-btn:hover:not(:disabled) {
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 0 35px rgba(249, 115, 22, 0.65);
+}
+
+.crick-lobby-start-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.crick-lobby-card {
+  background: #12151c;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 24px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.4);
+}
+
+@media (max-width: 900px) {
+  .crick-lobby-card {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+.crick-rule-card {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.crick-rule-label {
+  font-size: 10px;
+  font-weight: 800;
+  color: #94a3b8;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.crick-rule-val {
+  font-size: 14px;
+  font-weight: 900;
+  color: #ffffff;
+}
+
+/* Claim Franchise 12 Circle Logos Grid */
+.crick-claim-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+  margin: 12px 0 18px;
+}
+
+@media (max-width: 600px) {
+  .crick-claim-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.crick-franchise-circle-btn {
+  background: #181d27;
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+  aspect-ratio: 1;
+}
+
+.crick-franchise-circle-btn:hover {
+  background: #232b3b;
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
+}
+
+.crick-franchise-circle-btn.mine {
+  border-color: #22c55e !important;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(24, 29, 39, 0.95)) !important;
+  box-shadow: 0 0 16px rgba(34, 197, 94, 0.35);
+}
+
+.crick-franchise-circle-btn.taken-other {
+  opacity: 0.55;
+  border-color: rgba(255, 255, 255, 0.04);
+}
+
+.crick-claim-logo {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+}
+
+.crick-claim-badge {
+  position: absolute;
+  bottom: -4px;
+  background: #1e2638;
+  color: #ffd15b;
+  font-size: 9px;
+  font-weight: 900;
+  padding: 1px 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 209, 91, 0.3);
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.crick-claim-badge.mine {
+  background: #15803d;
+  color: #ffffff;
+  border-color: #22c55e;
+}
+
+/* Joined Managers list */
+.crick-manager-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 14px;
+  padding: 12px 16px;
+  margin-bottom: 10px;
+  transition: all 0.15s ease;
+}
+
+.crick-manager-card:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.crick-manager-card.mine {
+  border-color: rgba(56, 189, 248, 0.35);
+  background: linear-gradient(90deg, rgba(56, 189, 248, 0.08), rgba(255, 255, 255, 0.02));
+}
+
+.crick-manager-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.crick-manager-logo {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 3px;
+}
+
+.crick-manager-title {
+  font-size: 15px;
+  font-weight: 900;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.crick-manager-sub {
+  font-size: 12px;
+  color: #94a3b8;
+  font-weight: 700;
+  margin-top: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.crick-status-online {
+  font-size: 10px;
+  font-weight: 900;
+  color: #22c55e;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  letter-spacing: 0.8px;
+}
+
+/* --- LAPTOP NO-SCROLL CRITICAL OVERRIDES (min-width: 1024px) --- */
+@media (min-width: 1024px) {
+  html, body {
+    height: 100vh !important;
+    max-height: 100vh !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .app {
+    height: 100vh !important;
+    max-height: 100vh !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  #auctionScreen {
+    height: 100vh !important;
+    max-height: 100vh !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 6px 14px 8px !important;
+    box-sizing: border-box !important;
+  }
+
+  .crick-topbar {
+    padding: 6px 14px !important;
+    margin: 0 0 6px 0 !important;
+    border-radius: 12px !important;
+    height: 42px !important;
+    min-height: 42px !important;
+    box-sizing: border-box !important;
+  }
+
+  .crick-3col-layout {
+    flex: 1 !important;
+    min-height: 0 !important;
+    height: calc(100vh - 56px) !important;
+    max-height: calc(100vh - 56px) !important;
+    overflow: hidden !important;
+    display: grid !important;
+    grid-template-columns: 275px 1fr 310px !important;
+    gap: 10px !important;
+    margin: 0 !important;
+  }
+
+  .crick-teams-col {
+    height: 100% !important;
+    max-height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .crick-teams-list {
+    flex: 1 !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    overflow-y: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+    padding-right: 2px !important;
+  }
+
+  .crick-team-item {
+    padding: 4px 8px !important;
+    border-radius: 9px !important;
+    gap: 6px !important;
+  }
+
+  .crick-team-logo {
+    width: 24px !important;
+    height: 24px !important;
+  }
+
+  .crick-team-name {
+    font-size: 11px !important;
+  }
+
+  .crick-team-manager {
+    font-size: 9px !important;
+  }
+
+  .crick-purse-text {
+    font-size: 11px !important;
+  }
+
+  .crick-squad-count {
+    font-size: 9px !important;
+  }
+
+  .crick-stage-col {
+    height: 100% !important;
+    max-height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    overflow: hidden !important;
+    gap: 5px !important;
+    min-height: 0 !important;
+  }
+
+  .crick-stage-meta-bar {
+    padding: 3px 10px !important;
+    border-radius: 8px !important;
+    font-size: 11px !important;
+    height: 28px !important;
+    min-height: 28px !important;
+    box-sizing: border-box !important;
+    flex-shrink: 0 !important;
+  }
+
+  .crick-player-card {
+    padding: 10px 14px !important;
+    border-radius: 16px !important;
+    margin: 0 !important;
+    flex-shrink: 1 !important;
+  }
+
+  .crick-player-card-inner {
+    gap: 16px !important;
+  }
+
+  .crick-avatar-frame {
+    width: 105px !important;
+    height: 105px !important;
+    border-radius: 12px !important;
+  }
+
+  .crick-avatar-graphic {
+    font-size: 32px !important;
+  }
+
+  .crick-player-name {
+    font-size: 20px !important;
+    margin: 0 0 6px 0 !important;
+    line-height: 1.1 !important;
+  }
+
+  .crick-stats-grid {
+    gap: 5px !important;
+  }
+
+  .crick-stat-card {
+    padding: 4px 6px !important;
+    border-radius: 8px !important;
+  }
+
+  .crick-stat-label {
+    font-size: 8px !important;
+    margin-bottom: 2px !important;
+  }
+
+  .crick-stat-val {
+    font-size: 13px !important;
+  }
+
+  .crick-price-timer-wrap {
+    margin-top: 6px !important;
+    padding-top: 6px !important;
+  }
+
+  .crick-bid-label {
+    font-size: 9px !important;
+  }
+
+  .crick-bid-amount {
+    font-size: 26px !important;
+  }
+
+  .crick-timer-circle {
+    width: 48px !important;
+    height: 48px !important;
+  }
+
+  .crick-timer-sec {
+    font-size: 16px !important;
+  }
+
+  .crick-timer-unit {
+    font-size: 7px !important;
+  }
+
+  .crick-action-bar {
+    margin-top: 2px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .crick-bid-btn {
+    padding: 8px 16px !important;
+    font-size: 15px !important;
+    height: 44px !important;
+    border-radius: 12px !important;
+    box-sizing: border-box !important;
+  }
+
+  .crick-menu-btn {
+    height: 44px !important;
+    padding: 0 14px !important;
+    border-radius: 12px !important;
+  }
+
+  .reaction-bar {
+    margin: 1px 0 !important;
+    gap: 3px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .reaction-btn {
+    padding: 2px 6px !important;
+    font-size: 14px !important;
+    border-radius: 8px !important;
+  }
+
+  #hostControlsBox {
+    padding: 5px 8px !important;
+    border-radius: 10px !important;
+    margin-top: 2px !important;
+    flex-shrink: 0 !important;
+  }
+
+  #hostControlsBox .bid-row button {
+    padding: 4px 8px !important;
+    font-size: 11px !important;
+    border-radius: 8px !important;
+  }
+
+  .crick-activity-col {
+    height: 100% !important;
+    max-height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+    gap: 6px !important;
+  }
+
+  .crick-tabs-header {
+    padding: 2px !important;
+    border-radius: 10px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .crick-tab-nav {
+    padding: 5px 8px !important;
+    font-size: 10px !important;
+  }
+
+  #panelLiveActivity {
+    flex: 1 !important;
+    min-height: 80px !important;
+    max-height: unset !important;
+    overflow-y: auto !important;
+    padding: 6px 8px !important;
+    border-radius: 12px !important;
+  }
+
+  .crick-mini-sold-card {
+    flex-shrink: 0 !important;
+    padding: 8px 10px !important;
+    border-radius: 14px !important;
+    max-height: 165px !important;
+  }
+
+  .crick-mini-photo-wrap {
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 8px !important;
+    margin: 0 auto 4px !important;
+  }
+
+  .crick-mini-player-name {
+    font-size: 12px !important;
+    margin-bottom: 1px !important;
+  }
+
+  .crick-mini-player-role {
+    font-size: 9px !important;
+    margin-bottom: 2px !important;
+  }
+
+  .crick-mini-hashtag {
+    font-size: 10px !important;
+    margin-bottom: 3px !important;
+  }
+
+  .crick-mini-price {
+    font-size: 15px !important;
+    margin-bottom: 4px !important;
+  }
+
+  .crick-save-card-btn {
+    padding: 4px 8px !important;
+    font-size: 9px !important;
+    border-radius: 8px !important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1754,7 +2363,34 @@ body {
 
           <!-- Franchise Preview Selector -->
           <div style="margin-bottom:16px">
-            <label style="display:block;font-size:11px;font-weight:900;color:#94a3b8;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:8px">12 PKL Franchises</label>
+            <!-- Public & Private Room Selector (Matching Image 2) -->
+          <div class="crick-room-type-section" style="margin-bottom:16px">
+            <label style="display:block;font-size:11px;font-weight:900;color:#94a3b8;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:8px">ROOM VISIBILITY</label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <button type="button" class="crick-vis-btn active" id="visBtnPublic" onclick="setRoomVisibility('public')">
+                <div style="display:flex;align-items:center;gap:10px">
+                  <span style="font-size:22px">🌐</span>
+                  <div style="text-align:left">
+                    <div style="font-size:13px;font-weight:900;color:#fff">PUBLIC ROOM</div>
+                    <div style="font-size:10px;color:#94a3b8">Listed in Live Directory for anyone to join</div>
+                  </div>
+                </div>
+                <span class="vis-check" style="color:#22c55e;font-size:16px">✓</span>
+              </button>
+              <button type="button" class="crick-vis-btn" id="visBtnPrivate" onclick="setRoomVisibility('private')">
+                <div style="display:flex;align-items:center;gap:10px">
+                  <span style="font-size:22px">🔒</span>
+                  <div style="text-align:left">
+                    <div style="font-size:13px;font-weight:900;color:#fff">PRIVATE ROOM</div>
+                    <div style="font-size:10px;color:#94a3b8">Only players with invite link can join</div>
+                  </div>
+                </div>
+                <span class="vis-check" style="display:none;color:#22c55e;font-size:16px">✓</span>
+              </button>
+            </div>
+          </div>
+
+          <label style="display:block;font-size:11px;font-weight:900;color:#94a3b8;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:8px">12 PKL Franchises</label>
             <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px">
               <div style="background:#181d27;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:6px;text-align:center"><img src="assets/puneri.png" style="width:28px;height:28px;object-fit:contain"></div>
               <div style="background:#181d27;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:6px;text-align:center"><img src="assets/bulls.png" style="width:28px;height:28px;object-fit:contain"></div>
@@ -1825,22 +2461,130 @@ body {
     </div>
   </section>
 
+    <!-- CrickAuction Modern Lobby (Matching Images 1 & 3) -->
   <section id="lobbyScreen" class="hidden">
-    <div class="card">
-      <div class="lobby-head">
-        <div><h2 class="screen-title" id="lobbyTitle"></h2><p class="muted">Room <span class="room-id" id="roomIdText"></span></p></div>
-        <div class="limit-note" id="teamCountNote"></div>
+    <div class="crick-lobby-wrap">
+      <!-- Top Lobby Action Bar -->
+      <div class="crick-lobby-topbar">
+        <div style="display:flex;align-items:center;gap:12px">
+          <button class="crick-lobby-nav-btn" id="leaveRoom" type="button" onclick="leaveRoomConfirm()">
+            🚪 EXIT HUB
+          </button>
+          <span class="crick-lobby-room-badge" id="roomIdBadge" onclick="copyRoomLink()" title="Click to copy Room Invite Link">
+            ROOM ID <b id="roomIdText">A7E2UH</b> 📋
+          </span>
+          <span id="lobbyTitle" style="display:none"></span>
+          <span id="teamCountNote" style="display:none"></span>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:12px">
+          <button class="crick-lobby-nav-btn gold" id="fillBotsBtn" type="button" onclick="fillRemainingBots()" title="Fill empty franchise slots with intelligent bots">
+            ⚡ FILL BOTS
+          </button>
+          <button class="crick-lobby-start-btn" id="startRetentions" type="button">
+            START AUCTION ›
+          </button>
+        </div>
       </div>
-      <div class="section-divider"></div>
-      <div class="lobby-toolbar">
-        <button class="btn gold" id="shareRoomBtn">🔗 Invite Players</button>
-        <button class="btn secondary" id="copyRoom">Copy Room ID</button>
-        <button class="btn secondary" id="chatToggleBtn">💬 Room Chat</button>
-        <button class="btn red" id="leaveRoom">Leave Room</button>
+
+      <div id="lobbyError" class="error" style="margin-bottom:12px"></div>
+
+      <!-- Main Dual-Panel Lobby Card -->
+      <div class="crick-lobby-card">
+        <!-- LEFT PANEL: Auction Rules, Claim Franchise, Invite Link -->
+        <div class="crick-lobby-left">
+          <!-- AUCTION RULES -->
+          <div style="font-size:11px;font-weight:900;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">
+            AUCTION RULES
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px">
+            <div class="crick-rule-card">
+              <span class="crick-rule-label">AUCTION MODE</span>
+              <b class="crick-rule-val" id="lobbyRuleMode">MEGA AUCTION</b>
+            </div>
+            <div class="crick-rule-card">
+              <span class="crick-rule-label">INITIAL BUDGET</span>
+              <b class="crick-rule-val" id="lobbyRulePurse">₹5.00 CR</b>
+            </div>
+            <div class="crick-rule-card">
+              <span class="crick-rule-label">SQUAD CAPACITY</span>
+              <b class="crick-rule-val">18–25 PLAYERS</b>
+            </div>
+            <div class="crick-rule-card">
+              <span class="crick-rule-label">OVERSEAS QUOTA</span>
+              <b class="crick-rule-val">2–4 OVERSEAS</b>
+            </div>
+          </div>
+
+          <!-- CLAIM FRANCHISE -->
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+            <div style="font-size:11px;font-weight:900;color:#94a3b8;letter-spacing:1px;text-transform:uppercase">
+              CLAIM FRANCHISE
+            </div>
+            <span style="font-size:10px;font-weight:900;color:#22c55e;letter-spacing:0.8px" id="lobbyClaimStatus">
+              LOCKED IN
+            </span>
+          </div>
+          <div class="crick-claim-grid" id="lobbyFranchiseGrid">
+            <!-- 12 circular logos populated dynamically -->
+          </div>
+
+          <!-- INVITE PLAYERS -->
+          <div style="font-size:11px;font-weight:900;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">
+            INVITE PLAYERS
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:18px">
+            <input id="lobbyInviteUrlInput" readonly style="flex:1;background:#0d1118;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:9px 12px;color:#cbd5e1;font-size:12px">
+            <button class="crick-icon-btn" id="copyRoom" type="button" onclick="copyRoomLink()" title="Copy Link">
+              📋
+            </button>
+            <button class="crick-icon-btn" id="shareRoomBtn" type="button" onclick="shareWhatsAppInvite()" title="Share on WhatsApp">
+              💬
+            </button>
+          </div>
+
+          <!-- ABOUT AI BOTS -->
+          <div style="background:rgba(255,255,255,0.02);border:1px dashed rgba(255,255,255,0.08);border-radius:14px;padding:12px;display:flex;align-items:center;justify-content:space-between">
+            <div>
+              <div style="font-size:11px;font-weight:900;color:#ffffff">ABOUT AI BOTS</div>
+              <div style="font-size:10px;color:#94a3b8;margin-top:2px">Automated bidders manage purse, retain players & compete actively.</div>
+            </div>
+            <span style="font-size:16px;color:#64748b">ⓘ</span>
+          </div>
+        </div>
+
+        <!-- RIGHT PANEL: Connected Players List & Chat Tabs (Matching Image 1 & 3) -->
+        <div class="crick-lobby-right">
+          <div style="display:flex;background:#181d27;border-radius:12px;padding:3px;margin-bottom:16px">
+            <button type="button" class="crick-tab-nav active" id="lobbyTabPlayers" onclick="switchLobbyRightTab('players')">
+              👥 PLAYERS (<span id="lobbyPlayersCount">1</span>)
+            </button>
+            <button type="button" class="crick-tab-nav" id="lobbyTabChat" onclick="switchLobbyRightTab('chat')">
+              💬 CHAT
+            </button>
+          </div>
+
+          <!-- PLAYERS LIST -->
+          <div id="lobbyPlayersPanel" style="display:flex;flex-direction:column;gap:8px;max-height:380px;overflow-y:auto;padding-right:4px">
+            <!-- Joined manager cards rendered dynamically -->
+          </div>
+
+          <!-- CHAT PANE -->
+          <div id="lobbyChatPanel" class="hidden">
+            <div id="lobbyChatMessages" style="display:flex;flex-direction:column;gap:8px;height:300px;overflow-y:auto;padding:8px;background:#0d1118;border-radius:12px;border:1px solid rgba(255,255,255,0.06);margin-bottom:10px">
+              <div class="chat-bubble" style="font-size:12px;color:#94a3b8">Welcome to the lobby! Chat with other managers before bidding begins.</div>
+            </div>
+            <div style="display:flex;gap:6px">
+              <input id="lobbyChatInput" placeholder="Send message to lobby..." style="flex:1;background:#0d1118;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:9px 12px;color:#fff;font-size:12px">
+              <button class="btn primary" type="button" onclick="sendLobbyChatMessage()" style="padding:8px 16px;font-size:12px">Send</button>
+            </div>
+          </div>
+        </div>
       </div>
-      <div id="lobbyError" class="error"></div>
-      <div class="slots" id="slots"></div>
-      <div class="start-wrap"><button class="btn gold big" id="startRetentions">Start Retentions</button></div>
+
+      <!-- Preserved compatibility slot container (hidden) -->
+      <div id="slots" style="display:none"></div>
+      <button id="chatToggleBtn" style="display:none"></button>
     </div>
   </section>
 
@@ -3751,9 +4495,9 @@ function renderLobby(){
   if(!st || !st.slots) return;
   const currentSlotId = (typeof mySlotId !== 'undefined' && mySlotId) ? mySlotId : (window.mySlotId || localStorage.getItem(MY_SLOT_STORE) || null);
   const humanCount = (st.slots || []).filter(s => s.mode === 'human').length;
-  $('lobbyTitle').textContent=st.name;
-  $('roomIdText').textContent=st.id;
-  $('teamCountNote').textContent=`👥 ${humanCount} / 12 Human Devices (${12 - humanCount} AI Bots)`;
+  if($('lobbyTitle')) $('lobbyTitle').textContent = st.name;
+  if($('roomIdText')) $('roomIdText').textContent = st.id;
+  if($('teamCountNote')) $('teamCountNote').textContent = `👥 ${humanCount} / 12 Human Devices (${12 - humanCount} AI Bots)`;
   
   const isMeHost = isHostUser();
 
@@ -3761,64 +4505,95 @@ function renderLobby(){
   if (startBtn) {
     if (!isMeHost) {
       startBtn.disabled = true;
-      startBtn.textContent = '⏳ Waiting for Host to start…';
+      startBtn.textContent = '⏳ Waiting for Host…';
       startBtn.style.opacity = '0.7';
     } else {
       startBtn.disabled = false;
-      startBtn.textContent = st.retentionsEnabled ? '▶ Start Retentions' : '▶ Start Auction';
+      startBtn.textContent = st.retentionsEnabled ? '▶ START RETENTIONS' : 'START AUCTION ›';
       startBtn.style.opacity = '1';
     }
   }
 
-  const TEAM_ACCENTS = { BW: '#0066b2', BB: '#d92328', DD: '#2563eb', GG: '#ea580c', HS: '#0284c7', JPP: '#db2777', PP: '#16a34a', PU: '#f97316', TT: '#eab308', TML: '#0d9488', UM: '#ea580c', UP: '#9333ea' };
+  // Update invite link input
+  const inviteInp = $('lobbyInviteUrlInput');
+  if(inviteInp){
+    inviteInp.value = window.location.origin + window.location.pathname + '?room=' + encodeURIComponent(st.id);
+  }
 
-  $('slots').innerHTML=st.slots.map((s,idx)=>{
-    const isMySlot = (s.slotId === currentSlotId);
-    const isHostSlot = (idx === 0 || s.slotId === st.hostSlotId);
-    const tMap = (window.TEAM_BY_ID || (typeof TEAMS !== 'undefined' ? Object.fromEntries(TEAMS.map(x=>[x.id,x])) : {}));
-    const t=s.teamId ? (tMap[s.teamId] || (typeof TEAMS !== 'undefined' ? TEAMS.find(x => x.id === s.teamId) : null)) : null; 
-    const usedElsewhere=new Set(st.slots.filter(x=>x.slotId!==s.slotId&&x.teamId).map(x=>x.teamId));
-    const opts=[`<option value="">Choose Franchise</option>`,...TEAMS.filter(tm=>!usedElsewhere.has(tm.id)).map(tm=>`<option value="${tm.id}" ${tm.id===s.teamId?'selected':''}>${tm.name}</option>`)].join('');
+  const tMap = (window.TEAM_BY_ID || (typeof TEAMS !== 'undefined' ? Object.fromEntries(TEAMS.map(x=>[x.id,x])) : {}));
+  const mySlot = st.slots.find(s => s.slotId === currentSlotId);
+  const myTeamId = mySlot?.teamId;
 
-    const canPickFranchise = !st.started && (isMySlot || (s.mode === 'bot' && isMeHost));
-    const youBadge = isMySlot ? '<span class="you-pill">👤 YOU</span>' : '';
-    const hostBadge = isHostSlot ? '<span class="host-pill">👑 Host</span>' : '';
-    const isPulse = (isMySlot && !s.teamId);
-    const accentColor = s.teamId ? (TEAM_ACCENTS[s.teamId] || '#ffd15b') : null;
-    const cardAccentStyle = accentColor ? `style="border-top: 3px solid ${accentColor}; box-shadow: 0 6px 22px ${accentColor}22;"` : '';
+  // Render 12 circular logos in CLAIM FRANCHISE grid (Matching Images 1 & 3)
+  const gridEl = $('lobbyFranchiseGrid');
+  if(gridEl && typeof TEAMS !== 'undefined'){
+    gridEl.innerHTML = TEAMS.map(tm => {
+      const claimingSlot = st.slots.find(s => s.teamId === tm.id);
+      const isMine = claimingSlot && claimingSlot.slotId === currentSlotId;
+      const isTaken = !!claimingSlot;
+      const isOtherHuman = isTaken && !isMine && claimingSlot.mode === 'human';
+      const isBot = isTaken && claimingSlot.mode === 'bot';
 
-    let slotStatusNote = '';
-    if (s.mode === 'bot') {
-      slotStatusNote = '<span class="muted small">🤖 AI manager controls this franchise.</span>';
-    } else if (isMySlot) {
-      slotStatusNote = s.teamId ? '<span class="success small" style="font-weight:700">✔ Your chosen franchise</span>' : '<span style="color:#ffd15b;font-weight:800;font-size:12px">⚡ Choose your franchise above to prepare for auction</span>';
-    } else {
-      slotStatusNote = `<span class="muted small">👤 Controlled by ${escapeHtml(s.name)}</span>`;
-    }
+      let badgeHtml = '';
+      if(isMine){
+        badgeHtml = '<span class="crick-claim-badge mine">✓ YOU</span>';
+      } else if(isOtherHuman){
+        badgeHtml = `<span class="crick-claim-badge">${escapeHtml(claimingSlot.name.slice(0, 6))}</span>`;
+      } else if(isBot){
+        badgeHtml = '<span class="crick-claim-badge" style="color:#94a3b8">BOT</span>';
+      }
 
-    return `<div class="slot ${s.mode==='human'?'human':''} ${isMySlot?'my-slot':''}" ${cardAccentStyle}>
-      ${teamDisplay(s)}
-      <div class="slot-person">
-        ${s.mode==='human'?'👤 Human Franchise':'🤖 AI Franchise'}${youBadge}${hostBadge}
-      </div>
-      <div class="team-select">
-        <div class="franchise-select-wrap ${canPickFranchise ? '' : 'disabled-wrap'}">
-          <select class="franchise-select ${isPulse ? 'select-pulse' : ''}" 
-                  ${canPickFranchise ? '' : 'disabled'} 
-                  onchange="setTeam('${s.slotId}',this.value)">
-            ${opts}
-          </select>
+      return `
+        <button type="button" class="crick-franchise-circle-btn ${isMine ? 'mine' : ''} ${isOtherHuman ? 'taken-other' : ''}" 
+                onclick="claimFranchise('${tm.id}')" title="${tm.name} ${isTaken ? '(${claimingSlot.name})' : '(Available)'}">
+          <img class="crick-claim-logo" src="${tm.logo}" alt="${tm.name}">
+          ${badgeHtml}
+        </button>
+      `;
+    }).join('');
+  }
+
+  // Update claim status badge
+  if($('lobbyClaimStatus')){
+    $('lobbyClaimStatus').textContent = myTeamId ? 'LOCKED IN' : 'SELECT FRANCHISE';
+    $('lobbyClaimStatus').style.color = myTeamId ? '#22c55e' : '#ffd15b';
+  }
+
+  // Render PLAYERS list on right panel (Matching Images 1 & 3)
+  const playersPanel = $('lobbyPlayersPanel');
+  if(playersPanel){
+    $('lobbyPlayersCount').textContent = st.slots.length;
+    playersPanel.innerHTML = st.slots.map((s, idx) => {
+      const isMe = (s.slotId === currentSlotId);
+      const isHostSlot = (idx === 0 || s.slotId === st.hostSlotId);
+      const tm = s.teamId ? tMap[s.teamId] : null;
+      const teamLogo = tm ? tm.logo : 'assets/puneri.png';
+      const teamName = tm ? tm.name : 'No Franchise Selected';
+      const isOnline = !!presenceMap.get(s.slotId) || s.mode === 'bot' || isMe;
+
+      return `
+        <div class="crick-manager-card ${isMe ? 'mine' : ''}">
+          <div class="crick-manager-left">
+            <img class="crick-manager-logo" src="${teamLogo}" alt="${teamName}">
+            <div>
+              <div class="crick-manager-title">
+                ${escapeHtml(s.name || 'Manager')} 
+                ${isHostSlot ? '👑' : ''} 
+                ${isMe ? '<span class="you-pill" style="font-size:10px;padding:2px 8px">YOU</span>' : ''}
+              </div>
+              <div class="crick-manager-sub">${teamName}</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span class="crick-status-online ${isOnline ? '' : 'offline'}">
+              <span class="crick-presence-dot" style="width:6px;height:6px"></span> ${isOnline ? 'ONLINE' : 'OFFLINE'}
+            </span>
+          </div>
         </div>
-        ${!canPickFranchise && s.mode === 'human' && !isMySlot ? `<div style="font-size:11px;color:#7e8ea4;margin-top:4px">🔒 Locked (Only ${escapeHtml(s.name)} can choose)</div>` : ''}
-        ${!canPickFranchise && s.mode === 'bot' && !isMeHost ? `<div style="font-size:11px;color:#7e8ea4;margin-top:4px">🔒 Managed by Host</div>` : ''}
-      </div>
-      <div class="slot-actions">
-        ${slotStatusNote}
-      </div>
-    </div>`;
-  }).join('');
+      `;
+    }).join('');
+  }
 }
-
 window.setTeam=function(slotId,teamId){
   const st = (typeof state !== 'undefined' && state) ? state : (window.state || null);
   if(!st || !st.slots) return;
@@ -9733,6 +10508,110 @@ function switchCreateTab(tab){
     btnCreate?.classList.remove('active');
     paneJoin?.classList.remove('hidden');
     paneCreate?.classList.add('hidden');
+  }
+}
+
+
+
+// --- CrickAuction Lobby Helpers (Matching Images 1, 2, 3) ---
+window.roomVisibility = 'public';
+
+function setRoomVisibility(type){
+  window.roomVisibility = type;
+  $('visBtnPublic')?.classList.toggle('active', type === 'public');
+  $('visBtnPrivate')?.classList.toggle('active', type === 'private');
+}
+
+function switchLobbyRightTab(tab){
+  const btnP = $('lobbyTabPlayers');
+  const btnC = $('lobbyTabChat');
+  const panP = $('lobbyPlayersPanel');
+  const panC = $('lobbyChatPanel');
+  if(tab === 'players'){
+    btnP?.classList.add('active');
+    btnC?.classList.remove('active');
+    panP?.classList.remove('hidden');
+    panC?.classList.add('hidden');
+  } else {
+    btnC?.classList.add('active');
+    btnP?.classList.remove('active');
+    panC?.classList.remove('hidden');
+    panP?.classList.add('hidden');
+  }
+}
+
+function shareWhatsAppInvite(){
+  const url = window.location.origin + window.location.pathname + '?room=' + encodeURIComponent(state.id);
+  const text = encodeURIComponent('Join my live PKL 13 Auction Room on CrickAuction! Room code: ' + state.id + ' \n' + url);
+  window.open('https://api.whatsapp.com/send?text=' + text, '_blank');
+}
+
+function sendLobbyChatMessage(){
+  const inp = $('lobbyChatInput');
+  if(!inp || !inp.value.trim()) return;
+  const msg = inp.value.trim();
+  inp.value = '';
+  sendChat(msg);
+  const box = $('lobbyChatMessages');
+  if(box){
+    const d = document.createElement('div');
+    d.className = 'chat-bubble mine';
+    d.style.cssText = 'font-size:12px;padding:6px 10px;margin-bottom:4px';
+    d.textContent = msg;
+    box.appendChild(d);
+    box.scrollTop = box.scrollHeight;
+  }
+}
+
+function fillRemainingBots(){
+  if(!isHostUser()){
+    alert('Only the room host can fill remaining slots with bots.');
+    return;
+  }
+  const tMap = (window.TEAM_BY_ID || (typeof TEAMS !== 'undefined' ? Object.fromEntries(TEAMS.map(x=>[x.id,x])) : {}));
+  const chosenTeams = new Set((state.slots || []).filter(s => s.teamId).map(s => s.teamId));
+  const availableTeams = TEAMS.filter(t => !chosenTeams.has(t.id));
+  
+  if(!availableTeams.length){
+    alert('All 12 franchises have already been claimed!');
+    return;
+  }
+
+  let botIndex = 1;
+  for(const tm of availableTeams){
+    const slotId = 'bot-slot-' + tm.id.toLowerCase();
+    const existing = state.slots.find(s => s.slotId === slotId);
+    if(!existing){
+      state.slots.push({
+        slotId: slotId,
+        name: `AI Manager ${botIndex++}`,
+        mode: 'bot',
+        teamId: tm.id
+      });
+    }
+  }
+  save();
+  renderLobby();
+  broadcastAction('lobby:sync_slots', { slots: state.slots }, state);
+  alert('All remaining franchises assigned to AI Bot Managers!');
+}
+
+function claimFranchise(teamId){
+  const currentSlotId = (typeof mySlotId !== 'undefined' && mySlotId) ? mySlotId : (window.mySlotId || localStorage.getItem(MY_SLOT_STORE) || null);
+  if(!currentSlotId) return;
+  const isTakenByOther = state.slots.some(s => s.teamId === teamId && s.slotId !== currentSlotId && s.mode === 'human');
+  if(isTakenByOther){
+    const owner = state.slots.find(s => s.teamId === teamId);
+    alert(`${owner.name || 'Another player'} has already claimed this franchise.`);
+    return;
+  }
+  window.setTeam(currentSlotId, teamId);
+}
+
+function leaveRoomConfirm(){
+  if(confirm('Are you sure you want to leave this auction room?')){
+    try{ localStorage.removeItem(MY_SLOT_STORE); }catch(e){}
+    location.reload();
   }
 }
 
