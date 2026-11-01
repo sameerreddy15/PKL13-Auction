@@ -2330,6 +2330,61 @@ body {
   border-color: rgba(255, 255, 255, 0.2);
 }
 
+
+/* Ensure natural scrolling on all pages except the live auction arena */
+html, body {
+  min-height: 100% !important;
+  height: auto !important;
+  max-height: none !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  margin: 0 !important;
+  padding: 0 16px 20px !important;
+}
+
+.app {
+  max-width: 1540px !important;
+  margin: 0 auto !important;
+  min-height: 100% !important;
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+  display: block !important;
+}
+
+#createScreen, #lobbyScreen, #retentionScreen {
+  overflow: visible !important;
+  height: auto !important;
+  max-height: none !important;
+}
+
+/* ONLY live auction stage has laptop zero-scroll mode */
+body.auction-mode {
+  height: 100vh !important;
+  max-height: 100vh !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+}
+
+body.auction-mode .app {
+  height: 100vh !important;
+  max-height: 100vh !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+body.auction-mode #auctionScreen:not(.hidden) {
+  height: 100vh !important;
+  max-height: 100vh !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 6px 14px 8px !important;
+  box-sizing: border-box !important;
+}
+
 </style>
 </head>
 <body>
@@ -2441,9 +2496,7 @@ body {
             </div>
           </div>
 
-          <!-- Franchise Preview Selector -->
-          <div style="margin-bottom:16px">
-            <!-- Public & Private Room Selector (Matching Image 2) -->
+          <!-- Public & Private Room Selector -->
           <div class="crick-room-type-section" style="margin-bottom:16px">
             <label style="display:block;font-size:11px;font-weight:900;color:#94a3b8;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:8px">ROOM VISIBILITY</label>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
@@ -2470,59 +2523,22 @@ body {
             </div>
           </div>
 
-          <label style="display:block;font-size:11px;font-weight:900;color:#94a3b8;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:8px">12 PKL Franchises</label>
-            <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px">
-              <div style="background:#181d27;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:6px;text-align:center"><img src="assets/puneri.png" style="width:28px;height:28px;object-fit:contain"></div>
-              <div style="background:#181d27;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:6px;text-align:center"><img src="assets/bulls.png" style="width:28px;height:28px;object-fit:contain"></div>
-              <div style="background:#181d27;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:6px;text-align:center"><img src="assets/jaipur.png" style="width:28px;height:28px;object-fit:contain"></div>
-              <div style="background:#181d27;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:6px;text-align:center"><img src="assets/tamil.png" style="width:28px;height:28px;object-fit:contain"></div>
-              <div style="background:#181d27;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:6px;text-align:center"><img src="assets/bengal.png" style="width:28px;height:28px;object-fit:contain"></div>
-              <div style="background:#181d27;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:6px;text-align:center"><img src="assets/dabang.png" style="width:28px;height:28px;object-fit:contain"></div>
+          <!-- Season 12 Retentions Toggle -->
+          <div class="field" style="margin: 0 0 18px">
+            <div class="range-wrap" style="height:52px;display:flex;align-items:center">
+              <label style="display:flex;align-items:center;gap:10px;cursor:pointer;margin:0">
+                <input id="retentionsEnabled" type="checkbox" checked style="width:18px;height:18px;accent-color:#f97316">
+                <span style="font-size:13px"><b>Enable Season 12 Retentions</b></span>
+              </label>
             </div>
           </div>
 
-          <!-- Auction Mode Cards (Matching Image 9) -->
-          <div style="margin-bottom:16px">
-            <label style="display:block;font-size:11px;font-weight:900;color:#94a3b8;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:8px">AUCTION FORMAT</label>
-            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
-              <div style="background:#1a2130;border:1.5px solid #f97316;border-radius:12px;padding:12px;text-align:center;cursor:pointer">
-                <div style="font-size:13px;font-weight:900;color:#fff">🏆 MEGA</div>
-                <div style="font-size:10px;color:#94a3b8;margin-top:2px">18–25 PLAYERS<br>₹5.00 CR PURSE</div>
-              </div>
-              <div style="background:#181d27;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px;text-align:center;cursor:pointer">
-                <div style="font-size:13px;font-weight:800;color:#cbd5e1">⭐ CLASSIC</div>
-                <div style="font-size:10px;color:#94a3b8;margin-top:2px">14–18 PLAYERS<br>₹4.00 CR PURSE</div>
-              </div>
-              <div style="background:#181d27;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px;text-align:center;cursor:pointer">
-                <div style="font-size:13px;font-weight:800;color:#cbd5e1">⚡ SPRINT</div>
-                <div style="font-size:10px;color:#94a3b8;margin-top:2px">10–14 PLAYERS<br>₹3.00 CR PURSE</div>
-              </div>
-            </div>
-          </div>
+          <!-- Hidden default inputs to preserve 100% backward compatibility -->
+          <input id="bidTimer" type="hidden" value="15">
+          <span id="timerValue" style="display:none">15</span>
 
-          <div class="option-row" style="margin-bottom:16px">
-            <div class="field" style="margin:0">
-              <label>Bid Timer</label>
-              <div class="range-wrap">
-                <div class="range-row">
-                  <input id="bidTimer" type="range" min="10" max="30" value="15">
-                  <div class="range-value"><span id="timerValue">15</span>s</div>
-                </div>
-              </div>
-            </div>
-            <div class="field" style="margin:0">
-              <label>Retentions</label>
-              <div class="range-wrap" style="height:52px;display:flex;align-items:center">
-                <label style="display:flex;align-items:center;gap:10px;cursor:pointer;margin:0">
-                  <input id="retentionsEnabled" type="checkbox" checked style="width:18px;height:18px;accent-color:#f97316">
-                  <span style="font-size:13px"><b>Season 12 Retentions</b></span>
-                </label>
-              </div>
-            </div>
-          </div>
-
-          <!-- Big Orange Start Auction Button (Matching Images 9 & 10) -->
-          <button class="btn big" id="createRoom" type="button" onclick="createRoom()" style="width:100%;background:linear-gradient(90deg,#f97316,#ea580c);color:#ffffff;font-weight:950;font-size:16px;padding:16px;border-radius:14px;box-shadow:0 0 30px rgba(249,115,22,0.4);border:0;letter-spacing:0.5px">
+          <!-- Big Orange Start Auction Button -->
+          <button class="btn big" id="createRoom" type="button" onclick="createRoom()" style="width:100%;background:linear-gradient(90deg,#f97316,#ea580c);color:#ffffff;font-weight:950;font-size:16px;padding:16px;border-radius:14px;box-shadow:0 0 30px rgba(249,115,22,0.4);border:0;letter-spacing:0.5px;cursor:pointer">
             START AUCTION ›
           </button>
           <div id="createError" class="error" style="margin-top:10px"></div>
