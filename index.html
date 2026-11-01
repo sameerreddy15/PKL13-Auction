@@ -2590,7 +2590,7 @@ body {
       <!-- Top Lobby Action Bar -->
       <div class="crick-lobby-topbar">
         <div style="display:flex;align-items:center;gap:12px">
-          <button class="crick-lobby-nav-btn" id="leaveRoom" type="button" onclick="leaveRoomConfirm()">
+          <button class="crick-lobby-nav-btn" id="leaveRoom" type="button" onclick="closeRoom(false)">
             🚪 EXIT HUB
           </button>
           <span class="crick-lobby-room-badge" id="roomIdBadge" onclick="copyRoomLink()" title="Click to copy Room Invite Link">
@@ -2749,7 +2749,7 @@ body {
         <button class="crick-icon-btn" id="openSettingsBtn" type="button" onclick="openRoomSettingsModal()" title="Room & Voice Settings">
           ⚙️
         </button>
-        <button class="crick-icon-btn" id="auctionHomeBtn" type="button" onclick="confirmLeaveToLobby()" title="Home / Return to Lobby">
+        <button class="crick-icon-btn" id="auctionHomeBtn" type="button" onclick="closeRoom(false)" title="Home / Return to Lobby">
           🏠
         </button>
         <!-- Additional tool buttons (preserved) -->
@@ -9884,7 +9884,7 @@ function buildFinalAuctionPool(){
   <div class="crick-settings-card" style="max-width:880px;width:95%;max-height:90vh;overflow-y:auto">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
       <span class="crick-room-code-badge" id="summaryRoomCode">ROOM</span>
-      <button class="crick-btn-action" type="button" onclick="closeAuctionCompleteModal()">✕ MENU</button>
+      <button class="crick-btn-action" type="button" onclick="closeRoom(false)">🚪 EXIT & CLOSE ROOM</button>
     </div>
 
     <div class="crick-summary-hero">
@@ -10731,14 +10731,127 @@ function claimFranchise(teamId){
   window.setTeam(currentSlotId, teamId);
 }
 
-function leaveRoomConfirm(){
-  if(confirm('Are you sure you want to leave this auction room?')){
-    try{ localStorage.removeItem(MY_SLOT_STORE); }catch(e){}
-    location.reload();
+
+
+window.showScreen = function(id) {
+  if (typeof show === 'function') {
+    show(id);
+  } else {
+    ['createScreen','lobbyScreen','retentionScreen','auctionScreen'].forEach(x => {
+      const el = document.getElementById(x);
+      if(el) el.classList.add('hidden');
+    });
+    const target = document.getElementById(id);
+    if(target) target.classList.remove('hidden');
+  }
+};
+
+
+// --- Universal Room Close / Exit Handler ---
+function closeRoom(force = false) {
+  const isHost = (typeof isHostUser === 'function') ? isHostUser() : false;
+  const currentRoomId = (state && state.id) ? state.id : null;
+  const msg = isHost 
+    ? 'Close and exit this auction room? (This will end the room for all participants)'
+    : 'Leave this auction room and return to home screen?';
+
+  if (!force && !confirm(msg)) {
+    return;
+  }
+
+  // 1. Cancel speech & sounds
+  if ('speechSynthesis' in window) {
+    try { speechSynthesis.cancel(); } catch(e){}
+  }
+  if (typeof stopAuctionActivity === 'function') {
+    try { stopAuctionActivity(); } catch(e){}
+  }
+  if (typeof clearPauseTimers === 'function') {
+    try { clearPauseTimers(); } catch(e){}
+  }
+
+  // 2. Notify server to destroy/leave room
+  const sock = (window.socket || (typeof socket !== 'undefined' ? socket : null));
+  if (sock && sock.connected && currentRoomId) {
+    try {
+      sock.emit('room:leave', { roomId: currentRoomId });
+    } catch(e){}
+  }
+
+  // 3. Clear all stored room persistence
+  if (typeof clearSavedRoom === 'function') {
+    clearSavedRoom();
+  }
+  try {
+    localStorage.removeItem(typeof STORE !== 'undefined' ? STORE : 'pkl13-v7-full-squads');
+    localStorage.removeItem(typeof MY_SLOT_STORE !== 'undefined' ? MY_SLOT_STORE : 'pkl13-my-slot');
+    localStorage.removeItem('pkl13_state');
+    localStorage.removeItem('pkl13_auction_state');
+    sessionStorage.clear();
+  } catch(e){}
+
+  // 4. Reset in-memory state variables
+  state = null;
+  active = null;
+  mySlotId = null;
+  window.state = null;
+  window.mySlotId = null;
+
+  // 5. Remove ?room=... from URL in browser address bar without reloading
+  if (window.history && window.history.replaceState) {
+    const cleanUrl = window.location.origin + window.location.pathname;
+    window.history.replaceState({}, document.title, cleanUrl);
+  }
+
+  // 6. Close all active overlays & modals
+  const modalsToClose = [
+    'roomVoiceSettingsModal',
+    'participantsModal',
+    'auctionCompleteModal',
+    'infoModal',
+    'crorepatiModal'
+  ];
+  modalsToClose.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.classList.remove('active');
+      el.classList.add('hidden');
+    }
+  });
+
+  // 7. Transition immediately to createScreen
+  window.showScreen('createScreen');
+
+  // 8. Refresh public rooms directory
+  if (typeof loadPublicRooms === 'function') {
+    loadPublicRooms();
   }
 }
 
+// Map leaveRoomConfirm to closeRoom
+function leaveRoomConfirm() {
+  closeRoom(false);
+}
 
+// Auction screen home button handler
+function confirmLeaveToLobby() {
+  const choice = confirm('Return to room lobby? Click "OK" for Lobby, or "Cancel" if you want to stay in Arena.');
+  if (choice) {
+    window.showScreen('lobbyScreen');
+    if (typeof renderLobby === 'function') renderLobby();
+  }
+}
+
+// Auction screen end button handler
+function confirmEndAuction() {
+  if (typeof isHostUser === 'function' && !isHostUser()) {
+    alert('Only host can end the auction.');
+    return;
+  }
+  if (confirm('Conclude auction and view final team standings?')) {
+    openAuctionCompleteModal();
+  }
+}
 
 // --- Public Lobbies & Join Tab Logic (Matching Screenshot) ---
 const FEATURED_PUBLIC_ROOMS = [
