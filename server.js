@@ -962,6 +962,22 @@ app.get('/api/qr', async (req, res) => {
   }
 });
 
+app.get('/api/public-rooms', (req, res) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  const list = [];
+  for (const [id, r] of rooms.entries()) {
+    list.push({
+      id: id,
+      name: (r.state && r.state.name) ? r.state.name : `${id}'s Room`,
+      mode: 'Mega',
+      count: (r.participants ? r.participants.size : (r.state && r.state.slots ? r.state.slots.filter(s=>s.mode==='human').length : 1)),
+      max: 12,
+      started: !!(r.state && r.state.started)
+    });
+  }
+  res.json({ rooms: list });
+});
+
 app.get('/api/health', (req, res) => {
   res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.json({

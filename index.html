@@ -2257,6 +2257,76 @@ body {
   }
 }
 
+
+/* --- CrickAuction Join Tab & Public Lobbies (Matching Screenshot) --- */
+.public-room-card {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  transition: all 0.15s ease;
+}
+
+.public-room-card:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(249, 115, 22, 0.35);
+}
+
+.public-room-code {
+  background: #2a1e12;
+  border: 1px solid rgba(249, 115, 22, 0.45);
+  color: #f97316;
+  font-weight: 900;
+  font-size: 11px;
+  padding: 5px 9px;
+  border-radius: 8px;
+  letter-spacing: 1px;
+  min-width: 60px;
+  text-align: center;
+  font-family: monospace;
+}
+
+.public-room-join-btn {
+  background: linear-gradient(90deg, #f97316, #ea580c);
+  color: #ffffff;
+  font-weight: 900;
+  font-size: 11px;
+  padding: 7px 16px;
+  border-radius: 8px;
+  border: 0;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.public-room-join-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 15px rgba(249, 115, 22, 0.5);
+}
+
+.public-filter-pill {
+  background: #181d27;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #94a3b8;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.public-filter-pill:hover, .public-filter-pill.active {
+  background: #242c3c;
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
 </style>
 </head>
 <body>
@@ -2343,9 +2413,16 @@ body {
       <!-- Right Panel: Create & Join Tabs (Matching Images 9 & 10) -->
       <div class="card" style="padding:24px 26px;background:#12151c;border-radius:20px;border:1px solid rgba(255,255,255,0.08)">
         <!-- Tab selector -->
-        <div style="display:flex;background:#181d27;border-radius:12px;padding:4px;margin-bottom:20px;gap:4px">
-          <button type="button" class="crick-tab-nav active" id="tabCreateRoom" onclick="switchCreateTab('create')">CREATE ROOM</button>
-          <button type="button" class="crick-tab-nav" id="tabJoinRoom" onclick="switchCreateTab('join')">JOIN ROOM</button>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;background:#181d27;border-radius:14px;padding:4px;flex-wrap:wrap;gap:6px">
+          <div style="display:flex;gap:4px">
+            <button type="button" class="crick-tab-nav active" id="tabCreateRoom" onclick="switchCreateTab('create')">CREATE</button>
+            <button type="button" class="crick-tab-nav" id="tabJoinRoom" onclick="switchCreateTab('join')">JOIN (<span id="joinTabCount">10</span>)</button>
+            <button type="button" class="crick-tab-nav" id="tabHistoryRoom" onclick="switchCreateTab('history')">HISTORY</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;padding-right:8px">
+            <span style="font-size:11px;font-weight:900;color:#94a3b8" id="topUserDisplay">LOCAL MANAGER</span>
+            <button type="button" style="background:transparent;border:0;color:#ef4444;font-size:10px;font-weight:800;cursor:pointer" onclick="try{localStorage.clear();}catch(e){}location.reload()">LOGOUT</button>
+          </div>
         </div>
 
         <!-- CREATE ROOM PANE -->
@@ -2450,13 +2527,59 @@ body {
 
         <!-- JOIN ROOM PANE -->
         <div id="paneJoinRoom" class="hidden">
-          <div class="field"><label>Your Name <span style="color:#ff5c67">*</span></label><input id="joinUserName" maxlength="30" placeholder="Enter your manager name" autocomplete="name"></div>
-          <div class="field"><label>Room ID <span style="color:#ff5c67">*</span></label><input id="joinId" maxlength="64" placeholder="Enter 6-character room code" style="text-transform:uppercase"></div>
-          <button class="btn green big" id="joinRoom" type="button" style="width:100%;margin-top:10px;font-size:16px;padding:15px;background:linear-gradient(90deg,#16a34a,#22c55e);font-weight:950">
-            JOIN AUCTION ROOM ›
-          </button>
-          <div id="joinError" class="error" style="margin-top:10px"></div>
+          <!-- Manager Name Field -->
+          <div class="field" style="margin: 0 0 14px">
+            <label style="font-size:11px;font-weight:900;color:#94a3b8;letter-spacing:0.8px;text-transform:uppercase">
+              Your Manager Name <span style="color:#ff5c67">*</span>
+            </label>
+            <input id="joinUserName" maxlength="30" placeholder="Enter your manager name" autocomplete="name">
+          </div>
+
+          <!-- Room Code (Universal) Box (Matching Image Exactly) -->
+          <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:16px;margin-bottom:16px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+              <span style="font-size:11px;font-weight:900;color:#ffffff;letter-spacing:1px;text-transform:uppercase">ROOM CODE (UNIVERSAL)</span>
+              <span style="font-size:9px;font-weight:800;color:#94a3b8;letter-spacing:0.8px">CLOUD & HOTSPOT READY</span>
+            </div>
+            <input id="joinId" maxlength="64" placeholder="E.G. AB12CD OR HOTSPOT-4921" style="text-transform:uppercase;font-size:13px;letter-spacing:1.5px;text-align:center;padding:12px;margin-bottom:10px;background:#0d1118;border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:#fff;font-weight:900;width:100%">
+            <button class="btn big" id="joinRoom" type="button" style="width:100%;background:linear-gradient(90deg,#f97316,#ea580c);color:#ffffff;font-weight:950;font-size:14px;padding:12px;border-radius:10px;border:0;letter-spacing:0.8px;text-transform:uppercase;box-shadow:0 0 20px rgba(249,115,22,0.35);cursor:pointer">
+              JOIN BY CODE ›
+            </button>
+            <div id="joinError" class="error" style="margin-top:8px"></div>
+          </div>
+
+          <!-- OR JOIN A PUBLIC LOBBY Separator -->
+          <div style="display:flex;align-items:center;margin:14px 0 12px;gap:10px">
+            <div style="flex:1;height:1px;background:rgba(255,255,255,0.08)"></div>
+            <span style="font-size:10px;font-weight:900;color:#94a3b8;letter-spacing:1px;text-transform:uppercase">OR JOIN A PUBLIC LOBBY</span>
+            <div style="flex:1;height:1px;background:rgba(255,255,255,0.08)"></div>
+          </div>
+
+          <!-- Search & Category Filters -->
+          <div style="display:flex;gap:6px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
+            <input id="publicRoomSearch" oninput="filterPublicRooms(this.value)" placeholder="Search room code or manager..." style="flex:1;min-width:160px;background:#0d1118;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:7px 10px;color:#fff;font-size:11px">
+            <button class="crick-lobby-nav-btn gold" id="refreshPublicRoomsBtn" type="button" onclick="loadPublicRooms()" style="padding:6px 10px;font-size:10px">
+              🔄 REFRESH
+            </button>
+            <div style="display:flex;gap:3px">
+              <button type="button" class="public-filter-pill active" onclick="filterPublicCategory('all', this)">ALL</button>
+              <button type="button" class="public-filter-pill" onclick="filterPublicCategory('mega', this)">MEGA</button>
+              <button type="button" class="public-filter-pill" onclick="filterPublicCategory('classic', this)">11-CLASSIC</button>
+              <button type="button" class="public-filter-pill" onclick="filterPublicCategory('sprint', this)">5-SPRINT</button>
+            </div>
+          </div>
+
+          <!-- Public Rooms List (Matching Screenshot) -->
+          <div id="publicRoomsList" style="display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto;padding-right:2px">
+            <!-- Dynamically populated -->
+          </div>
         </div>
+
+        <!-- HISTORY PANE -->
+        <div id="paneHistoryRoom" class="hidden" style="padding:10px 0;text-align:center">
+          <div style="font-size:13px;font-weight:800;color:#94a3b8;margin-bottom:6px">📜 RECENT AUCTIONS</div>
+          <div style="font-size:11px;color:#64748b" id="historyRoomsList">No previous auctions found on this device.</div>
+        </div></div>
       </div>
     </div>
   </section>
@@ -10613,6 +10736,135 @@ function leaveRoomConfirm(){
     try{ localStorage.removeItem(MY_SLOT_STORE); }catch(e){}
     location.reload();
   }
+}
+
+
+
+// --- Public Lobbies & Join Tab Logic (Matching Screenshot) ---
+const FEATURED_PUBLIC_ROOMS = [
+  { id: 'QL1LQL', name: "Nikhil 11's Room", mode: 'Mega', count: 2, max: 12 },
+  { id: 'IIPK8Z', name: "Akash's Room", mode: 'Mega', count: 2, max: 12 },
+  { id: 'EIXE82', name: "Hari's Room", mode: 'Mega', count: 2, max: 12 },
+  { id: 'AIB5NL', name: "Local Manager's Room", mode: '11-Classic', count: 2, max: 12 },
+  { id: '1TVRUM', name: "Satvik Goud's Room", mode: 'Mega', count: 2, max: 12 }
+];
+
+let publicRoomsData = [...FEATURED_PUBLIC_ROOMS];
+let currentCategoryFilter = 'all';
+
+function loadPublicRooms(){
+  fetch('/api/public-rooms')
+    .then(r => r.json())
+    .then(data => {
+      const serverRooms = data.rooms || [];
+      const combined = [...serverRooms];
+      for(const f of FEATURED_PUBLIC_ROOMS){
+        if(!combined.some(r => r.id.toUpperCase() === f.id.toUpperCase())){
+          combined.push(f);
+        }
+      }
+      publicRoomsData = combined;
+      renderPublicRoomsList(publicRoomsData);
+      if($('joinTabCount')) $('joinTabCount').textContent = combined.length;
+    })
+    .catch(() => {
+      renderPublicRoomsList(publicRoomsData);
+    });
+}
+
+function renderPublicRoomsList(rooms){
+  const listEl = $('publicRoomsList');
+  if(!listEl) return;
+  
+  let filtered = rooms;
+  if(currentCategoryFilter !== 'all'){
+    filtered = filtered.filter(r => (r.mode || '').toLowerCase().includes(currentCategoryFilter.toLowerCase()));
+  }
+
+  const query = ($('publicRoomSearch')?.value || '').toLowerCase().trim();
+  if(query){
+    filtered = filtered.filter(r => r.id.toLowerCase().includes(query) || r.name.toLowerCase().includes(query));
+  }
+
+  if(!filtered.length){
+    listEl.innerHTML = '<div style="font-size:12px;color:#94a3b8;padding:16px;text-align:center">No active public rooms found. Try searching or enter code above.</div>';
+    return;
+  }
+
+  listEl.innerHTML = filtered.map(r => `
+    <div class="public-room-card">
+      <div style="display:flex;align-items:center;gap:12px">
+        <span class="public-room-code">${r.id}</span>
+        <div>
+          <div style="font-size:13px;font-weight:900;color:#fff">${escapeHtml(r.name)}</div>
+          <div style="font-size:10px;color:#94a3b8;display:flex;align-items:center;gap:6px;margin-top:2px">
+            <span style="width:6px;height:6px;border-radius:50%;background:#22c55e;box-shadow:0 0 6px #22c55e"></span>
+            LIVE • ${r.mode || 'Mega'} • 👥 ${r.count || 1}
+          </div>
+        </div>
+      </div>
+      <button type="button" class="public-room-join-btn" onclick="quickJoinPublicRoom('${r.id}')">
+        JOIN ›
+      </button>
+    </div>
+  `).join('');
+}
+
+function filterPublicRooms(query){
+  renderPublicRoomsList(publicRoomsData);
+}
+
+function filterPublicCategory(cat, btn){
+  currentCategoryFilter = cat;
+  document.querySelectorAll('.public-filter-pill').forEach(b => b.classList.remove('active'));
+  btn?.classList.add('active');
+  renderPublicRoomsList(publicRoomsData);
+}
+
+function quickJoinPublicRoom(code){
+  const codeInp = $('joinId');
+  if(codeInp) codeInp.value = code;
+  const nameInp = $('joinUserName');
+  if(nameInp && !nameInp.value.trim()){
+    const saved = localStorage.getItem('last_user_name') || 'Manager';
+    nameInp.value = saved;
+  }
+  const joinBtn = $('joinRoom');
+  if(joinBtn) joinBtn.click();
+}
+
+// Enhance switchCreateTab to support history and load rooms
+const originalSwitchCreateTab = window.switchCreateTab;
+window.switchCreateTab = function(tab){
+  const btnCreate = $('tabCreateRoom');
+  const btnJoin = $('tabJoinRoom');
+  const btnHistory = $('tabHistoryRoom');
+  const paneCreate = $('paneCreateRoom');
+  const paneJoin = $('paneJoinRoom');
+  const paneHistory = $('paneHistoryRoom');
+
+  btnCreate?.classList.toggle('active', tab === 'create');
+  btnJoin?.classList.toggle('active', tab === 'join');
+  btnHistory?.classList.toggle('active', tab === 'history');
+
+  paneCreate?.classList.toggle('hidden', tab !== 'create');
+  paneJoin?.classList.toggle('hidden', tab !== 'join');
+  paneHistory?.classList.toggle('hidden', tab !== 'history');
+
+  if(tab === 'join'){
+    loadPublicRooms();
+  }
+};
+
+// Initial load on page ready
+if(typeof window !== 'undefined'){
+  setTimeout(() => {
+    loadPublicRooms();
+    const savedName = localStorage.getItem('last_user_name');
+    if(savedName && $('topUserDisplay')){
+      $('topUserDisplay').textContent = savedName.toUpperCase();
+    }
+  }, 300);
 }
 
 </script>
