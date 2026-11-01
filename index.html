@@ -1956,7 +1956,12 @@ body {
 
 /* --- LAPTOP NO-SCROLL CRITICAL OVERRIDES (min-width: 1024px) --- */
 @media (min-width: 1024px) {
-  html, body {
+  /* Ensure screens are hidden properly with high specificity */
+  #auctionScreen.hidden, #createScreen.hidden, #lobbyScreen.hidden, #retentionScreen.hidden, .hidden {
+    display: none !important;
+  }
+
+  body.auction-mode {
     height: 100vh !important;
     max-height: 100vh !important;
     overflow: hidden !important;
@@ -1964,15 +1969,13 @@ body {
     padding: 0 !important;
   }
 
-  .app {
+  body.auction-mode .app {
     height: 100vh !important;
     max-height: 100vh !important;
     overflow: hidden !important;
-    display: flex !important;
-    flex-direction: column !important;
   }
 
-  #auctionScreen {
+  #auctionScreen:not(.hidden) {
     height: 100vh !important;
     max-height: 100vh !important;
     overflow: hidden !important;
@@ -4208,11 +4211,30 @@ function joinFromInviteBanner(){
 function show(id){
   ['createScreen','lobbyScreen','retentionScreen','auctionScreen'].forEach(x=>{
     const el = $(x);
-    if(el) el.classList.add('hidden');
+    if(el) {
+      el.classList.add('hidden');
+      el.style.display = 'none';
+    }
   });
   const target = $(id);
-  if(target) target.classList.remove('hidden');
-  
+  if(target) {
+    target.classList.remove('hidden');
+    target.style.display = '';
+  }
+
+  // Toggle body auction-mode class for laptop no-scroll
+  if(id === 'auctionScreen'){
+    document.body.classList.add('auction-mode');
+  } else {
+    document.body.classList.remove('auction-mode');
+  }
+
+  // Hide redundant legacy topbar when on CrickAuction screens (lobby, auction)
+  const legacyTopbar = document.querySelector('.app > .topbar');
+  if(legacyTopbar){
+    legacyTopbar.style.display = (id === 'createScreen') ? 'flex' : 'none';
+  }
+
   if(id !== 'auctionScreen'){
     const fAsk = $('floatingAskTimeContainer');
     if(fAsk) fAsk.classList.add('hidden');
@@ -10739,10 +10761,10 @@ window.showScreen = function(id) {
   } else {
     ['createScreen','lobbyScreen','retentionScreen','auctionScreen'].forEach(x => {
       const el = document.getElementById(x);
-      if(el) el.classList.add('hidden');
+      if(el) { el.classList.add('hidden'); el.style.display = 'none'; }
     });
     const target = document.getElementById(id);
-    if(target) target.classList.remove('hidden');
+    if(target) { target.classList.remove('hidden'); target.style.display = ''; }
   }
 };
 
