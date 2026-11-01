@@ -884,6 +884,61 @@ io.on('connection', (socket) => {
 
       io.to(cleanId).emit('room:presence', Array.from(room.participants.values()));
       io.to(cleanId).emit('room:state_sync', { state: room.state, source: 'player_left' });
+
+  socket.on('room:kick_slot', ({ roomId, slotId } = {}, callback) => {
+    try {
+      const cleanId = cleanRoomId(roomId || currentRoomId);
+      const room = getRoom(cleanId);
+      if (!room) {
+        if (callback) callback({ success: false, error: 'Room not found.' });
+        return;
+      }
+
+      const hostParticipant = getParticipant(room, socket.id);
+      if (!hostParticipant || !isHostParticipant(room, hostParticipant)) {
+        if (callback) callback({ success: false, error: 'Only the room host can remove participants.' });
+        return;
+      }
+
+      const targetSlotId = String(slotId || '');
+      if (!targetSlotId || targetSlotId === room.state.hostSlotId || targetSlotId === hostParticipant.slotId) {
+        if (callback) callback({ success: false, error: 'Cannot remove the room host.' });
+        return;
+      }
+
+      // Disconnect and remove target socket
+      for (const [sockId, p] of Array.from(room.participants.entries())) {
+        if (p.slotId === targetSlotId) {
+          const targetSocket = io.sockets.sockets.get(sockId);
+          if (targetSocket) {
+            targetSocket.emit('room:kicked', { message: 'You have been removed from the room by the host.' });
+            targetSocket.leave(cleanId);
+          }
+          room.participants.delete(sockId);
+        }
+      }
+
+      if (!room.state.started) {
+        room.state.slots = room.state.slots.filter(s => s.slotId !== targetSlotId);
+      } else {
+        const slot = room.state.slots?.find(x => x.slotId === targetSlotId);
+        if (slot) {
+          slot.mode = 'bot';
+          slot.name = slot.name.replace(/ \(AI\)$/i, '') + ' (AI)';
+        }
+      }
+
+      room.state.stateRevision = Number(room.state.stateRevision || 0) + 1;
+      io.to(cleanId).emit('room:presence', Array.from(room.participants.values()));
+      io.to(cleanId).emit('room:state_sync', { state: room.state, source: 'player_kicked' });
+
+      if (callback) callback({ success: true });
+    } catch (err) {
+      console.error('room:kick_slot error:', err);
+      if (callback) callback({ success: false, error: 'Server error removing player.' });
+    }
+  });
+
       if (callback) callback({ success: true });
       currentRoomId = null;
       currentSlotId = null;
@@ -966,11 +1021,13 @@ app.get('/api/public-rooms', (req, res) => {
   res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   const list = [];
   for (const [id, r] of rooms.entries()) {
+    if (r.state && r.state.visibility === 'private') continue;
+    const humanCount = r.state && r.state.slots ? r.state.slots.filter(s => s.mode === 'human').length : (r.participants ? r.participants.size : 1);
     list.push({
       id: id,
-      name: (r.state && r.state.name) ? r.state.name : `${id}'s Room`,
-      mode: 'Mega',
-      count: (r.participants ? r.participants.size : (r.state && r.state.slots ? r.state.slots.filter(s=>s.mode==='human').length : 1)),
+      name: (r.state && r.state.name) ? r.state.name : `${r.state?.hostName || id}'s Room`,
+      mode: r.state?.format || 'Mega',
+      count: humanCount,
       max: 12,
       started: !!(r.state && r.state.started)
     });
