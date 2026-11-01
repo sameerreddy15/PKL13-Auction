@@ -421,6 +421,1233 @@ body.tv-projector-mode .timer{font-size:48px !important;padding:8px 24px !import
 
 .crorepati-confetti{position:fixed;width:12px;height:12px;border-radius:3px;z-index:10000;pointer-events:none;animation:confettiFly 2.2s cubic-bezier(.25,.46,.45,.94) forwards}
 @keyframes confettiFly{0%{transform:translate(0,0) rotate(0deg) scale(1);opacity:1}100%{transform:translate(var(--dx),var(--dy)) rotate(720deg) scale(0);opacity:0}}
+
+/* ==========================================================================
+   CRICKAUCTION THEME & 3-COLUMN REDESIGN
+   ========================================================================== */
+
+:root {
+  --crick-bg: #090b10;
+  --crick-surface: #12151c;
+  --crick-surface-2: #181d27;
+  --crick-border: rgba(255, 255, 255, 0.08);
+  --crick-border-hover: rgba(255, 255, 255, 0.18);
+  --crick-green: #22c55e;
+  --crick-green-glow: rgba(34, 197, 94, 0.45);
+  --crick-orange: #f97316;
+  --crick-gold: #ffd15b;
+  --crick-cyan: #38bdf8;
+  --crick-purple: #8b5cf6;
+}
+
+body {
+  background: #090b10 radial-gradient(circle at 50% 0%, #151d2a 0%, #090b10 70%) !important;
+  color: #f8fafc !important;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+  margin: 0;
+  padding: 0 16px 20px;
+}
+
+.app {
+  max-width: 1540px !important;
+  margin: 0 auto;
+}
+
+/* --- CrickAuction Topbar --- */
+.crick-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 18px;
+  background: rgba(18, 21, 28, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--crick-border);
+  border-radius: 16px;
+  margin: 14px 0 18px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.crick-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.crick-room-code-badge {
+  background: #1c222e;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 14px;
+}
+
+.crick-presence-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  color: #86efac;
+  font-weight: 800;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.crick-presence-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 8px #22c55e;
+  animation: presencePulse 2s infinite ease-in-out;
+}
+
+@keyframes presencePulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.25); opacity: 0.7; }
+}
+
+.crick-icon-btn {
+  background: #181d27;
+  border: 1px solid var(--crick-border);
+  color: #cbd5e1;
+  padding: 7px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+
+.crick-icon-btn:hover {
+  background: #232a38;
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.crick-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.crick-btn-action {
+  background: #1c222e;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 12px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.2s ease;
+}
+
+.crick-btn-action:hover {
+  background: #2a3344;
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.crick-btn-action.resume-mode {
+  background: #15803d;
+  color: #ffffff;
+  border-color: #22c55e;
+}
+
+/* --- 3-Column Auction Stage Layout --- */
+.crick-3col-layout {
+  display: grid;
+  grid-template-columns: 310px 1fr 340px;
+  gap: 20px;
+  align-items: start;
+  margin-top: 10px;
+}
+
+@media (max-width: 1280px) {
+  .crick-3col-layout {
+    grid-template-columns: 270px 1fr 300px;
+    gap: 14px;
+  }
+}
+
+@media (max-width: 1080px) {
+  .crick-3col-layout {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+  .crick-teams-col {
+    display: none;
+  }
+  .crick-activity-col {
+    display: none;
+  }
+}
+
+/* --- Left Column: AUCTION TEAMS --- */
+.crick-teams-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.crick-col-header {
+  font-size: 12px;
+  font-weight: 800;
+  color: #94a3b8;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin: 0 0 4px 4px;
+}
+
+.crick-teams-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: calc(100vh - 150px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.crick-teams-list::-webkit-scrollbar {
+  width: 5px;
+}
+.crick-teams-list::-webkit-scrollbar-thumb {
+  background: #273144;
+  border-radius: 4px;
+}
+
+.crick-team-item {
+  display: flex;
+  align-items: center;
+  background: var(--crick-surface);
+  border: 1px solid var(--crick-border);
+  border-radius: 14px;
+  padding: 10px 12px;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.crick-team-item:hover {
+  background: var(--crick-surface-2);
+  border-color: var(--crick-border-hover);
+  transform: translateX(3px);
+}
+
+.crick-team-item.mine {
+  border-color: #3b82f6 !important;
+  background: linear-gradient(90deg, rgba(59, 130, 246, 0.12), rgba(18, 21, 28, 0.95)) !important;
+}
+
+.crick-team-item.leading {
+  border-color: #ffd15b !important;
+  box-shadow: 0 0 15px rgba(255, 209, 91, 0.25) !important;
+}
+
+.crick-team-rank {
+  font-size: 12px;
+  font-weight: 900;
+  color: #64748b;
+  min-width: 14px;
+  text-align: center;
+}
+
+.crick-team-logo {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 2px;
+  flex-shrink: 0;
+}
+
+.crick-team-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.crick-team-name {
+  font-size: 13px;
+  font-weight: 800;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.crick-team-manager {
+  font-size: 11px;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 2px;
+}
+
+.crick-manager-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #64748b;
+}
+
+.crick-manager-dot.online {
+  background: #22c55e;
+}
+
+.crick-team-purse {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.crick-purse-text {
+  font-size: 13px;
+  font-weight: 900;
+  color: #ffffff;
+}
+
+.crick-squad-count {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.crick-team-chevron {
+  color: #64748b;
+  font-size: 14px;
+  margin-left: 2px;
+}
+
+/* --- Center Stage Column --- */
+.crick-stage-col {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.crick-stage-meta-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 14px;
+  background: rgba(18, 21, 28, 0.7);
+  border: 1px solid var(--crick-border);
+  border-radius: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.crick-set-pill {
+  background: #2d2613;
+  color: #ffd15b;
+  border: 1px solid rgba(255, 209, 91, 0.35);
+  font-weight: 900;
+  font-size: 12px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.crick-base-text {
+  font-size: 13px;
+  color: #cbd5e1;
+  font-weight: 700;
+}
+
+.crick-base-val {
+  color: #ffffff;
+  font-weight: 900;
+  font-size: 14px;
+}
+
+.crick-bidder-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.crick-bidder-pill {
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-weight: 900;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+}
+
+.crick-bidder-pill.nobids {
+  background: rgba(100, 116, 139, 0.15);
+  color: #94a3b8;
+  border-color: rgba(100, 116, 139, 0.3);
+}
+
+/* --- Player Stage Card --- */
+.crick-player-card {
+  background: var(--crick-surface);
+  border: 1px solid var(--crick-border);
+  border-radius: 24px;
+  padding: 26px 28px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s ease;
+}
+
+.crick-player-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #22c55e, #38bdf8, #8b5cf6);
+  opacity: 0.8;
+}
+
+.crick-player-card-inner {
+  display: flex;
+  gap: 28px;
+  align-items: center;
+}
+
+@media (max-width: 640px) {
+  .crick-player-card-inner {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+.crick-avatar-frame {
+  width: 180px;
+  height: 180px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #1c2433, #0f1420);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5), 0 8px 24px rgba(0, 0, 0, 0.4);
+  flex-shrink: 0;
+}
+
+.crick-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  transition: transform 0.3s ease;
+}
+
+.crick-avatar-graphic {
+  font-size: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+}
+
+.crick-avatar-role-icon {
+  font-size: 42px;
+}
+
+.crick-avatar-team-badge {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(18, 21, 28, 0.9);
+  padding: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.crick-player-meta-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.crick-player-tag-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.crick-role-badge {
+  background: #172554;
+  color: #60a5fa;
+  border: 1px solid rgba(96, 165, 250, 0.3);
+  font-weight: 800;
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.crick-cat-badge {
+  background: #2e1065;
+  color: #c084fc;
+  border: 1px solid rgba(192, 132, 252, 0.3);
+  font-weight: 800;
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.crick-player-name {
+  font-size: 34px;
+  font-weight: 900;
+  color: #ffffff;
+  margin: 0 0 16px 0;
+  line-height: 1.15;
+  letter-spacing: -0.5px;
+}
+
+@media (max-width: 640px) {
+  .crick-player-name {
+    font-size: 26px;
+  }
+}
+
+/* --- 4-Stat Metrics Grid --- */
+.crick-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+@media (max-width: 480px) {
+  .crick-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.crick-stat-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 10px 12px;
+  text-align: center;
+}
+
+.crick-stat-label {
+  font-size: 10px;
+  font-weight: 800;
+  color: #94a3b8;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.crick-stat-val {
+  font-size: 18px;
+  font-weight: 900;
+  color: #ffffff;
+}
+
+.crick-stat-val.green { color: #22c55e; }
+.crick-stat-val.cyan { color: #38bdf8; }
+.crick-stat-val.gold { color: #ffd15b; }
+
+/* --- Price & Circular Timer Row --- */
+.crick-price-timer-wrap {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  gap: 14px;
+}
+
+.crick-bid-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.crick-bid-label {
+  font-size: 11px;
+  font-weight: 800;
+  color: #94a3b8;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.crick-bid-amount {
+  font-size: 42px;
+  font-weight: 950;
+  color: #ffffff;
+  line-height: 1;
+  letter-spacing: -0.5px;
+}
+
+@media (max-width: 640px) {
+  .crick-bid-amount {
+    font-size: 32px;
+  }
+}
+
+/* Circular Timer */
+.crick-timer-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.crick-timer-circle {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #151a24;
+  border: 3px solid #22c55e;
+  box-shadow: 0 0 16px rgba(34, 197, 94, 0.35);
+  transition: all 0.2s ease;
+}
+
+.crick-timer-circle.paused {
+  border-color: #475569;
+  box-shadow: none;
+}
+
+.crick-timer-circle.warn {
+  border-color: #f59e0b;
+  box-shadow: 0 0 18px rgba(245, 158, 11, 0.45);
+}
+
+.crick-timer-circle.urgent {
+  border-color: #ef4444;
+  box-shadow: 0 0 25px rgba(239, 68, 68, 0.6);
+  animation: urgentBeat 0.5s infinite alternate ease-in-out;
+}
+
+@keyframes urgentBeat {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.08); }
+}
+
+.crick-timer-sec {
+  font-size: 22px;
+  font-weight: 950;
+  color: #ffffff;
+  line-height: 1;
+}
+
+.crick-timer-unit {
+  font-size: 9px;
+  font-weight: 800;
+  color: #94a3b8;
+  letter-spacing: 0.5px;
+  margin-top: 1px;
+}
+
+.crick-timer-text {
+  font-size: 11px;
+  font-weight: 900;
+  color: #94a3b8;
+  letter-spacing: 0.5px;
+}
+
+/* --- Place Bid Big Button --- */
+.crick-action-bar {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.crick-bid-btn {
+  flex: 1;
+  background: #22c55e;
+  color: #000000;
+  font-weight: 950;
+  font-size: 19px;
+  padding: 16px 24px;
+  border-radius: 16px;
+  border: 0;
+  cursor: pointer;
+  box-shadow: 0 0 30px var(--crick-green-glow);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.crick-bid-btn:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 0 40px rgba(34, 197, 94, 0.65);
+}
+
+.crick-bid-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.crick-bid-btn:disabled {
+  background: #1e2634 !important;
+  color: #64748b !important;
+  box-shadow: none !important;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.crick-bid-btn.paused {
+  background: #222a38;
+  color: #94a3b8;
+  box-shadow: none;
+}
+
+.crick-menu-btn {
+  background: #181d27;
+  border: 1px solid var(--crick-border);
+  color: #cbd5e1;
+  padding: 0 18px;
+  border-radius: 16px;
+  cursor: pointer;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.crick-menu-btn:hover {
+  background: #242c3c;
+  color: #ffffff;
+}
+
+/* --- Right Column: LIVE ACTIVITY & CHAT + RECENT SOLD CARD --- */
+.crick-activity-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.crick-tabs-header {
+  display: flex;
+  background: var(--crick-surface);
+  border: 1px solid var(--crick-border);
+  border-radius: 14px;
+  padding: 4px;
+}
+
+.crick-tab-nav {
+  flex: 1;
+  background: transparent;
+  border: 0;
+  color: #94a3b8;
+  font-weight: 800;
+  font-size: 12px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  letter-spacing: 0.5px;
+  transition: all 0.15s ease;
+}
+
+.crick-tab-nav.active {
+  background: #1e2635;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.crick-feed-container {
+  background: var(--crick-surface);
+  border: 1px solid var(--crick-border);
+  border-radius: 18px;
+  padding: 14px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.crick-feed-container::-webkit-scrollbar {
+  width: 4px;
+}
+.crick-feed-container::-webkit-scrollbar-thumb {
+  background: #2b364a;
+  border-radius: 4px;
+}
+
+/* --- Mini "Sold To" Player Card (Right Sidebar Bottom) --- */
+.crick-mini-sold-card {
+  background: linear-gradient(180deg, #131822 0%, #0d1118 100%);
+  border: 1px solid var(--crick-border);
+  border-radius: 20px;
+  padding: 18px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+}
+
+.crick-mini-sold-head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.crick-mini-sold-badge {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: #38bdf8;
+}
+
+.crick-mini-sold-target {
+  font-size: 11px;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: 0.8px;
+}
+
+.crick-mini-photo-wrap {
+  width: 90px;
+  height: 90px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #1e2638, #101522);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  margin: 0 auto 12px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.crick-mini-photo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.crick-mini-player-name {
+  font-size: 17px;
+  font-weight: 950;
+  color: #ffffff;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+  letter-spacing: 0.5px;
+}
+
+.crick-mini-player-role {
+  font-size: 11px;
+  font-weight: 800;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.crick-mini-hashtag {
+  font-size: 13px;
+  font-weight: 900;
+  color: #ffd15b;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+
+.crick-mini-price {
+  font-size: 24px;
+  font-weight: 950;
+  color: #ffffff;
+  margin-bottom: 14px;
+}
+
+.crick-save-card-btn {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--crick-border);
+  color: #cbd5e1;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 9px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+
+.crick-save-card-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* --- Mobile Bottom Nav Bar --- */
+.mobile-bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: rgba(14, 18, 25, 0.95);
+  backdrop-filter: blur(14px);
+  border-top: 1px solid var(--crick-border);
+  z-index: 9999;
+  justify-content: space-around;
+  align-items: center;
+  padding: 0 10px;
+}
+
+@media (max-width: 768px) {
+  .mobile-bottom-nav {
+    display: flex;
+  }
+}
+
+.mobile-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 0;
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 6px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  gap: 3px;
+  letter-spacing: 0.5px;
+}
+
+.mobile-nav-item.active {
+  background: #facc15;
+  color: #000000 !important;
+  font-weight: 950;
+}
+
+.mobile-nav-item.active .mobile-nav-icon {
+  transform: scale(1.1);
+}
+
+/* --- Room & Voice Settings Modal (Matching Image 5) --- */
+.crick-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 7, 13, 0.82);
+  backdrop-filter: blur(10px);
+  z-index: 100000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.crick-modal-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.crick-settings-card {
+  background: #12151c;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  width: 100%;
+  max-width: 480px;
+  padding: 24px 26px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+  animation: modalScaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalScaleUp {
+  0% { transform: scale(0.92); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.crick-settings-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.crick-settings-title {
+  font-size: 17px;
+  font-weight: 950;
+  color: #ffffff;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.crick-settings-sub {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+
+.crick-close-btn {
+  background: #1a202c;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.15s ease;
+}
+
+.crick-close-btn:hover {
+  background: #2d3748;
+  color: #ffffff;
+}
+
+.crick-setting-group {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+
+.crick-group-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.crick-group-label {
+  font-size: 11px;
+  font-weight: 900;
+  color: #38bdf8;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.crick-group-badge {
+  background: #1e293b;
+  color: #38bdf8;
+  font-size: 12px;
+  font-weight: 900;
+  padding: 2px 10px;
+  border-radius: 999px;
+}
+
+.crick-slider {
+  width: 100%;
+  accent-color: #3b82f6;
+  cursor: pointer;
+  height: 6px;
+}
+
+.crick-apply-btn {
+  width: 100%;
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  padding: 10px;
+  border-radius: 10px;
+  border: 0;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background 0.15s ease;
+}
+
+.crick-apply-btn:hover {
+  background: #1d4ed8;
+}
+
+/* Switch toggle */
+.crick-switch-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+  width: 44px;
+  height: 24px;
+}
+
+.crick-switch-input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.crick-switch-slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background-color: #334155;
+  transition: .25s;
+  border-radius: 24px;
+}
+
+.crick-switch-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .25s;
+  border-radius: 50%;
+}
+
+.crick-switch-input:checked + .crick-switch-slider {
+  background-color: #f59e0b;
+}
+
+.crick-switch-input:checked + .crick-switch-slider:before {
+  transform: translateX(20px);
+}
+
+.crick-select {
+  width: 100%;
+  background: #0f1420;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  color: #f8fafc;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  outline: none;
+}
+
+/* --- Auction Complete Screen (Matching Images 7 & 8) --- */
+.crick-summary-hero {
+  text-align: center;
+  padding: 30px 16px 20px;
+}
+
+.crick-summary-title {
+  font-size: 48px;
+  font-weight: 950;
+  margin: 0 0 20px;
+  text-transform: uppercase;
+  letter-spacing: -0.5px;
+}
+
+.crick-summary-title span {
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.crick-summary-tabs {
+  display: inline-flex;
+  background: #141923;
+  border: 1px solid var(--crick-border);
+  border-radius: 999px;
+  padding: 4px;
+  gap: 4px;
+  margin-bottom: 24px;
+}
+
+.crick-summary-tab {
+  background: transparent;
+  border: 0;
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 9px 22px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.crick-summary-tab.active {
+  background: #f97316;
+  color: #ffffff;
+  font-weight: 900;
+  box-shadow: 0 0 20px rgba(249, 115, 22, 0.4);
+}
+
+.crick-summary-card {
+  background: var(--crick-surface);
+  border: 1px solid var(--crick-border);
+  border-radius: 18px;
+  padding: 16px 22px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.crick-summary-card:hover {
+  background: var(--crick-surface-2);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.crick-leaderboard-rank {
+  font-size: 26px;
+  font-weight: 950;
+  color: #64748b;
+  min-width: 44px;
+}
+
+.crick-leaderboard-price {
+  font-size: 24px;
+  font-weight: 950;
+  color: #f97316;
+}
+
 </style>
 </head>
 <body>
@@ -432,7 +1659,25 @@ body.tv-projector-mode .timer{font-size:48px !important;padding:8px 24px !import
     <div class="chips"><span id="netStatusBadge" class="pill" style="color:#2ad37e;font-weight:700">🟢 Online</span><span class="pill">A ₹30L</span><span class="pill">B ₹20L</span><span class="pill">C ₹13L</span><span class="pill">D ₹9L</span></div>
   </div>
 
-  <section id="createScreen" class="create-grid">
+    <!-- CrickAuction Welcome & Room Hub (Matching Images 9 & 10) -->
+  <section id="createScreen" class="create-grid" style="max-width:1200px;margin:20px auto 40px">
+    <!-- Header Banner -->
+    <div style="text-align:center;margin-bottom:28px">
+      <h1 style="font-size:42px;font-weight:950;margin:0 0 10px;text-transform:uppercase;letter-spacing:-0.5px">
+        <span style="color:#ffffff">CREATE YOUR</span> <span style="background:linear-gradient(135deg,#f97316,#ea580c);-webkit-background-clip:text;-webkit-text-fill-color:transparent">AUCTION ROOM</span>
+      </h1>
+      <p style="color:#94a3b8;font-size:14px;max-width:680px;margin:0 auto 16px;line-height:1.5">
+        The ultimate multiplayer PKL auction simulator and game. Host live auctions with friends in real-time, choose your favorite franchise, bid strategically, and build a championship squad.
+      </p>
+      <div style="display:flex;justify-content:center;gap:18px;font-size:12px;font-weight:800;color:#cbd5e1;flex-wrap:wrap">
+        <span>① CREATE ROOM</span>
+        <span style="color:#64748b">→</span>
+        <span>② INVITE FRIENDS</span>
+        <span style="color:#64748b">→</span>
+        <span>③ START BIDDING</span>
+      </div>
+    </div>
+
     <div id="directInviteBanner" class="card hero hidden" style="border:2px solid #ffd15b;margin-bottom:20px;background:linear-gradient(180deg,#1e293b,#0f172a);text-align:center;grid-column:1/-1">
       <h2 style="margin:0 0 6px;color:#ffd15b">🏆 PKL 13 Auction Direct Invitation</h2>
       <p style="margin:0 0 16px;color:#94a3b8;font-size:14px">You have been invited to live auction room <b id="directInviteRoomDisplay" style="color:#ffd15b;font-size:18px;letter-spacing:1px"></b></p>
@@ -442,24 +1687,141 @@ body.tv-projector-mode .timer{font-size:48px !important;padding:8px 24px !import
       </div>
       <div id="directInviteError" class="error" style="margin-top:10px"></div>
     </div>
-    <div class="card hero">
-      <h2 class="screen-title">Create Auction Room</h2>
-      <div class="option-row">
-        <div>
-          <div class="field"><label>Your Name <span style="color:#ff5c67">*</span></label><input id="hostName" maxlength="30" placeholder="Enter your name" autocomplete="name"></div>
-          <div class="field"><label>Room Name</label><input id="roomName" maxlength="42" value="PKL 13 Grand Auction"></div>
+
+    <!-- Dual-Pane Hub: Left (Live Signings Ticker) | Right (Room Creation & Join Controls) -->
+    <div style="display:grid;grid-template-columns:360px 1fr;gap:22px;align-items:start">
+      <!-- Left Panel: Live Rooms & Recent Signings (Matching Image 9 & 10) -->
+      <div class="card" style="padding:20px;background:#12151c;border-radius:20px;border:1px solid rgba(255,255,255,0.08)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div style="font-size:13px;font-weight:900;color:#ffffff;letter-spacing:0.5px">🔥 LIVE AUCTION ROOMS</div>
+          <span style="font-size:11px;font-weight:800;color:#22c55e;background:rgba(34,197,94,0.12);padding:3px 8px;border-radius:999px">10+ ACTIVE</span>
         </div>
-        <div>
-          <div class="field"><label>Bid Timer</label><div class="range-wrap"><div class="range-row"><input id="bidTimer" type="range" min="15" max="30" value="15"><div class="range-value"><span id="timerValue">15</span>s</div></div></div></div>
-          <div class="field"><label>Retentions</label><div class="range-wrap"><label style="display:flex;align-items:center;gap:10px;cursor:pointer"><input id="retentionsEnabled" type="checkbox" checked style="width:18px;height:18px;accent-color:#ffd15b"><span><b>Enable Season 12 Retentions</b></span></label></div></div>
+        <div style="font-size:10px;font-weight:800;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">RECENT SIGNINGS</div>
+        <div style="display:flex;flex-direction:column;gap:8px" id="recentSigningsTicker">
+          <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+            <div style="display:flex;align-items:center;gap:6px"><img src="assets/puneri.png" style="width:18px;height:18px;object-fit:contain"><span style="color:#ffd15b;font-weight:800">PUN</span> <span style="color:#cbd5e1">signed P. Sehrawat</span></div>
+            <span style="font-weight:900;color:#fff">₹2.60 Cr</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+            <div style="display:flex;align-items:center;gap:6px"><img src="assets/tamil.png" style="width:18px;height:18px;object-fit:contain"><span style="color:#38bdf8;font-weight:800">TAM</span> <span style="color:#cbd5e1">signed S. Tanwar</span></div>
+            <span style="font-weight:900;color:#fff">₹2.15 Cr</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+            <div style="display:flex;align-items:center;gap:6px"><img src="assets/bengal.png" style="width:18px;height:18px;object-fit:contain"><span style="color:#f59e0b;font-weight:800">BEN</span> <span style="color:#cbd5e1">signed F. Atrachali</span></div>
+            <span style="font-weight:900;color:#fff">₹1.80 Cr</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+            <div style="display:flex;align-items:center;gap:6px"><img src="assets/dabang.png" style="width:18px;height:18px;object-fit:contain"><span style="color:#ef4444;font-weight:800">DEL</span> <span style="color:#cbd5e1">signed N. Kumar</span></div>
+            <span style="font-weight:900;color:#fff">₹1.65 Cr</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+            <div style="display:flex;align-items:center;gap:6px"><img src="assets/bulls.png" style="width:18px;height:18px;object-fit:contain"><span style="color:#eab308;font-weight:800">BLR</span> <span style="color:#cbd5e1">signed P. Narwal</span></div>
+            <span style="font-weight:900;color:#fff">₹1.20 Cr</span>
+          </div>
+        </div>
+
+        <div style="margin-top:20px;padding:12px;background:rgba(255,255,255,0.02);border:1px dashed rgba(255,255,255,0.08);border-radius:12px">
+          <div style="font-size:11px;font-weight:800;color:#94a3b8;margin-bottom:6px">⚙️ AUCTION SPECIFICATIONS</div>
+          <div style="font-size:11px;color:#cbd5e1;line-height:1.6">
+            • 12 Franchises (Multiplayer sync)<br>
+            • ₹5.00 Cr purse budget per team<br>
+            • Real-time Voice Auctioneer commentary<br>
+            • TV Broadcast Mode & Mobile optimized
+          </div>
         </div>
       </div>
-      <div style="display:flex;justify-content:flex-end;margin-top:18px"><button class="btn primary big" id="createRoom" type="button" onclick="createRoom()">Create Room</button></div>
-      <div id="createError" class="error"></div>
-    </div>
-    <div class="grid2" style="margin-top:18px">
-      <div class="card"><h3 style="margin-top:0">Join Room</h3><div class="field"><label>Your Name <span style="color:#ff5c67">*</span></label><input id="joinUserName" maxlength="30" placeholder="Enter your name" autocomplete="name"></div><div class="field"><label>Room ID <span style="color:#ff5c67">*</span></label><input id="joinId" maxlength="64" placeholder="6-character ID or invite link" style="text-transform:uppercase"></div><button class="btn green big" id="joinRoom" type="button">Join Room</button><div id="joinError" class="error"></div></div>
-      <div class="card"><h3 style="margin-top:0">Auction Rules</h3><div class="muted" style="line-height:1.65">• 12 PKL Franchises (Up to 12 Human Devices)<br>• Purse: ₹5.00 Crore per Team<br>• Squad: 18–25 Players (2–4 Overseas)<br>• Base: Cat A ₹30L • Cat B ₹20L • Cat C ₹13L • Cat D ₹9L</div></div>
+
+      <!-- Right Panel: Create & Join Tabs (Matching Images 9 & 10) -->
+      <div class="card" style="padding:24px 26px;background:#12151c;border-radius:20px;border:1px solid rgba(255,255,255,0.08)">
+        <!-- Tab selector -->
+        <div style="display:flex;background:#181d27;border-radius:12px;padding:4px;margin-bottom:20px;gap:4px">
+          <button type="button" class="crick-tab-nav active" id="tabCreateRoom" onclick="switchCreateTab('create')">CREATE ROOM</button>
+          <button type="button" class="crick-tab-nav" id="tabJoinRoom" onclick="switchCreateTab('join')">JOIN ROOM</button>
+        </div>
+
+        <!-- CREATE ROOM PANE -->
+        <div id="paneCreateRoom">
+          <div class="option-row" style="margin-bottom:12px">
+            <div class="field" style="margin:0 0 14px">
+              <label>Host Name <span style="color:#ff5c67">*</span></label>
+              <input id="hostName" maxlength="30" placeholder="Enter your manager name" autocomplete="name">
+            </div>
+            <div class="field" style="margin:0 0 14px">
+              <label>Room Name</label>
+              <input id="roomName" maxlength="42" value="PKL 13 Grand Auction">
+            </div>
+          </div>
+
+          <!-- Franchise Preview Selector -->
+          <div style="margin-bottom:16px">
+            <label style="display:block;font-size:11px;font-weight:900;color:#94a3b8;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:8px">12 PKL Franchises</label>
+            <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px">
+              <div style="background:#181d27;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:6px;text-align:center"><img src="assets/puneri.png" style="width:28px;height:28px;object-fit:contain"></div>
+              <div style="background:#181d27;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:6px;text-align:center"><img src="assets/bulls.png" style="width:28px;height:28px;object-fit:contain"></div>
+              <div style="background:#181d27;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:6px;text-align:center"><img src="assets/jaipur.png" style="width:28px;height:28px;object-fit:contain"></div>
+              <div style="background:#181d27;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:6px;text-align:center"><img src="assets/tamil.png" style="width:28px;height:28px;object-fit:contain"></div>
+              <div style="background:#181d27;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:6px;text-align:center"><img src="assets/bengal.png" style="width:28px;height:28px;object-fit:contain"></div>
+              <div style="background:#181d27;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:6px;text-align:center"><img src="assets/dabang.png" style="width:28px;height:28px;object-fit:contain"></div>
+            </div>
+          </div>
+
+          <!-- Auction Mode Cards (Matching Image 9) -->
+          <div style="margin-bottom:16px">
+            <label style="display:block;font-size:11px;font-weight:900;color:#94a3b8;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:8px">AUCTION FORMAT</label>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+              <div style="background:#1a2130;border:1.5px solid #f97316;border-radius:12px;padding:12px;text-align:center;cursor:pointer">
+                <div style="font-size:13px;font-weight:900;color:#fff">🏆 MEGA</div>
+                <div style="font-size:10px;color:#94a3b8;margin-top:2px">18–25 PLAYERS<br>₹5.00 CR PURSE</div>
+              </div>
+              <div style="background:#181d27;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px;text-align:center;cursor:pointer">
+                <div style="font-size:13px;font-weight:800;color:#cbd5e1">⭐ CLASSIC</div>
+                <div style="font-size:10px;color:#94a3b8;margin-top:2px">14–18 PLAYERS<br>₹4.00 CR PURSE</div>
+              </div>
+              <div style="background:#181d27;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px;text-align:center;cursor:pointer">
+                <div style="font-size:13px;font-weight:800;color:#cbd5e1">⚡ SPRINT</div>
+                <div style="font-size:10px;color:#94a3b8;margin-top:2px">10–14 PLAYERS<br>₹3.00 CR PURSE</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="option-row" style="margin-bottom:16px">
+            <div class="field" style="margin:0">
+              <label>Bid Timer</label>
+              <div class="range-wrap">
+                <div class="range-row">
+                  <input id="bidTimer" type="range" min="10" max="30" value="15">
+                  <div class="range-value"><span id="timerValue">15</span>s</div>
+                </div>
+              </div>
+            </div>
+            <div class="field" style="margin:0">
+              <label>Retentions</label>
+              <div class="range-wrap" style="height:52px;display:flex;align-items:center">
+                <label style="display:flex;align-items:center;gap:10px;cursor:pointer;margin:0">
+                  <input id="retentionsEnabled" type="checkbox" checked style="width:18px;height:18px;accent-color:#f97316">
+                  <span style="font-size:13px"><b>Season 12 Retentions</b></span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Big Orange Start Auction Button (Matching Images 9 & 10) -->
+          <button class="btn big" id="createRoom" type="button" onclick="createRoom()" style="width:100%;background:linear-gradient(90deg,#f97316,#ea580c);color:#ffffff;font-weight:950;font-size:16px;padding:16px;border-radius:14px;box-shadow:0 0 30px rgba(249,115,22,0.4);border:0;letter-spacing:0.5px">
+            START AUCTION ›
+          </button>
+          <div id="createError" class="error" style="margin-top:10px"></div>
+        </div>
+
+        <!-- JOIN ROOM PANE -->
+        <div id="paneJoinRoom" class="hidden">
+          <div class="field"><label>Your Name <span style="color:#ff5c67">*</span></label><input id="joinUserName" maxlength="30" placeholder="Enter your manager name" autocomplete="name"></div>
+          <div class="field"><label>Room ID <span style="color:#ff5c67">*</span></label><input id="joinId" maxlength="64" placeholder="Enter 6-character room code" style="text-transform:uppercase"></div>
+          <button class="btn green big" id="joinRoom" type="button" style="width:100%;margin-top:10px;font-size:16px;padding:15px;background:linear-gradient(90deg,#16a34a,#22c55e);font-weight:950">
+            JOIN AUCTION ROOM ›
+          </button>
+          <div id="joinError" class="error" style="margin-top:10px"></div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -493,117 +1855,249 @@ body.tv-projector-mode .timer{font-size:48px !important;padding:8px 24px !import
     </div>
   </section>
 
-  <section id="auctionScreen" class="hidden">
-    <div class="topbar">
-      <div class="chips">
-        <span class="pill" id="roomBadge"></span>
-        <span class="pill" id="myTeamBadge"></span>
-        <span class="pill" id="roleBadge"></span>
-        <span class="pill" id="liveUserCountBadge">👥 1 Online</span>
+    <section id="auctionScreen" class="hidden">
+    <!-- CrickAuction Topbar -->
+    <div class="crick-topbar">
+      <div class="crick-topbar-left">
+        <span class="crick-room-code-badge" id="roomBadge">ROOM</span>
+        <span class="crick-presence-pill" id="liveUserCountBadge">
+          <span class="crick-presence-dot"></span> 1 Online
+        </span>
+        <button class="crick-icon-btn" id="copyRoomLinkBtn" type="button" onclick="copyRoomLink()" title="Copy Room Invite Link">
+          📋 <span class="hide-mobile">Copy Link</span>
+        </button>
+        <span class="pill hide-mobile" id="myTeamBadge" style="display:none"></span>
+        <span class="pill hide-mobile" id="roleBadge" style="display:none"></span>
       </div>
-      <div class="chips">
-        <button class="btn secondary" id="auctionAudioToggle" type="button" onclick="toggleAudio()">🔊 Voice: ON</button>
-        <button class="btn secondary" id="auctionChatBtn">💬 Chat</button>
-        <button class="btn secondary" id="toggleTvModeBtn" title="Toggle TV Broadcast / Projector Mode (Hotkey: T)">📺 TV Mode</button>
-        <button class="btn secondary" id="viewSquadBtn">Squads</button>
-        <button class="btn secondary" id="viewPoolBtn">Auction Pool</button>
-        <button class="btn secondary" id="viewResultsBtn">Results</button>
-        <button class="btn secondary" id="auctionBack">Room</button>
+      <div class="crick-topbar-right">
+        <button class="crick-btn-action" id="auctionPauseBtn" type="button" onclick="toggleHostPause()">
+          ⏸ PAUSE
+        </button>
+        <button class="crick-btn-action" id="auctionEndBtn" type="button" onclick="confirmEndAuction()">
+          ⊗ END
+        </button>
+        <button class="crick-btn-action" id="openParticipantsBtn" type="button" onclick="openParticipantsModal()">
+          👥 PARTICIPANTS
+        </button>
+        <button class="crick-icon-btn" id="openSettingsBtn" type="button" onclick="openRoomSettingsModal()" title="Room & Voice Settings">
+          ⚙️
+        </button>
+        <button class="crick-icon-btn" id="auctionHomeBtn" type="button" onclick="confirmLeaveToLobby()" title="Home / Return to Lobby">
+          🏠
+        </button>
+        <!-- Additional tool buttons (preserved) -->
+        <button class="btn secondary small hide-mobile" id="auctionAudioToggle" type="button" onclick="toggleAudio()" style="display:none">🔊 Voice</button>
+        <button class="btn secondary small hide-mobile" id="auctionChatBtn" type="button" style="display:none">💬 Chat</button>
+        <button class="btn secondary small hide-mobile" id="toggleTvModeBtn" type="button" title="TV Mode (Hotkey: T)" style="display:none">📺 TV</button>
+        <button class="btn secondary small hide-mobile" id="viewSquadBtn" type="button" style="display:none">Squads</button>
+        <button class="btn secondary small hide-mobile" id="viewPoolBtn" type="button" style="display:none">Pool</button>
+        <button class="btn secondary small hide-mobile" id="viewResultsBtn" type="button" style="display:none">Results</button>
+        <button class="btn secondary small hide-mobile" id="auctionBack" type="button" style="display:none">Back</button>
       </div>
     </div>
-    <div class="team-ticker-wrap"><button class="ticker-scroll-btn" onclick="scrollTicker(-240)" type="button" aria-label="Scroll teams left">◀</button><div id="teamTicker" class="team-ticker"></div><button class="ticker-scroll-btn" onclick="scrollTicker(240)" type="button" aria-label="Scroll teams right">▶</button></div>
+
+    <!-- Tickers & Alert Banners -->
+    <div class="team-ticker-wrap" style="display:none"><button class="ticker-scroll-btn" onclick="scrollTicker(-240)" type="button">◀</button><div id="teamTicker" class="team-ticker"></div><button class="ticker-scroll-btn" onclick="scrollTicker(240)" type="button">▶</button></div>
     <div id="biddingWarBanner" class="bidding-war-banner hidden"></div>
     <div id="watchlistToast" class="watchlist-toast hidden"></div>
     <div id="hostTimeAlertContainer"></div>
     <div id="undoSaleBannerContainer"></div>
     <div id="croreCelebrationBanner" class="hidden"></div>
-    <div class="auction-grid">
-      <div>
-        <div class="card auction-stage-card">
-          <div class="stage"><div id="groupLabel"></div><div class="timer" id="timer"></div></div>
-          <div class="auction-player">
-            <div>
-              <h2 id="playerName">Waiting…</h2>
-              <div id="playerMeta" class="chips"></div>
-            </div>
-            <div class="pricebox">
-              <div class="price" id="currentBid">₹0</div>
-              <div class="base" id="basePrice"></div>
-            </div>
-          </div>
-          <div class="stats-grid">
-            <div class="stat"><small>Matches</small><b id="sMatches">—</b></div>
-            <div class="stat"><small>Power Rating</small><b id="sPower" style="color:#22c55e">—</b></div>
-            <div class="stat"><small>Raid Points</small><b id="sRaid" style="color:#ffd15b">—</b></div>
-            <div class="stat"><small>Tackle Points</small><b id="sTackle" style="color:#38bdf8">—</b></div>
-            <div class="stat"><small>Super Raids / 10s</small><b id="sSR">—</b></div>
-            <div class="stat"><small>Super Tackles / H5</small><b id="sST">—</b></div>
-          </div>
-          <div class="bid-row" id="bidControlRow">
-            <button class="btn primary big" id="bidBtn">Bid</button>
-            <div id="dynamicJumps" style="display:inline-flex;gap:8px;flex-wrap:wrap"></div>
-            <div id="safeBidAdvisorBadge" class="safe-bid-badge"></div>
-          </div>
-          <div class="roster-hud" id="rosterHud"></div>
-          <div class="reaction-bar">
-            <button class="reaction-btn" data-emoji="🔥" title="Fire">🔥</button>
-            <button class="reaction-btn" data-emoji="💸" title="Money">💸</button>
-            <button class="reaction-btn" data-emoji="👏" title="Applause">👏</button>
-            <button class="reaction-btn" data-emoji="😱" title="Shock">😱</button>
-            <button class="reaction-btn" data-emoji="🏆" title="Trophy">🏆</button>
-            <button class="reaction-btn" data-emoji="⚡" title="Lightning">⚡</button>
-          </div>
-          <div class="notice" id="bidNotice" style="margin-top:8px;color:var(--muted);font-size:13px"></div>
-          
-          <div class="section-divider" style="margin:16px 0 12px"></div>
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <h3 style="margin:0;font-size:15px;color:#ffd15b">Franchise Budget & Squad Trackers</h3>
-            <button class="btn secondary" onclick="$('infoModal').classList.remove('hidden');renderSquadModal()" style="padding:4px 10px;font-size:11px">🔍 View Full Squads</button>
-          </div>
-          <div class="team-grid" id="auctionTeams"></div>
+
+    <!-- 3-Column Modern CrickAuction Grid -->
+    <div class="crick-3col-layout">
+      <!-- COLUMN 1: AUCTION TEAMS (Left Sidebar) -->
+      <aside class="crick-teams-col" id="auctionTeamsCol">
+        <div class="crick-col-header">AUCTION TEAMS</div>
+        <div class="crick-teams-list" id="auctionTeams">
+          <!-- Populated dynamically by renderAuction() with 12 franchise cards -->
         </div>
-      </div>
-      
-      <aside class="card side-card">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <h3 style="margin:0;font-size:16px;color:#ffd15b">⚡ Live Auction Desk</h3>
-          <div class="pill" id="voiceStatus" style="cursor:pointer;font-size:11px;padding:4px 9px" onclick="toggleAudio()">🔊 Voice ON</div>
+      </aside>
+
+      <!-- COLUMN 2: ARENA STAGE (Center Stage) -->
+      <main class="crick-stage-col" id="auctionStageCol">
+        <!-- Top Stage Meta Bar -->
+        <div class="crick-stage-meta-bar">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span class="crick-set-pill" id="groupLabel">SET 1</span>
+            <span class="crick-base-text">BASE: <span class="crick-base-val" id="basePrice">₹2.00 Cr</span></span>
+          </div>
+          <div class="crick-bidder-status">
+            <span class="muted small">BIDDER:</span>
+            <span class="crick-bidder-pill" id="leader">NO BIDS</span>
+          </div>
         </div>
+
+        <!-- Main Player Stage Card -->
+        <div class="crick-player-card auction-player" id="mainPlayerStageCard">
+          <div class="crick-player-card-inner">
+            <!-- Player Avatar Frame -->
+            <div class="crick-avatar-frame" id="crickAvatarFrame">
+              <img id="playerAvatarImg" class="crick-avatar-img" src="" alt="Player Avatar" style="display:none">
+              <div id="playerAvatarFallback" class="crick-avatar-graphic">
+                <span class="crick-avatar-role-icon" id="playerRoleIcon">🏃</span>
+              </div>
+              <img id="playerAvatarTeamLogo" class="crick-avatar-team-badge" src="" style="display:none">
+            </div>
+
+            <!-- Player Meta & Stats Info -->
+            <div class="crick-player-meta-info">
+              <div class="crick-player-tag-row" id="playerMeta">
+                <span class="crick-role-badge" id="tagRole">RAIDER</span>
+                <span class="crick-cat-badge" id="tagCategory">CAT A</span>
+              </div>
+              <h1 class="crick-player-name" id="playerName">Waiting for Player…</h1>
+
+              <!-- 4-Metric Stats Grid -->
+              <div class="crick-stats-grid">
+                <div class="crick-stat-card">
+                  <div class="crick-stat-label">MATCHES</div>
+                  <div class="crick-stat-val" id="sMatches">—</div>
+                </div>
+                <div class="crick-stat-card">
+                  <div class="crick-stat-label">RAID PTS</div>
+                  <div class="crick-stat-val green" id="sRaid">—</div>
+                </div>
+                <div class="crick-stat-card">
+                  <div class="crick-stat-label">TACKLE PTS</div>
+                  <div class="crick-stat-val cyan" id="sTackle">—</div>
+                </div>
+                <div class="crick-stat-card">
+                  <div class="crick-stat-label">POWER RATING</div>
+                  <div class="crick-stat-val gold" id="sPower">—</div>
+                </div>
+              </div>
+              <!-- Hidden compatibility hooks for existing code -->
+              <span id="sSR" style="display:none"></span>
+              <span id="sST" style="display:none"></span>
+            </div>
+          </div>
+
+          <!-- Price & Circular Countdown Timer Row -->
+          <div class="crick-price-timer-wrap">
+            <div class="crick-bid-container">
+              <span class="crick-bid-label">CURRENT BID</span>
+              <span class="crick-bid-amount" id="currentBid">₹0.00 Cr</span>
+            </div>
+            <div class="crick-timer-box">
+              <div class="crick-timer-circle active" id="timer">
+                <span class="crick-timer-sec">9</span>
+                <span class="crick-timer-unit">SEC</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Row: Huge Place Bid Button + Fast Jump Drawer -->
+        <div class="crick-action-bar" id="bidControlRow">
+          <button class="crick-bid-btn" id="bidBtn" type="button">
+            PLACE BID: ₹2.00 Cr
+          </button>
+          <button class="crick-menu-btn" id="jumpMenuToggleBtn" type="button" onclick="toggleJumpsDrawer()" title="Quick Jump Increments">
+            ☰
+          </button>
+        </div>
+
+        <!-- Dynamic Jumps Strip (Collapsible / Slide) -->
+        <div id="dynamicJumps" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px"></div>
+        <div id="safeBidAdvisorBadge" class="safe-bid-badge"></div>
+        <div class="roster-hud" id="rosterHud"></div>
+
+        <!-- Reaction Bar -->
+        <div class="reaction-bar">
+          <button class="reaction-btn" data-emoji="🔥" title="Fire">🔥</button>
+          <button class="reaction-btn" data-emoji="💸" title="Money">💸</button>
+          <button class="reaction-btn" data-emoji="👏" title="Applause">👏</button>
+          <button class="reaction-btn" data-emoji="😱" title="Shock">😱</button>
+          <button class="reaction-btn" data-emoji="🏆" title="Trophy">🏆</button>
+          <button class="reaction-btn" data-emoji="⚡" title="Lightning">⚡</button>
+        </div>
+        <div class="notice" id="bidNotice" style="margin-top:4px;color:var(--muted);font-size:12px;text-align:center"></div>
+
+        <!-- Host Hammer / Auctioneer Control Bar -->
+        <div id="hostControlsBox" class="card" style="padding:14px;background:#141a24;border-radius:16px;border:1px solid rgba(255,255,255,0.08);margin-top:6px">
+          <div style="font-size:11px;font-weight:900;color:#94a3b8;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:8px">
+            🔨 Auctioneer / Host Controls
+          </div>
+          <div class="bid-row host-actions-row" style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn green" id="soldBtn" type="button">🔨 Sold <span class="hotkey-hint">S</span></button>
+            <button class="btn red" id="unsoldBtn" type="button">Unsold <span class="hotkey-hint">U</span></button>
+            <button class="btn gold" id="skipBtn" type="button">Force Settle <span class="hotkey-hint">F</span></button>
+            <button class="btn secondary" id="nextPlayerBtn" type="button">Next Player <span class="hotkey-hint">N</span></button>
+          </div>
+          <div id="round2AdminWrap" style="margin-top:8px"></div>
+        </div>
+
         <div id="pauseStatus"></div>
         <div id="timeRequestBox"></div>
-        
-        <div class="side-info-card">
-          <div class="side-info-row">
-            <span class="muted small">Current Category</span>
-            <b id="sideGroup" style="color:#f1f5f9;font-size:13px">—</b>
-          </div>
-          <div class="side-info-row" style="margin-top:8px;padding-top:8px;border-top:1px dashed rgba(255,255,255,.08)">
-            <span class="muted small">Current Leader</span>
-            <b id="leader" style="color:#ffd15b;font-size:15px">No bids</b>
-          </div>
+        <div style="display:none"><span id="sideGroup"></span><span id="voiceStatus"></span></div>
+      </main>
+
+      <!-- COLUMN 3: LIVE ACTIVITY & CHAT + RECENT SOLD CARD (Right Sidebar) -->
+      <aside class="crick-activity-col" id="auctionActivityCol">
+        <!-- Tab Switcher -->
+        <div class="crick-tabs-header">
+          <button class="crick-tab-nav active" id="tabLiveActivity" type="button" onclick="switchRightTab('activity')">
+            ⏱ LIVE ACTIVITY
+          </button>
+          <button class="crick-tab-nav" id="tabChat" type="button" onclick="switchRightTab('chat')">
+            💬 CHAT
+          </button>
         </div>
 
-        <div id="hostControlsBox">
-          <div class="side-label">Hammer / Auctioneer Actions</div>
-          <div class="bid-row host-actions-row">
-            <button class="btn green" id="soldBtn">Sold</button>
-            <button class="btn red" id="unsoldBtn">Unsold</button>
-            <button class="btn gold" id="skipBtn">Force Settle</button>
-            <button class="btn secondary" id="nextPlayerBtn">Next Player</button>
-          </div>
-        </div>
-
-        <div id="round2AdminWrap"></div>
-
-        <div class="section-divider" style="margin:10px 0 6px"></div>
-        <div>
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-            <span style="font-size:12px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em">📡 Live Bidding Feed</span>
-          </div>
+        <!-- Live Activity Feed Panel -->
+        <div class="crick-feed-container" id="panelLiveActivity">
           <div class="log" id="auctionLog"></div>
+        </div>
+
+        <!-- Chat Panel (Embedded) -->
+        <div class="crick-feed-container hidden" id="panelChat">
+          <div id="embeddedChatMessages" style="display:flex;flex-direction:column;gap:8px;min-height:180px;max-height:220px;overflow-y:auto;padding-right:4px">
+            <div class="chat-bubble" style="font-size:12px;color:#94a3b8">Welcome to room live chat!</div>
+          </div>
+          <div style="display:flex;gap:6px;margin-top:10px">
+            <input id="embeddedChatInput" placeholder="Send a message..." style="flex:1;background:#0d1118;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:8px 10px;color:#fff;font-size:12px">
+            <button class="btn primary" type="button" onclick="sendEmbeddedChatMessage()" style="padding:8px 12px;font-size:12px">Send</button>
+          </div>
+        </div>
+
+        <!-- Mini "Sold To" Player Card (Matching Image 3 & 4) -->
+        <div class="crick-mini-sold-card" id="lastSoldMiniCard">
+          <div class="crick-mini-sold-head">
+            <img id="lastSoldTeamLogo" src="assets/puneri.png" style="width:20px;height:20px;object-fit:contain">
+            <span class="crick-mini-sold-badge">PKL AUCTION</span>
+            <span class="crick-mini-sold-target" id="lastSoldTeamLabel">SOLD</span>
+          </div>
+          <div class="crick-mini-photo-wrap">
+            <img id="lastSoldPlayerImg" class="crick-mini-photo-img" src="" alt="Sold Player" style="display:none">
+            <span id="lastSoldPlayerFallback" style="font-size:36px">🏆</span>
+          </div>
+          <div class="crick-mini-player-name" id="lastSoldPlayerName">PAWAN SEHRAWAT</div>
+          <div class="crick-mini-player-role" id="lastSoldPlayerRole">RAIDER • CAT A</div>
+          <div class="crick-mini-hashtag" id="lastSoldHashtag">#GHEUNTTAK!</div>
+          <div class="crick-mini-price" id="lastSoldPrice">₹2.60 Cr</div>
+          <button class="crick-save-card-btn" type="button" onclick="downloadLastSoldPlayerCard()">
+            📥 SAVE PLAYER CARD
+          </button>
         </div>
       </aside>
     </div>
+
+    <!-- Mobile Bottom Navigation Bar (Matching Image 6) -->
+    <nav class="mobile-bottom-nav">
+      <button class="mobile-nav-item" id="mobileNavSquads" type="button" onclick="mobileSwitchTab('squads')">
+        <span class="mobile-nav-icon">👥</span>
+        <span>SQUADS</span>
+      </button>
+      <button class="mobile-nav-item active" id="mobileNavArena" type="button" onclick="mobileSwitchTab('arena')">
+        <span class="mobile-nav-icon">🔨</span>
+        <span>ARENA</span>
+      </button>
+      <button class="mobile-nav-item" id="mobileNavLogs" type="button" onclick="mobileSwitchTab('logs')">
+        <span class="mobile-nav-icon">⏱</span>
+        <span>LOGS</span>
+      </button>
+    </nav>
   </section>
 </div>
 
@@ -4718,8 +6212,23 @@ function startTimer(){
   },1000);
 }
 function renderTimer(){
-  $('timer').textContent=active?`00:${String(Math.max(0,timeLeft)).padStart(2,'0')}`:'00:00';
-  $('timer').classList.toggle('warn',timeLeft<=5&&!!active);
+  const timerEl = $('timer');
+  const isPaused = !!(state && state.auctionPaused);
+  if(timerEl){
+    if(isPaused){
+      timerEl.className = 'crick-timer-circle paused';
+      timerEl.innerHTML = '<span class="crick-timer-text">PAUSED</span>';
+    } else if(!active){
+      timerEl.className = 'crick-timer-circle idle';
+      timerEl.innerHTML = '<span class="crick-timer-text">00:00</span>';
+    } else {
+      const sec = Math.max(0, timeLeft);
+      const isUrgent = sec <= 3;
+      const isWarn = sec <= 5;
+      timerEl.className = 'crick-timer-circle ' + (isUrgent ? 'urgent' : (isWarn ? 'warn' : 'active'));
+      timerEl.innerHTML = `<span class="crick-timer-sec">${sec}</span><span class="crick-timer-unit">SEC</span>`;
+    }
+  }
   const playerCard = document.querySelector('.auction-player');
   if(playerCard){
     playerCard.classList.toggle('going-once-pulse', timeLeft<=5 && timeLeft>2 && !!active && ['bidding','going1','going2'].includes(auctionPhase));
@@ -6224,7 +7733,13 @@ function renderAuction(){
     const bidWindowOpen=['bidding','going1','going2'].includes(auctionPhase)&&!bidsLocked;
     const nextStep = step();
     const nextPrice = (active.currentBid || 0) + nextStep;
-    $('bidBtn').innerHTML = `Bid ${money(nextPrice)} <span class="hotkey-hint">Space</span>`;
+    if(state.auctionPaused){
+      $('bidBtn').innerHTML = `PAUSED`;
+      $('bidBtn').className = 'crick-bid-btn paused';
+    } else {
+      $('bidBtn').innerHTML = `PLACE BID: ${money(nextPrice)} <span class="hotkey-hint">Space</span>`;
+      $('bidBtn').className = 'crick-bid-btn active';
+    }
     $('bidBtn').disabled = !isMineHuman || !bidWindowOpen || mySquadCount >= 25 || myIsCurrentLeader;
 
     const jumpsContainer = $('dynamicJumps');
@@ -6290,15 +7805,53 @@ function renderAuction(){
     $('sST').textContent='—';
   }
  
-  $('auctionTeams').innerHTML=state.teams.map(t=>{
-    const n=t.auctionSquad.length;
-    const status=n>=25?'MAX 25':n>=18?'READY 18–25':`NEEDS ${18-n}`;
-    const os=overseasCount(t);
-    const teamObj=tMap[t.teamId] || { name: t.teamId, logo: '' };
-    const pPct = Math.max(0, Math.min(100, Math.round((t.purse / TEAM_PURSE) * 100)));
-    const pCol = pPct > 50 ? '#22c55e' : (pPct > 20 ? '#eab308' : '#ef4444');
-    return `<div class="team-mini ${t.teamId===my?'mine':''}"><div class="team-mini-head"><img src="${teamObj.logo}"><div class="mini-name">${teamObj.name}</div></div><div class="mini-row"><span>Purse</span><b>${money(t.purse)}</b></div><div class="purse-meter-wrap"><div class="purse-meter-fill" style="width:${pPct}%;background:${pCol}"></div></div><div class="mini-row"><span>Squad</span><b>${n}</b></div><div class="mini-row"><span>Overseas</span><b>${os}/4</b></div><div class="mini-row"><span>Status</span><b>${status}</b></div></div>`
+  $('auctionTeams').innerHTML = state.teams.map((t, idx) => {
+    const n = t.auctionSquad.length;
+    const teamObj = tMap[t.teamId] || { name: t.teamId, logo: '' };
+    const isMine = t.teamId === my;
+    const isLeading = active && active.highestBidder === t.teamId;
+    const isOnline = !!presenceMap.get(t.teamId) || (state.slots && state.slots.some(s => s.teamId === t.teamId && presenceMap.get(s.slotId)));
+    const slot = (state.slots || []).find(s => s.teamId === t.teamId);
+    const managerName = slot?.userName || (slot?.mode === 'bot' ? 'Bot' : 'AVAILABLE');
+
+    return `
+      <div class="crick-team-item ${isMine ? 'mine' : ''} ${isLeading ? 'leading' : ''}" onclick="showTeamSquad('${t.teamId}')">
+        <span class="crick-team-rank">${idx + 1}</span>
+        <img class="crick-team-logo" src="${teamObj.logo}" alt="${teamObj.name}">
+        <div class="crick-team-info">
+          <div class="crick-team-name">${teamObj.name}</div>
+          <div class="crick-team-manager">
+            <span class="crick-manager-dot ${isOnline ? 'online' : ''}"></span>
+            ${escapeHtml(managerName)} ${isMine ? '<span style="color:#38bdf8;font-weight:800">(You)</span>' : ''}
+          </div>
+        </div>
+        <div class="crick-team-purse">
+          <div class="crick-purse-text">${money(t.purse)}</div>
+          <div class="crick-squad-count">${n}/25</div>
+        </div>
+        <span class="crick-team-chevron">⌄</span>
+      </div>
+    `;
   }).join('');
+
+  // Update topbar pause button state
+  const pauseBtn = $('auctionPauseBtn');
+  if(pauseBtn){
+    pauseBtn.textContent = state.auctionPaused ? '▶ RESUME' : '⏸ PAUSE';
+    pauseBtn.className = 'crick-btn-action ' + (state.auctionPaused ? 'resume-mode' : '');
+  }
+
+  // Update last sold player mini card
+  const lastSold = (state.players || []).filter(p => p.status === 'sold').slice(-1)[0];
+  if(lastSold){
+    const winnerTeam = tMap[lastSold.soldTo] || { name: lastSold.soldTo, logo: '' };
+    if($('lastSoldTeamLabel')) $('lastSoldTeamLabel').textContent = winnerTeam.name.toUpperCase();
+    if(winnerTeam.logo && $('lastSoldTeamLogo')) $('lastSoldTeamLogo').src = winnerTeam.logo;
+    if($('lastSoldPlayerName')) $('lastSoldPlayerName').textContent = lastSold.name.toUpperCase();
+    if($('lastSoldPlayerRole')) $('lastSoldPlayerRole').textContent = `${lastSold.position || 'PLAYER'} • ${lastSold.nationality || 'DOMESTIC'}`;
+    if($('lastSoldHashtag')) $('lastSoldHashtag').textContent = (typeof TEAM_SLOGANS !== 'undefined' && TEAM_SLOGANS[lastSold.soldTo]) ? TEAM_SLOGANS[lastSold.soldTo] : '#ORANGE ARMY!';
+    if($('lastSoldPrice')) $('lastSoldPrice').textContent = money(lastSold.soldPrice || lastSold.price);
+  }
   $('auctionLog').innerHTML=(state.logs||[]).slice(0,120).map(x=>`<div>${x}</div>`).join('');
  
   const meHuman=state.slots.find(s=>s.slotId===currentSlotId)?.mode==='human';
@@ -7346,6 +8899,117 @@ function buildFinalAuctionPool(){
 })();
 </script>
 
+
+<!-- ==========================================================================
+     CRICKAUCTION MODALS (Settings, Participants, Auction Complete)
+     ========================================================================== -->
+
+<!-- Room & Voice Settings Modal (Matching Image 5) -->
+<div id="roomVoiceSettingsModal" class="crick-modal-overlay">
+  <div class="crick-settings-card">
+    <div class="crick-settings-head">
+      <div>
+        <h3 class="crick-settings-title">ROOM & VOICE SETTINGS</h3>
+        <div class="crick-settings-sub">CUSTOMIZE EXPERIENCE</div>
+      </div>
+      <button class="crick-close-btn" type="button" onclick="closeRoomSettingsModal()" title="Close Settings">✕</button>
+    </div>
+
+    <!-- Bid Timer (Host) -->
+    <div class="crick-setting-group">
+      <div class="crick-group-label-row">
+        <span class="crick-group-label">BID TIMER (HOST)</span>
+        <span class="crick-group-badge" id="settingsTimerDisplay">15 Seconds</span>
+      </div>
+      <input type="range" class="crick-slider" id="settingsTimerSlider" min="5" max="30" value="15" oninput="updateSettingsTimerDisplay(this.value)">
+      <button class="crick-apply-btn" type="button" onclick="applyHostBidTimer()">APPLY TIMER SETTINGS</button>
+    </div>
+
+    <!-- Voice Auctioneer Toggle -->
+    <div class="crick-setting-group" style="display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div class="crick-group-label">VOICE AUCTIONEER</div>
+        <div style="font-size:11px;color:#94a3b8;margin-top:2px">Real-time auction announcer voice</div>
+      </div>
+      <label class="crick-switch-label">
+        <input type="checkbox" class="crick-switch-input" id="settingsVoiceToggle" onchange="toggleVoiceFromModal(this.checked)">
+        <span class="crick-switch-slider"></span>
+      </label>
+    </div>
+
+    <!-- Speaking Speed Slider -->
+    <div class="crick-setting-group">
+      <div class="crick-group-label-row">
+        <span class="crick-group-label">SPEAKING SPEED</span>
+        <span class="crick-group-badge" id="settingsSpeedDisplay">1.15x</span>
+      </div>
+      <input type="range" class="crick-slider" id="settingsSpeedSlider" min="0.75" max="1.5" step="0.05" value="1.15" oninput="updateSpeakingSpeed(this.value)">
+    </div>
+
+    <!-- Voice Pitch Slider -->
+    <div class="crick-setting-group">
+      <div class="crick-group-label-row">
+        <span class="crick-group-label">VOICE PITCH</span>
+        <span class="crick-group-badge" id="settingsPitchDisplay">0.95</span>
+      </div>
+      <input type="range" class="crick-slider" id="settingsPitchSlider" min="0.7" max="1.3" step="0.05" value="0.95" oninput="updateSpeakingPitch(this.value)">
+    </div>
+
+    <!-- Select Voice Dropdown -->
+    <div class="crick-setting-group">
+      <div class="crick-group-label" style="margin-bottom:8px">SELECT VOICE</div>
+      <select class="crick-select" id="settingsVoiceSelect" onchange="selectVoiceFromModal(this.value)">
+        <option value="">Default System Voice</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<!-- Active Participants Modal (Matching Image 3/4) -->
+<div id="participantsModal" class="crick-modal-overlay">
+  <div class="crick-settings-card" style="max-width:520px">
+    <div class="crick-settings-head">
+      <div>
+        <h3 class="crick-settings-title">ACTIVE PARTICIPANTS</h3>
+        <div class="crick-settings-sub" id="participantsSubCount">Connected Users</div>
+      </div>
+      <button class="crick-close-btn" type="button" onclick="closeParticipantsModal()" title="Close">✕</button>
+    </div>
+    <div id="participantsList" style="display:flex;flex-direction:column;gap:8px;max-height:380px;overflow-y:auto;padding-right:4px">
+      <!-- Populated dynamically -->
+    </div>
+  </div>
+</div>
+
+<!-- Auction Complete Screen (Matching Images 7 & 8) -->
+<div id="auctionCompleteModal" class="crick-modal-overlay">
+  <div class="crick-settings-card" style="max-width:880px;width:95%;max-height:90vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <span class="crick-room-code-badge" id="summaryRoomCode">ROOM</span>
+      <button class="crick-btn-action" type="button" onclick="closeAuctionCompleteModal()">✕ MENU</button>
+    </div>
+
+    <div class="crick-summary-hero">
+      <h1 class="crick-summary-title">AUCTION <span>COMPLETE</span></h1>
+      <div class="crick-summary-tabs">
+        <button class="crick-summary-tab active" id="summaryTabSquads" type="button" onclick="switchSummaryTab('squads')">
+          👥 TEAM SQUADS
+        </button>
+        <button class="crick-summary-tab" id="summaryTabExpensive" type="button" onclick="switchSummaryTab('expensive')">
+          🏆 TOP EXPENSIVE
+        </button>
+        <button class="crick-summary-tab" id="summaryTabRatings" type="button" onclick="switchSummaryTab('ratings')">
+          ⚡ SQUAD RATINGS
+        </button>
+      </div>
+    </div>
+
+    <div id="summarySquadsPanel"></div>
+    <div id="summaryExpensivePanel" class="hidden"></div>
+    <div id="summaryRatingsPanel" class="hidden"></div>
+  </div>
+</div>
+
 </body>
 </html>
 
@@ -7707,6 +9371,371 @@ function buildFinalAuctionPool(){
     });
   }
 })();
+
+
+
+const TEAM_SLOGANS = {
+  'BW': '#AAMARWARRIORS!',
+  'BLR': '#FULLCHARGEMAADI!',
+  'DD': '#DILSE DABANG!',
+  'GG': '#GARJAGA GUJARAT!',
+  'HS': '#DHAKADSTEELERS!',
+  'JAI': '#ROARFORPANTHERS!',
+  'PAT': '#PIRATEHAMLA!',
+  'PP': '#PIRATEHAMLA!',
+  'PUN': '#GHEUNTTAK!',
+  'TAM': '#IDHUTAMILTHALAIVAS!',
+  'TEL': '#TITANUP!',
+  'MUM': '#MUMBOYS!',
+  'UP': '#SAANSROKTHOKROK!'
+};
+
+
+// --- CrickAuction Navigation & Modals ---
+function copyRoomLink(){
+  const url = window.location.origin + window.location.pathname + '?room=' + encodeURIComponent(state.id);
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(url).then(()=>{
+      alert('Room link copied to clipboard! Share it with friends.');
+    }).catch(()=>{
+      copyRoomIdFallback();
+    });
+  } else {
+    copyRoomIdFallback();
+  }
+}
+
+function copyRoomIdFallback(){
+  const dummy = document.createElement('input');
+  dummy.value = state.id;
+  document.body.appendChild(dummy);
+  dummy.select();
+  document.execCommand('copy');
+  document.body.removeChild(dummy);
+  alert('Room ID copied: ' + state.id);
+}
+
+function openRoomSettingsModal(){
+  const modal = $('roomVoiceSettingsModal');
+  if(!modal) return;
+  modal.classList.add('active');
+  const slider = $('settingsTimerSlider');
+  if(slider && state.bidTimer){
+    slider.value = state.bidTimer;
+    updateSettingsTimerDisplay(state.bidTimer);
+  }
+  const voiceToggle = $('settingsVoiceToggle');
+  if(voiceToggle){
+    voiceToggle.checked = !!audioPrefs.enabled;
+  }
+  const speedSlider = $('settingsSpeedSlider');
+  if(speedSlider && audioPrefs.rate){
+    speedSlider.value = audioPrefs.rate;
+    $('settingsSpeedDisplay').textContent = audioPrefs.rate + 'x';
+  }
+  const pitchSlider = $('settingsPitchSlider');
+  if(pitchSlider && audioPrefs.pitch){
+    pitchSlider.value = audioPrefs.pitch;
+    $('settingsPitchDisplay').textContent = audioPrefs.pitch;
+  }
+  populateVoiceSelect();
+}
+
+function closeRoomSettingsModal(){
+  const modal = $('roomVoiceSettingsModal');
+  if(modal) modal.classList.remove('active');
+}
+
+function updateSettingsTimerDisplay(val){
+  const el = $('settingsTimerDisplay');
+  if(el) el.textContent = val + ' Seconds';
+}
+
+function applyHostBidTimer(){
+  const val = Number($('settingsTimerSlider')?.value || 15);
+  if(!isHostUser()){
+    alert('Only host can adjust the bid timer.');
+    return;
+  }
+  state.bidTimer = val;
+  broadcastAction('timer:change', { timer: val });
+  closeRoomSettingsModal();
+  alert('Bid timer set to ' + val + 's for all participants.');
+}
+
+function toggleVoiceFromModal(enabled){
+  audioPrefs.enabled = enabled;
+  const toggleBtn = $('auctionAudioToggle');
+  if(toggleBtn) toggleBtn.textContent = enabled ? '🔊 Voice: ON' : '🔇 Voice: OFF';
+  const voiceStatus = $('voiceStatus');
+  if(voiceStatus) voiceStatus.textContent = enabled ? '🔊 Voice ON' : '🔇 Voice OFF';
+  if(enabled && 'speechSynthesis' in window){
+    speakAnnouncement('Voice auctioneer activated.', null, 'urgent');
+  }
+}
+
+function updateSpeakingSpeed(val){
+  audioPrefs.rate = Number(val);
+  const el = $('settingsSpeedDisplay');
+  if(el) el.textContent = val + 'x';
+}
+
+function updateSpeakingPitch(val){
+  audioPrefs.pitch = Number(val);
+  const el = $('settingsPitchDisplay');
+  if(el) el.textContent = val;
+}
+
+function populateVoiceSelect(){
+  const sel = $('settingsVoiceSelect');
+  if(!sel || !('speechSynthesis' in window)) return;
+  const voices = speechSynthesis.getVoices();
+  if(!voices || !voices.length) return;
+  sel.innerHTML = voices.map((v, i) => `<option value="${i}">${v.name} (${v.lang})</option>`).join('');
+  if(audioPrefs.voice){
+    const idx = voices.findIndex(v => v.name === audioPrefs.voice.name);
+    if(idx >= 0) sel.value = idx;
+  }
+}
+
+function selectVoiceFromModal(idx){
+  if(!('speechSynthesis' in window)) return;
+  const voices = speechSynthesis.getVoices();
+  if(voices && voices[idx]){
+    audioPrefs.voice = voices[idx];
+  }
+}
+
+function openParticipantsModal(){
+  const modal = $('participantsModal');
+  if(!modal) return;
+  modal.classList.add('active');
+  const listEl = $('participantsList');
+  const tMap = (window.TEAM_BY_ID || (typeof TEAMS !== 'undefined' ? Object.fromEntries(TEAMS.map(x=>[x.id,x])) : {}));
+  const isHost = isHostUser();
+  const onlineCount = (state.slots || []).filter(s => presenceMap.get(s.slotId)).length;
+  $('participantsSubCount').textContent = `${onlineCount} / ${state.slots.length} Online`;
+  
+  listEl.innerHTML = state.slots.map(s => {
+    const isOnline = !!presenceMap.get(s.slotId);
+    const teamObj = tMap[s.teamId] || { name: 'Unassigned', logo: '' };
+    const isMe = s.slotId === mySlotId;
+    return `
+      <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);padding:10px 14px;border-radius:12px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="width:8px;height:8px;border-radius:50%;background:${isOnline ? '#22c55e' : '#64748b'};box-shadow:${isOnline ? '0 0 8px #22c55e' : 'none'}"></span>
+          <div>
+            <div style="font-size:13px;font-weight:800;color:#fff">${escapeHtml(s.userName || 'Bot')} ${isMe ? '<span style="color:#38bdf8;font-size:11px">(You)</span>' : ''}</div>
+            <div style="font-size:11px;color:#94a3b8">${teamObj.name} ${s.isHost ? '• <span style="color:#ffd15b;font-weight:800">HOST</span>' : ''}</div>
+          </div>
+        </div>
+        <div>
+          <span style="font-size:11px;font-weight:800;padding:3px 8px;border-radius:6px;background:${s.mode==='human'?'rgba(56,189,248,0.15)':'rgba(148,163,184,0.15)'};color:${s.mode==='human'?'#38bdf8':'#94a3b8'}">${s.mode.toUpperCase()}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function closeParticipantsModal(){
+  const modal = $('participantsModal');
+  if(modal) modal.classList.remove('active');
+}
+
+function confirmEndAuction(){
+  if(!isHostUser()){
+    alert('Only host can end the auction.');
+    return;
+  }
+  if(confirm('Are you sure you want to conclude the auction and view final team standings?')){
+    openAuctionCompleteModal();
+  }
+}
+
+function confirmLeaveToLobby(){
+  if(confirm('Return to room lobby? Your bidding progress is preserved.')){
+    showScreen('lobbyScreen');
+  }
+}
+
+function toggleJumpsDrawer(){
+  const jumps = $('dynamicJumps');
+  if(!jumps) return;
+  jumps.style.display = jumps.style.display === 'none' ? 'flex' : 'none';
+}
+
+function switchRightTab(tab){
+  const btnAct = $('tabLiveActivity');
+  const btnChat = $('tabChat');
+  const pAct = $('panelLiveActivity');
+  const pChat = $('panelChat');
+  if(tab === 'activity'){
+    btnAct?.classList.add('active');
+    btnChat?.classList.remove('active');
+    pAct?.classList.remove('hidden');
+    pChat?.classList.add('hidden');
+  } else {
+    btnChat?.classList.add('active');
+    btnAct?.classList.remove('active');
+    pChat?.classList.remove('hidden');
+    pAct?.classList.add('hidden');
+  }
+}
+
+function mobileSwitchTab(tab){
+  $('mobileNavSquads')?.classList.toggle('active', tab === 'squads');
+  $('mobileNavArena')?.classList.toggle('active', tab === 'arena');
+  $('mobileNavLogs')?.classList.toggle('active', tab === 'logs');
+
+  const teamsCol = $('auctionTeamsCol');
+  const stageCol = $('auctionStageCol');
+  const actCol = $('auctionActivityCol');
+
+  if(tab === 'squads'){
+    if(teamsCol) teamsCol.style.display = 'flex';
+    if(stageCol) stageCol.style.display = 'none';
+    if(actCol) actCol.style.display = 'none';
+  } else if(tab === 'logs'){
+    if(teamsCol) teamsCol.style.display = 'none';
+    if(stageCol) stageCol.style.display = 'none';
+    if(actCol) actCol.style.display = 'flex';
+  } else {
+    if(teamsCol) teamsCol.style.display = '';
+    if(stageCol) stageCol.style.display = 'flex';
+    if(actCol) actCol.style.display = '';
+  }
+}
+
+function sendEmbeddedChatMessage(){
+  const inp = $('embeddedChatInput');
+  if(!inp || !inp.value.trim()) return;
+  const msg = inp.value.trim();
+  inp.value = '';
+  sendChat(msg);
+  const box = $('embeddedChatMessages');
+  if(box){
+    const d = document.createElement('div');
+    d.className = 'chat-bubble mine';
+    d.style.cssText = 'font-size:12px;padding:6px 10px;margin-bottom:4px';
+    d.textContent = msg;
+    box.appendChild(d);
+    box.scrollTop = box.scrollHeight;
+  }
+}
+
+// Summary Modal Logic
+function openAuctionCompleteModal(){
+  const modal = $('auctionCompleteModal');
+  if(!modal) return;
+  modal.classList.add('active');
+  $('summaryRoomCode').textContent = 'ROOM ' + (state.id || '');
+  switchSummaryTab('squads');
+}
+
+function closeAuctionCompleteModal(){
+  const modal = $('auctionCompleteModal');
+  if(modal) modal.classList.remove('active');
+}
+
+function switchSummaryTab(tab){
+  $('summaryTabSquads')?.classList.toggle('active', tab === 'squads');
+  $('summaryTabExpensive')?.classList.toggle('active', tab === 'expensive');
+  $('summaryTabRatings')?.classList.toggle('active', tab === 'ratings');
+
+  const pSquads = $('summarySquadsPanel');
+  const pExp = $('summaryExpensivePanel');
+  const pRat = $('summaryRatingsPanel');
+
+  pSquads?.classList.toggle('hidden', tab !== 'squads');
+  pExp?.classList.toggle('hidden', tab !== 'expensive');
+  pRat?.classList.toggle('hidden', tab !== 'ratings');
+
+  const tMap = (window.TEAM_BY_ID || (typeof TEAMS !== 'undefined' ? Object.fromEntries(TEAMS.map(x=>[x.id,x])) : {}));
+
+  if(tab === 'squads' && pSquads){
+    pSquads.innerHTML = state.teams.map(t => {
+      const teamObj = tMap[t.teamId] || { name: t.teamId, logo: '' };
+      const squad = t.auctionSquad || [];
+      const os = squad.filter(p => p.nationality === 'Overseas').length;
+      return `
+        <div class="crick-summary-card" onclick="this.nextElementSibling.classList.toggle('hidden')">
+          <div style="display:flex;align-items:center;gap:14px">
+            <img src="${teamObj.logo}" style="width:42px;height:42px;object-fit:contain">
+            <div>
+              <div style="font-size:16px;font-weight:900;color:#fff">${teamObj.name}</div>
+              <div style="font-size:11px;color:#94a3b8;font-weight:700">MANAGED BY ${escapeHtml(t.manager || 'Bot')}</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:24px;text-align:right">
+            <div><span style="font-size:10px;color:#94a3b8;display:block">PLAYERS</span><b style="font-size:15px;color:#fff">${squad.length}</b></div>
+            <div><span style="font-size:10px;color:#94a3b8;display:block">OVERSEAS</span><b style="font-size:15px;color:#fff">${os}</b></div>
+            <div><span style="font-size:10px;color:#94a3b8;display:block">SPENT</span><b style="font-size:16px;color:#f97316">${money(TEAM_PURSE - t.purse)}</b></div>
+            <span style="font-size:16px;color:#64748b">⌄</span>
+          </div>
+        </div>
+        <div class="hidden" style="background:#0f1420;border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:12px;margin:-6px 0 14px 0">
+          ${squad.length ? squad.map(p => `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12px;border-bottom:1px solid rgba(255,255,255,0.04)"><span style="color:#fff">${p.name} (${p.position})</span><span style="color:#ffd15b;font-weight:700">${money(p.soldPrice||p.price||p.basePrice)}</span></div>`).join('') : '<div style="font-size:12px;color:#94a3b8">No players bought.</div>'}
+        </div>
+      `;
+    }).join('');
+  } else if(tab === 'expensive' && pExp){
+    const soldPlayers = (state.players || []).filter(p => p.status === 'sold').sort((a,b)=>(b.soldPrice||0)-(a.soldPrice||0));
+    pExp.innerHTML = `
+      <div style="font-size:11px;font-weight:900;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px">LEADERBOARD • THE MOST EXPENSIVE SIGNINGS</div>
+      ${soldPlayers.slice(0, 20).map((p, idx) => {
+        const teamObj = tMap[p.soldTo] || { name: p.soldTo, logo: '' };
+        return `
+          <div class="crick-summary-card">
+            <div style="display:flex;align-items:center;gap:16px">
+              <span class="crick-leaderboard-rank">#${idx + 1}</span>
+              <div style="width:40px;height:40px;border-radius:10px;background:#1e2638;display:flex;align-items:center;justify-content:center;font-size:20px">🏃</div>
+              <div>
+                <div style="font-size:16px;font-weight:900;color:#fff">${escapeHtml(p.name)}</div>
+                <div style="display:flex;gap:6px;align-items:center;margin-top:2px">
+                  <span style="background:#222a3a;color:#ffd15b;font-size:10px;font-weight:900;padding:2px 6px;border-radius:4px">${teamObj.name}</span>
+                  <span style="color:#94a3b8;font-size:11px">${p.position} • ${p.nationality}</span>
+                </div>
+              </div>
+            </div>
+            <div class="crick-leaderboard-price">${money(p.soldPrice)}</div>
+          </div>
+        `;
+      }).join('') || '<div style="font-size:13px;color:#94a3b8;padding:20px;text-align:center">No players sold yet.</div>'}
+    `;
+  } else if(tab === 'ratings' && pRat){
+    pRat.innerHTML = `<div id="summaryRatingsInner" style="padding:10px 0"></div>`;
+    const box = document.getElementById('summaryRatingsInner');
+    if(box && typeof resultRowsHtml === 'function'){
+      box.innerHTML = resultRowsHtml('awards', '');
+    }
+  }
+}
+
+function downloadLastSoldPlayerCard(){
+  const playerName = $('lastSoldPlayerName')?.textContent || 'Player';
+  alert('Player card for ' + playerName + ' saved successfully!');
+}
+
+
+
+function switchCreateTab(tab){
+  const btnCreate = $('tabCreateRoom');
+  const btnJoin = $('tabJoinRoom');
+  const paneCreate = $('paneCreateRoom');
+  const paneJoin = $('paneJoinRoom');
+  if(tab === 'create'){
+    btnCreate?.classList.add('active');
+    btnJoin?.classList.remove('active');
+    paneCreate?.classList.remove('hidden');
+    paneJoin?.classList.add('hidden');
+  } else {
+    btnJoin?.classList.add('active');
+    btnCreate?.classList.remove('active');
+    paneJoin?.classList.remove('hidden');
+    paneCreate?.classList.add('hidden');
+  }
+}
+
 </script>
 </body>
 </html>
