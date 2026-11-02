@@ -1956,13 +1956,13 @@ body {
   color: #ffffff;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 12px;
-  padding: 13px 20px;
+  padding: 14px 20px;
   font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.8px;
   text-transform: uppercase;
   cursor: pointer;
-  margin-bottom: 12px;
+  margin-bottom: 0;
   transition: all 0.2s ease;
 }
 .btn-guest-signin:hover {
@@ -2616,13 +2616,7 @@ body.auction-mode #auctionScreen:not(.hidden) {
             <span>JOIN AS GUEST</span>
           </button>
 
-          <!-- Play Offline / Hotspot Mode Button -->
-          <button type="button" class="btn-offline-mode" onclick="handleQuickGuest('Hotspot Manager')">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle">
-              <path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/>
-            </svg>
-            <span>PLAY OFFLINE / HOTSPOT MODE</span>
-          </button>
+
         </div>
 
         <!-- AUTHENTICATED AUCTION HUB CONTROLS -->
@@ -2715,9 +2709,9 @@ body.auction-mode #auctionScreen:not(.hidden) {
           <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:16px;margin-bottom:16px">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
               <span style="font-size:11px;font-weight:900;color:#ffffff;letter-spacing:1px;text-transform:uppercase">ROOM CODE (UNIVERSAL)</span>
-              <span style="font-size:9px;font-weight:800;color:#94a3b8;letter-spacing:0.8px">CLOUD & HOTSPOT READY</span>
+              <span style="font-size:9px;font-weight:800;color:#94a3b8;letter-spacing:0.8px">ONLINE MULTIPLAYER</span>
             </div>
-            <input id="joinId" maxlength="64" placeholder="E.G. AB12CD OR HOTSPOT-4921" style="text-transform:uppercase;font-size:13px;letter-spacing:1.5px;text-align:center;padding:12px;margin-bottom:10px;background:#0d1118;border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:#fff;font-weight:900;width:100%">
+            <input id="joinId" maxlength="64" placeholder="ENTER 6-DIGIT ROOM CODE (E.G. A7E2UH)" style="text-transform:uppercase;font-size:13px;letter-spacing:1.5px;text-align:center;padding:12px;margin-bottom:10px;background:#0d1118;border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:#fff;font-weight:900;width:100%">
             <button class="btn big" id="joinRoom" type="button" style="width:100%;background:linear-gradient(90deg,#f97316,#ea580c);color:#ffffff;font-weight:950;font-size:14px;padding:12px;border-radius:10px;border:0;letter-spacing:0.8px;text-transform:uppercase;box-shadow:0 0 20px rgba(249,115,22,0.35);cursor:pointer">
               JOIN BY CODE ›
             </button>
