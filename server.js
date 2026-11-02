@@ -884,6 +884,14 @@ io.on('connection', (socket) => {
 
       io.to(cleanId).emit('room:presence', Array.from(room.participants.values()));
       io.to(cleanId).emit('room:state_sync', { state: room.state, source: 'player_left' });
+      if (callback) callback({ success: true });
+      currentRoomId = null;
+      currentSlotId = null;
+    } catch (err) {
+      console.error('room:leave error:', err);
+      if (callback) callback({ success: false, error: 'Server error leaving room.' });
+    }
+  });
 
   socket.on('room:kick_slot', ({ roomId, slotId } = {}, callback) => {
     try {
@@ -895,13 +903,15 @@ io.on('connection', (socket) => {
       }
 
       const hostParticipant = getParticipant(room, socket.id);
-      if (!hostParticipant || !isHostParticipant(room, hostParticipant)) {
+      const isHost = hostParticipant && isHostParticipant(room, hostParticipant);
+      const isHostBySlot = hostParticipant && (hostParticipant.slotId === room.state.hostSlotId || hostParticipant.slotId === 'slot-1');
+      if (!isHost && !isHostBySlot) {
         if (callback) callback({ success: false, error: 'Only the room host can remove participants.' });
         return;
       }
 
       const targetSlotId = String(slotId || '');
-      if (!targetSlotId || targetSlotId === room.state.hostSlotId || targetSlotId === hostParticipant.slotId) {
+      if (!targetSlotId || targetSlotId === room.state.hostSlotId) {
         if (callback) callback({ success: false, error: 'Cannot remove the room host.' });
         return;
       }
@@ -918,6 +928,7 @@ io.on('connection', (socket) => {
         }
       }
 
+      // Remove or reset slot and release franchise
       if (!room.state.started) {
         room.state.slots = room.state.slots.filter(s => s.slotId !== targetSlotId);
       } else {
@@ -925,6 +936,7 @@ io.on('connection', (socket) => {
         if (slot) {
           slot.mode = 'bot';
           slot.name = slot.name.replace(/ \(AI\)$/i, '') + ' (AI)';
+          slot.teamId = null;
         }
       }
 
@@ -932,19 +944,10 @@ io.on('connection', (socket) => {
       io.to(cleanId).emit('room:presence', Array.from(room.participants.values()));
       io.to(cleanId).emit('room:state_sync', { state: room.state, source: 'player_kicked' });
 
-      if (callback) callback({ success: true });
+      if (callback) callback({ success: true, slots: room.state.slots });
     } catch (err) {
       console.error('room:kick_slot error:', err);
       if (callback) callback({ success: false, error: 'Server error removing player.' });
-    }
-  });
-
-      if (callback) callback({ success: true });
-      currentRoomId = null;
-      currentSlotId = null;
-    } catch (err) {
-      console.error('room:leave error:', err);
-      if (callback) callback({ success: false, error: 'Server error leaving room.' });
     }
   });
 

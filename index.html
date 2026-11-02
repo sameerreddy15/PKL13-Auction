@@ -4060,7 +4060,6 @@ function initSocket() {
 
       
     socket.on('room:kicked', function(data) {
-      alert(data && data.message ? data.message : 'You have been removed from the room by the host.');
       closeRoom(true);
     });
 socket.on('room:closed', ({ message }) => {
@@ -5133,25 +5132,31 @@ function renderLobby(){
 }
 
 window.kickPlayer = function(slotId, playerName) {
-  if (!confirm(`Are you sure you want to remove ${playerName || 'this player'} from the room?`)) return;
-  if (!socket || !socket.connected) {
-    if (state && state.slots) {
-      state.slots = state.slots.filter(s => s.slotId !== slotId);
-      save();
-      renderLobby();
-    }
-    return;
+  // NO browser confirm() or alert()! Remove player/franchise immediately per user request.
+  const st = (typeof state !== 'undefined' && state) ? state : (window.state || null);
+  if (st && st.slots) {
+    st.slots = st.slots.filter(s => s.slotId !== slotId);
+    save();
+    renderLobby();
   }
-  socket.emit('room:kick_slot', { roomId: state.id, slotId }, function(res) {
-    if (res && !res.success) {
-      alert(res.error || 'Failed to remove player.');
-    } else {
-      if (state && state.slots) {
-        state.slots = state.slots.filter(s => s.slotId !== slotId);
+
+  const sock = (window.socket || (typeof socket !== 'undefined' ? socket : null));
+  if (sock && sock.connected && st && st.id) {
+    sock.emit('room:kick_slot', { roomId: st.id, slotId }, function(res) {
+      if (res && res.success && res.slots) {
+        state.slots = res.slots;
+        save();
         renderLobby();
       }
+    });
+    if (typeof broadcastAction === 'function') {
+      broadcastAction('lobby:sync_slots', { slots: st.slots }, st);
     }
-  });
+  }
+
+  if (typeof showOutbidAlert === 'function') {
+    showOutbidAlert(`Removed ${playerName || 'player'} from the lobby.`);
+  }
 };
 
 window.setTeam=function(slotId,teamId){
@@ -5166,7 +5171,7 @@ window.setTeam=function(slotId,teamId){
     return;
   }
   if(s.mode==='bot' && !isMeHost){
-    alert('Only the room host can configure AI bot franchises.');
+    if(typeof showOutbidAlert==='function') showOutbidAlert('Only the room host can configure AI bot franchises.');
     return;
   }
   s.teamId=teamId||null;
@@ -11168,11 +11173,21 @@ function fillRemainingBots(){
 
 function claimFranchise(teamId){
   const currentSlotId = (typeof mySlotId !== 'undefined' && mySlotId) ? mySlotId : (window.mySlotId || localStorage.getItem(MY_SLOT_STORE) || null);
-  if(!currentSlotId) return;
+  if(!currentSlotId || !state || !state.slots) return;
+  
+  // Toggle off if clicking already claimed franchise
+  const mySlot = state.slots.find(s => s.slotId === currentSlotId);
+  if(mySlot && mySlot.teamId === teamId){
+    window.setTeam(currentSlotId, null);
+    return;
+  }
+
   const isTakenByOther = state.slots.some(s => s.teamId === teamId && s.slotId !== currentSlotId && s.mode === 'human');
   if(isTakenByOther){
     const owner = state.slots.find(s => s.teamId === teamId);
-    alert(`${owner.name || 'Another player'} has already claimed this franchise.`);
+    if(typeof showOutbidAlert === 'function'){
+      showOutbidAlert(`${owner?.name || 'Another player'} has already claimed this franchise.`);
+    }
     return;
   }
   window.setTeam(currentSlotId, teamId);
