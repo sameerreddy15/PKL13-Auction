@@ -2452,8 +2452,9 @@ body.auction-mode #auctionScreen:not(.hidden) {
     </div>
 
     <!-- Dual-Pane Hub: Left (Live Signings Ticker) | Right (Room Creation & Join Controls) -->
+    
     <div style="display:grid;grid-template-columns:360px 1fr;gap:22px;align-items:start">
-      <!-- Left Panel: Live Rooms & Recent Signings (Matching Image 9 & 10) -->
+      <!-- Left Panel: Live Rooms & Server Status -->
       <div class="card" style="padding:20px;background:#12151c;border-radius:20px;border:1px solid rgba(255,255,255,0.08)">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
           <div style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:900;color:#ffffff;letter-spacing:0.5px">
@@ -2469,7 +2470,6 @@ body.auction-mode #auctionScreen:not(.hidden) {
         <div style="display:flex;flex-direction:column;gap:8px" id="recentSigningsTicker">
           <!-- Dynamically populated from real server data -->
         </div>
-</div>
 
         <div style="margin-top:20px;padding:12px;background:rgba(255,255,255,0.02);border:1px dashed rgba(255,255,255,0.08);border-radius:12px">
           <div style="font-size:11px;font-weight:800;color:#94a3b8;margin-bottom:6px;display:flex;align-items:center;gap:6px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="crick-svg-icon"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> AUCTION SPECIFICATIONS</div>
@@ -2482,8 +2482,7 @@ body.auction-mode #auctionScreen:not(.hidden) {
         </div>
       </div>
 
-      <!-- Right Panel: Create & Join Tabs (Matching Images 9 & 10) -->
-      <div class="card" style="padding:24px 26px;background:#12151c;border-radius:20px;border:1px solid rgba(255,255,255,0.08)">
+<div class="card" style="padding:24px 26px;background:#12151c;border-radius:20px;border:1px solid rgba(255,255,255,0.08)">
         <!-- Tab selector -->
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;background:#181d27;border-radius:14px;padding:4px;flex-wrap:wrap;gap:6px">
           <div style="display:flex;gap:4px">
@@ -2612,7 +2611,7 @@ body.auction-mode #auctionScreen:not(.hidden) {
         <div id="paneHistoryRoom" class="hidden" style="padding:10px 0;text-align:center">
           <div style="font-size:13px;font-weight:800;color:#94a3b8;margin-bottom:6px">RECENT AUCTIONS</div>
           <div style="font-size:11px;color:#64748b" id="historyRoomsList">No previous auctions found on this device.</div>
-        </div></div>
+        </div>
       </div>
     </div>
   </section>
@@ -3090,10 +3089,10 @@ body.auction-mode #auctionScreen:not(.hidden) {
   </div>
 </div>
 
-<div id="floatingAskTimeContainer" class="floating-ask-time hidden">
+<div id="floatingAskTimeContainer" class="floating-ask-time hidden" style="display:none !important">
   <button type="button" id="floatingAskTimeBtn" onclick="requestTime()">⏳ Ask Time</button>
 </div>
-<div id="floatingHostPauseContainer" class="floating-host-pause hidden">
+<div id="floatingHostPauseContainer" class="floating-host-pause hidden" style="display:none !important">
   <button type="button" id="floatingHostPauseBtn" onclick="toggleHostPause()">⏸ PAUSE AUCTION</button>
 </div>
 
@@ -3661,7 +3660,7 @@ function broadcastAction(actionType, payload, stateDelta){
       if (res?.success && res.state) {
         applyRemoteState(res.state, false);
       } else if (res && res.success === false && res.error) {
-        showOutbidAlert(`⚠️ ${res.error}`);
+        if(String(res.error).toLowerCase().includes('room') && String(res.error).toLowerCase().includes('not found')){ clearSavedRoom(); state = null; window.state = null; show('createScreen'); return; } showOutbidAlert(`⚠️ ${res.error}`);
       }
     });
   }
@@ -4272,9 +4271,9 @@ function show(id){
 
   if(id !== 'auctionScreen'){
     const fAsk = $('floatingAskTimeContainer');
-    if(fAsk) fAsk.classList.add('hidden');
+    if(fAsk) { fAsk.classList.add('hidden'); fAsk.style.display = 'none'; }
     const fHost = $('floatingHostPauseContainer');
-    if(fHost) fHost.classList.add('hidden');
+    if(fHost) { fHost.classList.add('hidden'); fHost.style.display = 'none'; }
     const bWar = $('biddingWarBanner');
     if(bWar) bWar.classList.add('hidden');
     const cCel = $('croreCelebrationBanner');
@@ -9335,12 +9334,22 @@ const urlTargetRoom = checkUrlParams();
 if(urlTargetRoom){
   const saved = load();
   if(saved && saved.id === urlTargetRoom){
-    restoreSavedRoom();
+    fetch('/api/room/' + encodeURIComponent(urlTargetRoom), { cache: 'no-store' })
+      .then(r => {
+        if(r.ok) {
+          restoreSavedRoom();
+        } else {
+          clearSavedRoom();
+          show('createScreen');
+        }
+      })
+      .catch(() => show('createScreen'));
   } else {
     show('createScreen');
   }
 } else {
-  if(!restoreSavedRoom()) show('createScreen');
+  // Opening root link: always show Create Room Hub
+  show('createScreen');
 }
 </script>
 
