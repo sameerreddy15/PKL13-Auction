@@ -1916,6 +1916,105 @@ body {
   vertical-align: middle;
 }
 
+
+/* --- CRICKAUCTION AUTH & WELCOME BUTTONS (Matching Screenshot) --- */
+.btn-google-signin {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: linear-gradient(90deg, #f97316, #ea580c);
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  padding: 14px 20px;
+  font-size: 13.5px;
+  font-weight: 900;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(249, 115, 22, 0.35);
+  transition: all 0.2s ease;
+}
+.btn-google-signin:hover {
+  background: linear-gradient(90deg, #ea580c, #c2410c);
+  box-shadow: 0 6px 26px rgba(249, 115, 22, 0.5);
+  transform: translateY(-1px);
+}
+.btn-google-signin:active {
+  transform: translateY(0);
+}
+
+.btn-guest-signin {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 13px 20px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  cursor: pointer;
+  margin-bottom: 12px;
+  transition: all 0.2s ease;
+}
+.btn-guest-signin:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.24);
+  transform: translateY(-1px);
+}
+
+.btn-offline-mode {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: rgba(249, 115, 22, 0.05);
+  color: #f97316;
+  border: 1px solid rgba(249, 115, 22, 0.32);
+  border-radius: 12px;
+  padding: 12px 20px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-offline-mode:hover {
+  background: rgba(249, 115, 22, 0.12);
+  border-color: #f97316;
+  transform: translateY(-1px);
+}
+
+/* User Type Badge */
+.user-auth-badge {
+  font-size: 9px;
+  font-weight: 900;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.user-auth-badge.google {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+.user-auth-badge.guest {
+  background: rgba(148, 163, 184, 0.15);
+  color: #cbd5e1;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
 .crick-manager-card {
   display: flex;
   align-items: center;
@@ -2483,7 +2582,52 @@ body.auction-mode #auctionScreen:not(.hidden) {
       </div>
 
 <div class="card" style="padding:24px 26px;background:#12151c;border-radius:20px;border:1px solid rgba(255,255,255,0.08)">
-        <!-- Tab selector -->
+        
+        <!-- WELCOME / SIGN IN PANE (Matching Image Exactly) -->
+        <div id="paneAuthWelcome" style="padding:20px 10px 10px;text-align:center">
+          <div style="font-size:22px;font-weight:950;color:#ffffff;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:6px">
+            WELCOME, MANAGER
+          </div>
+          <div style="font-size:11px;font-weight:800;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-bottom:30px">
+            SIGN IN TO ENTER THE AUCTION HUB
+          </div>
+
+          <!-- Continue with Google Button -->
+          <button type="button" class="btn-google-signin" onclick="openGoogleLoginModal()">
+            <svg width="20" height="20" viewBox="0 0 24 24" style="display:inline-block;vertical-align:middle">
+              <path fill="#ffffff" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+              <path fill="#ffffff" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+              <path fill="#ffffff" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+              <path fill="#ffffff" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+            </svg>
+            <span>CONTINUE WITH GOOGLE</span>
+          </button>
+
+          <!-- Wait, I'm a guest separator -->
+          <div style="margin:26px 0 16px;font-size:10px;font-weight:900;color:#64748b;letter-spacing:1.2px;text-transform:uppercase">
+            WAIT, I'M A GUEST
+          </div>
+
+          <!-- Join as Guest Button -->
+          <button type="button" class="btn-guest-signin" onclick="openGuestLoginModal()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+            </svg>
+            <span>JOIN AS GUEST</span>
+          </button>
+
+          <!-- Play Offline / Hotspot Mode Button -->
+          <button type="button" class="btn-offline-mode" onclick="handleQuickGuest('Hotspot Manager')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle">
+              <path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/>
+            </svg>
+            <span>PLAY OFFLINE / HOTSPOT MODE</span>
+          </button>
+        </div>
+
+        <!-- AUTHENTICATED AUCTION HUB CONTROLS -->
+        <div id="paneHubControls" style="display:none">
+<!-- Tab selector -->
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;background:#181d27;border-radius:14px;padding:4px;flex-wrap:wrap;gap:6px">
           <div style="display:flex;gap:4px">
             <button type="button" class="crick-tab-nav active" id="tabCreateRoom" onclick="switchCreateTab('create')">CREATE</button>
@@ -2492,7 +2636,7 @@ body.auction-mode #auctionScreen:not(.hidden) {
           </div>
           <div style="display:flex;align-items:center;gap:8px;padding-right:8px">
             <span style="font-size:11px;font-weight:900;color:#94a3b8" id="topUserDisplay">LOCAL MANAGER</span>
-            <button type="button" style="background:transparent;border:0;color:#ef4444;font-size:10px;font-weight:800;cursor:pointer" onclick="try{localStorage.clear();}catch(e){}location.reload()">LOGOUT</button>
+            <button type="button" style="background:transparent;border:0;color:#ef4444;font-size:10px;font-weight:800;cursor:pointer" onclick="handleLogout()">LOGOUT</button>
           </div>
         </div>
 
@@ -2612,6 +2756,7 @@ body.auction-mode #auctionScreen:not(.hidden) {
           <div style="font-size:13px;font-weight:800;color:#94a3b8;margin-bottom:6px">RECENT AUCTIONS</div>
           <div style="font-size:11px;color:#64748b" id="historyRoomsList">No previous auctions found on this device.</div>
         </div>
+      </div>
       </div>
     </div>
   </section>
@@ -2998,6 +3143,64 @@ body.auction-mode #auctionScreen:not(.hidden) {
       </button>
     </nav>
   </section>
+</div>
+
+
+<!-- Google Sign-In Modal -->
+<div id="googleLoginModal" class="modal-backdrop hidden" style="z-index:9999">
+  <div class="modal" style="max-width:440px;background:#141824;border:1px solid rgba(255,255,255,0.12);border-radius:18px;padding:24px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <svg width="24" height="24" viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+        </svg>
+        <span style="font-size:16px;font-weight:900;color:#fff">Sign in with Google</span>
+      </div>
+      <button type="button" class="btn secondary" onclick="closeAuthModal('googleLoginModal')" style="padding:4px 10px;font-size:12px">✕</button>
+    </div>
+    <p style="font-size:12px;color:#94a3b8;margin:0 0 16px;line-height:1.5">
+      Sign in with your Google account to host multiplayer rooms, track auction history, and claim team franchises.
+    </p>
+    <div style="margin-bottom:14px">
+      <label style="display:block;font-size:11px;font-weight:800;color:#cbd5e1;margin-bottom:6px">Your Manager Name</label>
+      <input id="googleAuthNameInp" placeholder="Enter your full name" style="width:100%;box-sizing:border-box;background:#0d1118;border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:12px;color:#fff;font-size:13px;font-weight:700">
+    </div>
+    <div style="margin-bottom:20px">
+      <label style="display:block;font-size:11px;font-weight:800;color:#cbd5e1;margin-bottom:6px">Google Email Address</label>
+      <input id="googleAuthEmailInp" type="email" placeholder="e.g. manager@gmail.com" style="width:100%;box-sizing:border-box;background:#0d1118;border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:12px;color:#fff;font-size:13px">
+    </div>
+    <button type="button" class="btn-google-signin" onclick="submitGoogleLogin()" style="width:100%">
+      CONFIRM & ENTER HUB ›
+    </button>
+  </div>
+</div>
+
+<!-- Guest Sign-In Modal -->
+<div id="guestLoginModal" class="modal-backdrop hidden" style="z-index:9999">
+  <div class="modal" style="max-width:440px;background:#141824;border:1px solid rgba(255,255,255,0.12);border-radius:18px;padding:24px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+        </svg>
+        <span style="font-size:16px;font-weight:900;color:#fff">Join as Guest Manager</span>
+      </div>
+      <button type="button" class="btn secondary" onclick="closeAuthModal('guestLoginModal')" style="padding:4px 10px;font-size:12px">✕</button>
+    </div>
+    <p style="font-size:12px;color:#94a3b8;margin:0 0 16px;line-height:1.5">
+      No password needed. Choose your display name to start bidding or create auction rooms immediately.
+    </p>
+    <div style="margin-bottom:20px">
+      <label style="display:block;font-size:11px;font-weight:800;color:#cbd5e1;margin-bottom:6px">Guest Display Name</label>
+      <input id="guestAuthNameInp" maxlength="24" placeholder="Enter guest manager name" value="Local Manager" style="width:100%;box-sizing:border-box;background:#0d1118;border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:12px;color:#fff;font-size:13px;font-weight:700">
+    </div>
+    <button type="button" class="btn big" onclick="submitGuestLogin()" style="width:100%;background:linear-gradient(90deg,#f97316,#ea580c);color:#fff;font-weight:950;font-size:14px;padding:12px;border-radius:10px;border:0">
+      ENTER AUCTION HUB ›
+    </button>
+  </div>
 </div>
 
 <div id="infoModal" class="modal-backdrop hidden">
@@ -4241,6 +4444,148 @@ function joinFromInviteBanner(){
   if(btn){btn.disabled=true;btn.textContent='Joining…';}
   Promise.resolve(joinRoom()).then((ok)=>{ if(ok) $('directInviteBanner')?.classList.add('hidden'); }).finally(()=>{ if(btn){btn.disabled=false;btn.textContent='🚀 Enter Room';} });
 }
+
+
+// --- Authentication & Session Management (Google & Guest) ---
+const PKL_AUTH_STORE = 'pkl_auth_user';
+
+function getAuthUser(){
+  try{
+    const raw = localStorage.getItem(PKL_AUTH_STORE);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return null;
+}
+
+function setAuthUser(user){
+  try{
+    if(user){
+      localStorage.setItem(PKL_AUTH_STORE, JSON.stringify(user));
+      localStorage.setItem('pkl_last_user_name', user.name);
+    } else {
+      localStorage.removeItem(PKL_AUTH_STORE);
+    }
+  }catch(e){}
+  applyAuthSession();
+}
+
+function applyAuthSession(){
+  const user = getAuthUser();
+  const welcomePane = $('paneAuthWelcome');
+  const hubControls = $('paneHubControls');
+  const topDisplay = $('topUserDisplay');
+  const hostInput = $('hostName');
+  const joinInput = $('joinUserName');
+
+  if(user && user.name){
+    // User is logged in: show Hub Controls, hide Welcome
+    if(welcomePane) welcomePane.style.display = 'none';
+    if(hubControls) hubControls.style.display = 'block';
+
+    const typeBadge = (user.type === 'google')
+      ? '<span class="user-auth-badge google">G GOOGLE</span>'
+      : '<span class="user-auth-badge guest">GUEST</span>';
+
+    if(topDisplay){
+      topDisplay.innerHTML = `<span style="color:#ffffff">${escapeHtml(user.name.toUpperCase())}</span> ${typeBadge}`;
+    }
+
+    if(hostInput && !hostInput.value) hostInput.value = user.name;
+    if(joinInput && !joinInput.value) joinInput.value = user.name;
+  } else {
+    // User is NOT logged in: show Welcome, hide Hub Controls
+    if(welcomePane) welcomePane.style.display = 'block';
+    if(hubControls) hubControls.style.display = 'none';
+    if(topDisplay) topDisplay.textContent = 'NOT SIGNED IN';
+  }
+}
+
+function openGoogleLoginModal(){
+  const modal = $('googleLoginModal');
+  if(!modal) return;
+  const nameInp = $('googleAuthNameInp');
+  const emailInp = $('googleAuthEmailInp');
+  const savedName = localStorage.getItem('pkl_last_user_name') || '';
+  if(nameInp && !nameInp.value) nameInp.value = savedName;
+  if(emailInp && !emailInp.value && savedName) {
+    emailInp.value = savedName.toLowerCase().replace(/[^a-z0-9]/g, '') + '@gmail.com';
+  }
+  modal.classList.remove('hidden');
+  setTimeout(() => nameInp?.focus(), 100);
+}
+
+function openGuestLoginModal(defaultName){
+  const modal = $('guestLoginModal');
+  if(!modal) return;
+  const inp = $('guestAuthNameInp');
+  if(inp){
+    inp.value = defaultName || localStorage.getItem('pkl_last_user_name') || 'Local Manager';
+  }
+  modal.classList.remove('hidden');
+  setTimeout(() => inp?.focus(), 100);
+}
+
+function closeAuthModal(id){
+  const m = $(id);
+  if(m) m.classList.add('hidden');
+}
+
+function submitGoogleLogin(){
+  const nameInp = $('googleAuthNameInp');
+  const emailInp = $('googleAuthEmailInp');
+  const name = (nameInp?.value || '').trim() || 'Google Manager';
+  const email = (emailInp?.value || '').trim() || 'manager@gmail.com';
+  
+  setAuthUser({
+    name: name,
+    email: email,
+    type: 'google'
+  });
+  closeAuthModal('googleLoginModal');
+  if(typeof showOutbidAlert === 'function'){
+    showOutbidAlert(`Signed in with Google as ${name}`);
+  }
+}
+
+function submitGuestLogin(){
+  const inp = $('guestAuthNameInp');
+  const name = (inp?.value || '').trim() || 'Guest Manager';
+  setAuthUser({
+    name: name,
+    type: 'guest'
+  });
+  closeAuthModal('guestLoginModal');
+  if(typeof showOutbidAlert === 'function'){
+    showOutbidAlert(`Entered as Guest: ${name}`);
+  }
+}
+
+function handleQuickGuest(name){
+  setAuthUser({
+    name: name || 'Hotspot Manager',
+    type: 'guest'
+  });
+  if(typeof showOutbidAlert === 'function'){
+    showOutbidAlert(`Entered in Hotspot mode: ${name || 'Hotspot Manager'}`);
+  }
+}
+
+function handleLogout(){
+  if(!confirm('Sign out of your manager account?')) return;
+  setAuthUser(null);
+  if(typeof showOutbidAlert === 'function'){
+    showOutbidAlert('Signed out successfully.');
+  }
+}
+
+// Hook applyAuthSession into page load
+window.addEventListener('DOMContentLoaded', () => {
+  applyAuthSession();
+});
+setTimeout(() => {
+  applyAuthSession();
+}, 50);
+
 
 function show(id){
   ['createScreen','lobbyScreen','retentionScreen','auctionScreen'].forEach(x=>{
